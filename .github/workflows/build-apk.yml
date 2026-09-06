@@ -61,8 +61,10 @@ jobs:
 
           imports_needed = [
               'import android.os.Bundle;',
+              'import android.os.Build;',
               'import android.content.Context;',
               'import android.content.res.Configuration;',
+              'import android.util.DisplayMetrics;',
           ]
           for imp in imports_needed:
               if imp not in content:
@@ -82,13 +84,17 @@ jobs:
               insert = '''
             @Override
             protected void attachBaseContext(Context newBase) {
-              Configuration configuration = newBase.getResources().getConfiguration();
-              if (configuration.fontScale != 1.0f) {
-                configuration = new Configuration(configuration);
-                configuration.fontScale = 1.0f;
-                newBase = newBase.createConfigurationContext(configuration);
+              Configuration configuration = new Configuration(newBase.getResources().getConfiguration());
+              configuration.fontScale = 1.0f;
+              // Also ignore the device's "Screen zoom" display setting (on
+              // Samsung/One UI this lives on the same settings page as font
+              // size and inflates density the same way fontScale inflates
+              // text, so locking fontScale alone isn't enough on those phones).
+              if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                configuration.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE;
               }
-              super.attachBaseContext(newBase);
+              Context context = newBase.createConfigurationContext(configuration);
+              super.attachBaseContext(context);
             }
           '''
               idx = content.rfind('}')
