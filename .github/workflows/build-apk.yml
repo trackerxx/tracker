@@ -51,7 +51,7 @@ jobs:
       - name: Add Android Platform
         run: npx cap add android
 
-      - name: Disable WebView Scrollbar and Lock Text Zoom
+      - name: Disable WebView Scrollbar, Lock Text Zoom and Screen Density
         run: |
           python3 - << 'EOF'
           import glob
@@ -59,12 +59,27 @@ jobs:
           content = open(path).read()
 
           if 'onCreate' not in content:
-              if 'import android.os.Bundle;' not in content:
+              needed_imports = [
+                  'import android.os.Bundle;',
+                  'import android.content.Context;',
+                  'import android.content.res.Configuration;',
+                  'import android.util.DisplayMetrics;',
+              ]
+              missing = [imp for imp in needed_imports if imp not in content]
+              if missing:
                   content = content.replace(
                       'import com.getcapacitor.BridgeActivity;',
-                      'import android.os.Bundle;\nimport com.getcapacitor.BridgeActivity;'
+                      '\n'.join(missing) + '\nimport com.getcapacitor.BridgeActivity;'
                   )
               insert = '''
+            @Override
+            protected void attachBaseContext(Context newBase) {
+              Configuration configuration = new Configuration(newBase.getResources().getConfiguration());
+              configuration.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE;
+              Context context = newBase.createConfigurationContext(configuration);
+              super.attachBaseContext(context);
+            }
+
             @Override
             public void onCreate(Bundle savedInstanceState) {
               super.onCreate(savedInstanceState);
