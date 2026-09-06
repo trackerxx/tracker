@@ -7137,37 +7137,17 @@ function openDebtAmountPickerModal(category) {
   updateFilterModalClearBtnVisibility();
 }
 
-// Shrinks ONLY the amount-sort pill's label text (never the pill itself,
-// never the money icon/caret) until the button's content actually fits
-// within its real rendered width - instead of guessing a single fixed
-// font-size. "High to Low"/"Low to High" (especially the Bangla
-// translations) are long enough that at the pill's normal 7px they
-// overflowed this fixed-size (h-8, px-1) chip, and because everything
-// inside is flex-shrink-0, that overflow pushed the money icon flush
-// against the pill's left edge instead of leaving the small gap every
-// other filter chip has. Measuring against the button's own clientWidth
-// (rather than hardcoding a smaller px value) keeps that same gap no
-// matter how long the active language's label happens to be.
-function fitDebtAmountLabelToPill(category) {
-  const btn = document.getElementById(`${category}-sort-btn-amount`);
+// Fixed sizing for the amount-sort pill's label + its dot indicator:
+// 7px (the pill's own normal base size) for "All Amounts", 5px for the
+// two longer "High to Low" / "Low to High" states - never a measured/
+// dynamic size, per how every other font-size in this app is set.
+function fitDebtAmountLabelToPill(category, isSortByAmount) {
   const label = document.getElementById(`${category}-sort-label-amount`);
-  if (!btn || !label) return;
-  // The button is inside a subtab that may currently be display:none (its
-  // clientWidth would read 0) - e.g. this can run once on initial load
-  // before the Debts/Receivables subtab is ever opened. Bail out rather
-  // than shrinking against a bogus zero width; switchLogsSubtab() already
-  // re-runs this the moment the tab actually becomes visible.
-  if (btn.clientWidth === 0) return;
-
-  const baseFontPx = 7; // matches the pill's own base text-[7px]
-  const minFontPx = 4.5; // still legible at the smallest fallback size
-  label.style.fontSize = baseFontPx + 'px';
-  let fontSize = baseFontPx;
-  let guard = 0;
-  while (btn.scrollWidth > btn.clientWidth && fontSize > minFontPx && guard < 40) {
-    fontSize -= 0.25;
-    label.style.fontSize = fontSize + 'px';
-    guard++;
+  const dot = document.getElementById(`${category}-sort-dot-amount`);
+  if (label) label.style.fontSize = isSortByAmount ? '5px' : '7px';
+  if (dot) {
+    dot.style.width = isSortByAmount ? '3px' : '4px';
+    dot.style.height = isSortByAmount ? '3px' : '4px';
   }
 }
 
@@ -7198,7 +7178,7 @@ function updateDebtSortButtonsUI(category, instant) {
   if (amountLabel) {
     const labels = { all: tr('logs_all_prices', 'All Amounts'), high: tr('logs_high_to_low', 'High to Low'), low: tr('logs_low_to_high', 'Low to High') };
     amountLabel.innerText = labels[amountMode];
-    fitDebtAmountLabelToPill(category);
+    fitDebtAmountLabelToPill(category, amountMode === 'high' || amountMode === 'low');
   }
 }
 
@@ -10280,16 +10260,19 @@ function syncLogFilterLabels(sortVal, timeVal, priceVal) {
   const priceEl = document.getElementById('label-price');
   if (priceEl) {
     priceEl.innerText = priceVal === 'high' ? tr('logs_high_to_low', 'High to Low') : priceVal === 'low' ? tr('logs_low_to_high', 'Low to High') : tr('logs_all_prices', 'All Amounts');
-    // "High to Low" / "Low to High" (especially their Bangla translations,
-    // logs_high_to_low / logs_low_to_high) are noticeably longer than the
-    // default "All Amounts" label, so at the chip's normal 9px font they
-    // wrapped onto two lines inside this fixed-size pill and squeezed the
-    // dot indicator (logs-price-filter-dot) out of view. Only those two
-    // longer states get a smaller, non-wrapping font - the default "All
-    // Amounts" label keeps matching the Sort/Time chips' normal size.
+    // Fixed sizing (never measured/dynamic, matching every other font-size
+    // in this app): 7px for "All Amounts", 5px for the two longer "High to
+    // Low" / "Low to High" states - applied to both the label text and its
+    // dot indicator (logs-price-filter-dot), same rule as the Debts/
+    // Receivables amount pill.
     const isSortByAmount = priceVal === 'high' || priceVal === 'low';
-    priceEl.classList.toggle('text-[7.5px]', isSortByAmount);
-    priceEl.classList.toggle('whitespace-nowrap', isSortByAmount);
+    priceEl.classList.add('whitespace-nowrap');
+    priceEl.style.fontSize = isSortByAmount ? '5px' : '7px';
+    const priceDotSizeEl = document.getElementById('logs-price-filter-dot');
+    if (priceDotSizeEl) {
+      priceDotSizeEl.style.width = isSortByAmount ? '3px' : '4px';
+      priceDotSizeEl.style.height = isSortByAmount ? '3px' : '4px';
+    }
   }
 
   const timeEl = document.getElementById('label-time');
