@@ -51,7 +51,7 @@ jobs:
       - name: Add Android Platform
         run: npx cap add android
 
-      - name: Disable WebView Scrollbar, Lock Text Zoom and Screen Density
+      - name: Disable WebView Scrollbar and Lock Text Zoom
         run: |
           python3 - << 'EOF'
           import glob
@@ -59,40 +59,12 @@ jobs:
           content = open(path).read()
 
           if 'onCreate' not in content:
-              needed_imports = [
-                  'import android.os.Bundle;',
-                  'import android.content.Context;',
-                  'import android.content.res.Configuration;',
-                  'import android.content.res.Resources;',
-                  'import android.util.DisplayMetrics;',
-              ]
-              missing = [imp for imp in needed_imports if imp not in content]
-              if missing:
+              if 'import android.os.Bundle;' not in content:
                   content = content.replace(
                       'import com.getcapacitor.BridgeActivity;',
-                      '\n'.join(missing) + '\nimport com.getcapacitor.BridgeActivity;'
+                      'import android.os.Bundle;\nimport com.getcapacitor.BridgeActivity;'
                   )
               insert = '''
-            @Override
-            protected void attachBaseContext(Context newBase) {
-              super.attachBaseContext(newBase);
-              Resources resources = newBase.getResources();
-              Configuration configuration = resources.getConfiguration();
-              configuration.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE;
-              resources.updateConfiguration(configuration, resources.getDisplayMetrics());
-            }
-
-            @Override
-            public Resources getResources() {
-              Resources resources = super.getResources();
-              Configuration configuration = resources.getConfiguration();
-              if (configuration.densityDpi != DisplayMetrics.DENSITY_DEVICE_STABLE) {
-                configuration.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE;
-                resources.updateConfiguration(configuration, resources.getDisplayMetrics());
-              }
-              return resources;
-            }
-
             @Override
             public void onCreate(Bundle savedInstanceState) {
               super.onCreate(savedInstanceState);
