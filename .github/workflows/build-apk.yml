@@ -63,6 +63,7 @@ jobs:
                   'import android.os.Bundle;',
                   'import android.content.Context;',
                   'import android.content.res.Configuration;',
+                  'import android.content.res.Resources;',
                   'import android.util.DisplayMetrics;',
               ]
               missing = [imp for imp in needed_imports if imp not in content]
@@ -74,10 +75,22 @@ jobs:
               insert = '''
             @Override
             protected void attachBaseContext(Context newBase) {
-              Configuration configuration = new Configuration(newBase.getResources().getConfiguration());
+              super.attachBaseContext(newBase);
+              Resources resources = newBase.getResources();
+              Configuration configuration = resources.getConfiguration();
               configuration.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE;
-              Context context = newBase.createConfigurationContext(configuration);
-              super.attachBaseContext(context);
+              resources.updateConfiguration(configuration, resources.getDisplayMetrics());
+            }
+
+            @Override
+            public Resources getResources() {
+              Resources resources = super.getResources();
+              Configuration configuration = resources.getConfiguration();
+              if (configuration.densityDpi != DisplayMetrics.DENSITY_DEVICE_STABLE) {
+                configuration.densityDpi = DisplayMetrics.DENSITY_DEVICE_STABLE;
+                resources.updateConfiguration(configuration, resources.getDisplayMetrics());
+              }
+              return resources;
             }
 
             @Override
@@ -87,7 +100,7 @@ jobs:
               this.bridge.getWebView().setHorizontalScrollBarEnabled(false);
               this.bridge.getWebView().setOverScrollMode(android.webkit.WebView.OVER_SCROLL_NEVER);
               this.bridge.getWebView().setScrollBarStyle(android.view.View.SCROLLBARS_INSIDE_OVERLAY);
-              this.bridge.getWebView().getSettings().setTextZoom(110);
+              this.bridge.getWebView().getSettings().setTextZoom(100);
             }
           '''
               idx = content.rfind('}')
