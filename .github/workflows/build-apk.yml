@@ -51,7 +51,7 @@ jobs:
       - name: Add Android Platform
         run: npx cap add android
 
-      - name: Disable WebView Scrollbar
+      - name: Disable WebView Scrollbar and Lock Text Zoom
         run: |
           python3 - << 'EOF'
           import glob
@@ -72,6 +72,7 @@ jobs:
               this.bridge.getWebView().setHorizontalScrollBarEnabled(false);
               this.bridge.getWebView().setOverScrollMode(android.webkit.WebView.OVER_SCROLL_NEVER);
               this.bridge.getWebView().setScrollBarStyle(android.view.View.SCROLLBARS_INSIDE_OVERLAY);
+              this.bridge.getWebView().getSettings().setTextZoom(100);
             }
           '''
               idx = content.rfind('}')
