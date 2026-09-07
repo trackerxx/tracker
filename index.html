@@ -1512,7 +1512,7 @@ html:not(.dark-theme) body::before {
 <input type="hidden" id="edit-tx-id">
 <div class="space-y-3">
 <input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="edit-tx-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
-<p id="edit-tx-amount-locked-hint" class="hidden text-[10px] text-gray-400 font-medium -mt-1.5 px-1"><i class="fas fa-lock mr-1"></i><span></span></p>
+<p id="edit-tx-amount-locked-hint" class="hidden text-[8px] text-gray-400 font-medium -mt-1.5 px-1"><i class="fas fa-lock mr-1"></i><span></span></p>
 
 <input type="text" id="edit-tx-description-input" placeholder="Note" data-i18n-placeholder="modal_description_placeholder" data-i18n-placeholder-en="Note" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
 
@@ -1740,7 +1740,7 @@ html:not(.dark-theme) body::before {
 <input type="text" id="debt-person-input" placeholder="Person's Name" data-i18n-placeholder="modal_person_name_placeholder" data-i18n-placeholder-en="Person's Name" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
 
 <input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="debt-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
-<p id="debt-amount-locked-hint" class="hidden text-[10px] text-gray-400 font-medium -mt-1.5 px-1"><i class="fas fa-lock mr-1"></i><span></span></p>
+<p id="debt-amount-locked-hint" class="hidden text-[8px] text-gray-400 font-medium -mt-1.5 px-1"><i class="fas fa-lock mr-1"></i><span></span></p>
 
 <input type="text" id="debt-note-input" placeholder="Note" data-i18n-placeholder="modal_reason_note_placeholder" data-i18n-placeholder-en="Note" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
 
@@ -6467,6 +6467,13 @@ function setupKeyboardAwareBottomNav() {
   document.addEventListener('focusin', (e) => {
     const el = e.target;
     if (!el || el.id === 'keyboard-warmup-input') return;
+    // A readOnly field (e.g. the amount input on a locked history entry)
+    // still accepts DOM focus when tapped, but never actually summons the
+    // keyboard - so hiding the nav bar here would never get reversed,
+    // since the reveal logic below waits for a visualViewport resize that
+    // will never come. Skip readOnly fields for the same reason
+    // NON_TEXT_INPUT_TYPES are skipped.
+    if (el.readOnly) return;
     if (isTextEntryField(el)) {
       bottomNavHideReasons.keyboard = true;
       updateBottomNavVisibility(true);
