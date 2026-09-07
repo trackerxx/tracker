@@ -1538,7 +1538,7 @@ html:not(.dark-theme) body::before {
 </div>
 <input type="hidden" id="edit-tx-selected-fund">
 
-<p class="text-[10px] font-medium text-gray-400 px-1" data-i18n="modal_balance_adjust_note" data-i18n-en="Changing the amount or fund will automatically adjust the affected fund balance(s).">Changing the amount or fund will automatically adjust the affected fund balance(s).</p>
+<p id="edit-tx-balance-note" class="text-[10px] font-medium text-gray-400 px-1" data-i18n="modal_balance_adjust_note" data-i18n-en="Changing the amount or fund will automatically adjust the affected fund balance(s).">Changing the amount or fund will automatically adjust the affected fund balance(s).</p>
 
 <div class="flex space-x-2 pt-2">
 <button onclick="closeEditTransactionModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
@@ -1615,6 +1615,7 @@ html:not(.dark-theme) body::before {
 
 <div class="space-y-2.5">
 <input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="add-money-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-green-500">
+<p id="add-money-amount-locked-hint" class="hidden text-[8px] text-gray-400 font-medium -mt-1 px-1"><i class="fas fa-lock mr-1"></i><span></span></p>
 <input type="text" id="add-money-description-input" placeholder="Note (optional)" data-i18n-placeholder="modal_note_optional_placeholder" data-i18n-placeholder-en="Note (optional)" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-green-500">
 
 <div class="flex space-x-2 pt-1">
@@ -1677,6 +1678,7 @@ html:not(.dark-theme) body::before {
 <input type="hidden" id="edit-transfer-id">
 <div class="space-y-3">
 <input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="edit-transfer-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<p id="edit-transfer-amount-locked-hint" class="hidden text-[8px] text-gray-400 font-medium -mt-1.5 px-1"><i class="fas fa-lock mr-1"></i><span></span></p>
 
 <div class="space-y-1">
 <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider" data-i18n="modal_from_account" data-i18n-en="From Fund">From Fund</p>
@@ -1714,7 +1716,7 @@ html:not(.dark-theme) body::before {
 
 <input type="text" id="edit-transfer-description-input" placeholder="Note (optional)" data-i18n-placeholder="modal_note_optional_placeholder" data-i18n-placeholder-en="Note (optional)" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
 
-<p class="text-[10px] font-medium text-gray-400 px-1" data-i18n="modal_transfer_balance_note" data-i18n-en="Changing the amount or funds will automatically adjust both fund balances. The linked entry on the receiving fund updates automatically and can't be edited separately.">Changing the amount or funds will automatically adjust both fund balances. The linked entry on the receiving fund updates automatically and can't be edited separately.</p>
+<p id="edit-transfer-balance-note" class="text-[10px] font-medium text-gray-400 px-1" data-i18n="modal_transfer_balance_note" data-i18n-en="Changing the amount or funds will automatically adjust both fund balances. The linked entry on the receiving fund updates automatically and can't be edited separately.">Changing the amount or funds will automatically adjust both fund balances. The linked entry on the receiving fund updates automatically and can't be edited separately.</p>
 
 <div class="flex space-x-2 pt-2">
 <button onclick="closeEditTransferModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
@@ -9024,7 +9026,11 @@ function openAddMoneyModal() {
   editingAddMoneyId = null;
   document.getElementById('add-money-modal-title').innerText = tr('modal_add_money_title', 'Add Money');
   document.getElementById('add-money-save-btn').innerText = tr('modal_add_btn', 'Add');
-  document.getElementById('add-money-amount-input').value = '';
+  const addMoneyAmountInput = document.getElementById('add-money-amount-input');
+  addMoneyAmountInput.value = '';
+  addMoneyAmountInput.readOnly = false;
+  addMoneyAmountInput.classList.remove('opacity-50');
+  document.getElementById('add-money-amount-locked-hint').classList.add('hidden');
   document.getElementById('add-money-description-input').value = '';
   showPopup('popup-add-money');
 }
@@ -9036,6 +9042,17 @@ function openEditAddMoneyModal(txId) {
   document.getElementById('add-money-modal-title').innerText = tr('modal_edit_amount_title', 'Edit Amount');
   document.getElementById('add-money-save-btn').innerText = tr('common_save', 'Save');
   document.getElementById('add-money-amount-input').value = formatAmountForInput(tx.amount);
+  // Same 1-day amount lock as regular transactions/transfers - Add Money
+  // is just another transaction-section entry type (see isTxAmountLocked).
+  const addMoneyAmountLocked = isTxAmountLocked(tx);
+  const addMoneyAmountInput = document.getElementById('add-money-amount-input');
+  addMoneyAmountInput.readOnly = addMoneyAmountLocked;
+  addMoneyAmountInput.classList.toggle('opacity-50', addMoneyAmountLocked);
+  const addMoneyLockHint = document.getElementById('add-money-amount-locked-hint');
+  addMoneyLockHint.classList.toggle('hidden', !addMoneyAmountLocked);
+  if (addMoneyAmountLocked) {
+    addMoneyLockHint.querySelector('span').innerText = tr('tx_amount_locked_hint', "You can't change this because the history is more than 1 day old.");
+  }
   document.getElementById('add-money-description-input').value = tx.description || '';
   showPopup('popup-add-money');
 }
@@ -9295,11 +9312,15 @@ function saveAddMoney() {
     // the new one - same "reverse then reapply" approach used elsewhere.
     const tx = appState.transactions.find(t => t.id === editingAddMoneyId);
     if (!tx) { closeAddMoneyModal(); return; }
+    // If the amount is locked (>1 day old), ignore whatever is in the
+    // input (readOnly prevents normal edits, but this guards against it
+    // regardless) and keep the original amount.
+    const finalAmount = isTxAmountLocked(tx) ? tx.amount : amount;
     if (appState.funds[tx.fund] !== undefined) {
       appState.funds[tx.fund] -= tx.amount;
-      appState.funds[tx.fund] += amount;
+      appState.funds[tx.fund] += finalAmount;
     }
-    tx.amount = amount;
+    tx.amount = finalAmount;
     tx.description = description;
   } else {
     const fund = currentDetailsFund;
@@ -9409,6 +9430,18 @@ function openEditTransferModal(txId) {
   editingTransferId = txId;
   document.getElementById('edit-transfer-id').value = txId;
   document.getElementById('edit-transfer-amount-input').value = formatAmountForInput(tx.amount);
+  // Same 1-day amount lock as regular transactions (isTxAmountLocked) -
+  // Fund Transfer is just another transaction-section entry type, so it
+  // follows the same rule, not the 7-day debts/receivables one.
+  const transferAmountLocked = isTxAmountLocked(tx);
+  const transferAmountInput = document.getElementById('edit-transfer-amount-input');
+  transferAmountInput.readOnly = transferAmountLocked;
+  transferAmountInput.classList.toggle('opacity-50', transferAmountLocked);
+  const transferLockHint = document.getElementById('edit-transfer-amount-locked-hint');
+  transferLockHint.classList.toggle('hidden', !transferAmountLocked);
+  if (transferAmountLocked) {
+    transferLockHint.querySelector('span').innerText = tr('tx_amount_locked_hint', "You can't change this because the history is more than 1 day old.");
+  }
   document.getElementById('edit-transfer-description-input').value = tx.description || '';
   document.getElementById('edit-transfer-from-selected-fund').value = tx.fund;
   document.getElementById('edit-transfer-from-active-fund-label').innerText = fundDisplayName(tx.fund);
@@ -9416,6 +9449,23 @@ function openEditTransferModal(txId) {
   document.getElementById('edit-transfer-to-selected-fund').value = tx.linkedFund;
   document.getElementById('edit-transfer-to-active-fund-label').innerText = fundDisplayName(tx.linkedFund);
   updateAccountButtonIcon('edit-transfer-to', tx.linkedFund);
+
+  // Once amount-locked, From/To fund lock together with the amount -
+  // changing either after the fact would require re-adjusting both fund
+  // balances, the same thing the amount lock exists to prevent. The note
+  // (description) is just a label with no balance impact, so it stays
+  // free to edit regardless - same as every other history card type.
+  const fromBtn = document.querySelector("button[onclick=\"toggleAccountDropdown('edit-transfer-from')\"]");
+  const toBtn = document.querySelector("button[onclick=\"toggleAccountDropdown('edit-transfer-to')\"]");
+  [fromBtn, toBtn].forEach(btn => {
+    if (!btn) return;
+    btn.disabled = transferAmountLocked;
+    btn.classList.toggle('opacity-50', transferAmountLocked);
+    btn.classList.toggle('pointer-events-none', transferAmountLocked);
+  });
+  // This note only describes what happens when amount/funds ARE still
+  // changeable - once locked, none of that applies anymore, so hide it.
+  document.getElementById('edit-transfer-balance-note').classList.toggle('hidden', transferAmountLocked);
 
   showPopup('popup-edit-transfer');
 }
@@ -9430,10 +9480,14 @@ function saveEditedTransfer() {
   if (!outTx) return;
   const inTx = appState.transactions.find(t => t.transferId === outTx.transferId && t.type === 'transfer_in');
 
-  const amount = parseAmountInput(document.getElementById('edit-transfer-amount-input').value);
+  // If the amount is locked (>1 day old), ignore whatever is in the input
+  // (readOnly prevents normal edits, but this guards against it regardless)
+  // and keep the original amount, same as saveEditedTransaction does.
+  const transferAmountLocked = isTxAmountLocked(outTx);
+  const amount = transferAmountLocked ? outTx.amount : parseAmountInput(document.getElementById('edit-transfer-amount-input').value);
   const description = document.getElementById('edit-transfer-description-input').value.trim();
-  const fromFund = document.getElementById('edit-transfer-from-selected-fund').value || outTx.fund;
-  const toFund = document.getElementById('edit-transfer-to-selected-fund').value || outTx.linkedFund;
+  const fromFund = transferAmountLocked ? outTx.fund : (document.getElementById('edit-transfer-from-selected-fund').value || outTx.fund);
+  const toFund = transferAmountLocked ? outTx.linkedFund : (document.getElementById('edit-transfer-to-selected-fund').value || outTx.linkedFund);
 
   if (!amount || amount <= 0) { customAlert(tr('alert_valid_amount', "Please enter a valid amount!")); return; }
   if (fromFund === toFund) { customAlert(tr('alert_choose_two_different_accounts', "Please choose two different funds to transfer between!")); return; }
@@ -9520,8 +9574,10 @@ function openEditTransactionModal(txId) {
   const editTxAmountInput = document.getElementById('edit-tx-amount-input');
   editTxAmountInput.value = formatAmountForInput(tx.amount);
   // Amount becomes read-only once the 1-day edit window has passed - see
-  // isTxAmountLocked/saveEditedTransaction. Everything else on this modal
-  // (fund, description, category) stays editable regardless.
+  // isTxAmountLocked/saveEditedTransaction. Fund locks together with it
+  // (moving the entry to a different fund after the fact has the same
+  // balance-adjustment effect as changing the amount, so it's covered by
+  // the same lock). Description and category stay editable regardless.
   const txAmountLocked = isTxAmountLocked(tx);
   editTxAmountInput.readOnly = txAmountLocked;
   editTxAmountInput.classList.toggle('opacity-50', txAmountLocked);
@@ -9536,6 +9592,15 @@ function openEditTransactionModal(txId) {
   document.getElementById('edit-tx-selected-fund').value = tx.fund;
   document.getElementById('edit-tx-active-fund-label').innerText = fundDisplayName(tx.fund);
   updateAccountButtonIcon('edit-tx', tx.fund);
+  const editTxFundBtn = document.querySelector("button[onclick=\"toggleAccountDropdown('edit-tx')\"]");
+  if (editTxFundBtn) {
+    editTxFundBtn.disabled = txAmountLocked;
+    editTxFundBtn.classList.toggle('opacity-50', txAmountLocked);
+    editTxFundBtn.classList.toggle('pointer-events-none', txAmountLocked);
+  }
+  // The balance-adjust note only applies while amount/fund are still
+  // changeable - hide it once locked, same as the Fund Transfer note.
+  document.getElementById('edit-tx-balance-note').classList.toggle('hidden', txAmountLocked);
 
   renderCategorySlider('edit-tx-quick-categories', 'edit-qc-', 'selectEditTxQuickCategory', EDIT_TX_QUICK_CATEGORIES);
   clearEditTxQuickCategoryHighlights();
@@ -9596,14 +9661,16 @@ function saveEditedTransaction() {
   // Amount is frozen once the 1-day window has passed (the input is also
   // made read-only in openEditTransactionModal, but re-check here too in
   // case the value was tampered with) - silently keep the original amount
-  // rather than block the whole save, so fund/description/category edits
-  // still go through.
+  // rather than block the whole save, so description/category edits still
+  // go through. Fund locks together with amount for the same reason (see
+  // openEditTransactionModal) - the dropdown is disabled there, but keep
+  // the original fund here too as a guard against tampering.
   const txAmountLocked = isTxAmountLocked(tx);
   const amount = txAmountLocked ? tx.amount : parseAmountInput(document.getElementById('edit-tx-amount-input').value);
   const description = document.getElementById('edit-tx-description-input').value.trim();
   const typedCategory = document.getElementById('edit-tx-category-input').value.trim();
   const category = (typedCategory ? resolveCanonicalCategory(typedCategory) : null) || typedCategory || 'Other';
-  const targetFund = document.getElementById('edit-tx-selected-fund').value || tx.fund;
+  const targetFund = txAmountLocked ? tx.fund : (document.getElementById('edit-tx-selected-fund').value || tx.fund);
 
   if (!amount || amount <= 0) { customAlert(tr('alert_valid_amount', "Please enter a valid amount!")); return; }
 
