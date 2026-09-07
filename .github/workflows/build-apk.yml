@@ -13,6 +13,22 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
+      # GitHub Actions spins up a brand-new VM every run, so the debug
+      # keystore Gradle auto-generates at ~/.android/debug.keystore is
+      # different every single build unless we persist it ourselves. A
+      # different keystore = a different app signature, and Android
+      # refuses to install an APK signed with a different key "on top of"
+      # an already-installed one (INSTALL_FAILED_UPDATE_INCOMPATIBLE /
+      # "conflicts with an existing package") - forcing an uninstall
+      # first. Caching this one file makes every build reuse the exact
+      # same signing key, so future APKs install as a normal in-place
+      # Update over the previous one.
+      - name: Restore persistent debug keystore
+        uses: actions/cache@v4
+        with:
+          path: ~/.android/debug.keystore
+          key: persistent-debug-keystore-v1
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -36,6 +52,20 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
+
+      - name: Create debug keystore if it doesn't exist yet
+        run: |
+          mkdir -p ~/.android
+          if [ ! -f ~/.android/debug.keystore ]; then
+            keytool -genkey -v \
+              -keystore ~/.android/debug.keystore \
+              -storepass android -keypass android \
+              -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+            echo "Created new persistent debug keystore"
+          else
+            echo "Reusing cached debug keystore"
+          fi
 
       - name: Bundle Capacitor Bridge
         run: npx esbuild capacitor-src/bridge.js --bundle --outfile=cap-bridge.js --platform=browser
