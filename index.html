@@ -10843,20 +10843,32 @@ async function exportLogs() {
   const jsonStr = JSON.stringify(backupPayload, null, 2);
 
   // Human-readable filename instead of a raw timestamp number, so the
-  // backup file itself shows exactly when it was taken at a glance:
-  // Tracker_21_Aug_2026_03-45PM.json
+  // backup file itself shows exactly when it was taken at a glance.
+  // Localized per app language, using the same building blocks used
+  // elsewhere in the app (BN_MONTHS_SHORT, toBnDigits, reminder_am/pm):
+  //   en: Tracker_21_Aug_2026_03.45PM.json
+  //   bn: ট্র্যাকার_২১_আগ._২০২৬_০৩.৪৫_পিএম.json
   const now = new Date();
   const monthNamesShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const day = String(now.getDate()).padStart(2, '0');
-  const month = monthNamesShort[now.getMonth()];
   const year = now.getFullYear();
   let hours = now.getHours();
-  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const isPm = hours >= 12;
   hours = hours % 12;
   if (hours === 0) hours = 12;
   const hoursStr = String(hours).padStart(2, '0');
   const minutesStr = String(now.getMinutes()).padStart(2, '0');
-  const filename = `Tracker_${day}_${month}_${year}_${hoursStr}:${minutesStr}${ampm}.json`;
+
+  let filename;
+  if (getLang() === 'bn') {
+    const month = BN_MONTHS_SHORT[now.getMonth()];
+    const ampm = isPm ? tr('reminder_pm', 'PM') : tr('reminder_am', 'AM');
+    filename = `ট্র্যাকার_${toBnDigits(day)}_${month}_${toBnDigits(year)}_${toBnDigits(hoursStr)}.${toBnDigits(minutesStr)}_${ampm}.json`;
+  } else {
+    const month = monthNamesShort[now.getMonth()];
+    const ampm = isPm ? 'PM' : 'AM';
+    filename = `Tracker_${day}_${month}_${year}_${hoursStr}.${minutesStr}${ampm}.json`;
+  }
 
   const method = await downloadFile(filename, 'application/json', jsonStr);
   if (!method) {
