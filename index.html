@@ -1512,6 +1512,7 @@ html:not(.dark-theme) body::before {
 <input type="hidden" id="edit-tx-id">
 <div class="space-y-3">
 <input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="edit-tx-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<p id="edit-tx-amount-locked-hint" class="hidden text-[10px] text-gray-400 font-medium -mt-1.5 px-1"><i class="fas fa-lock mr-1"></i><span></span></p>
 
 <input type="text" id="edit-tx-description-input" placeholder="Note" data-i18n-placeholder="modal_description_placeholder" data-i18n-placeholder-en="Note" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
 
@@ -1739,6 +1740,7 @@ html:not(.dark-theme) body::before {
 <input type="text" id="debt-person-input" placeholder="Person's Name" data-i18n-placeholder="modal_person_name_placeholder" data-i18n-placeholder-en="Person's Name" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
 
 <input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="debt-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<p id="debt-amount-locked-hint" class="hidden text-[10px] text-gray-400 font-medium -mt-1.5 px-1"><i class="fas fa-lock mr-1"></i><span></span></p>
 
 <input type="text" id="debt-note-input" placeholder="Note" data-i18n-placeholder="modal_reason_note_placeholder" data-i18n-placeholder-en="Note" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
 
@@ -2949,9 +2951,11 @@ const I18N = {
     alert_enter_person_name: 'দয়া করে ব্যক্তির নাম লিখুন!',
     alert_valid_amount: 'দয়া করে সঠিক পরিমাণ লিখুন!',
     alert_amount_below_paid: 'এই পরিমাণ ইতিমধ্যে পরিশোধিত অংশের (৳{amt}) চেয়ে কম হতে পারবে না।',
+    tx_amount_locked_hint: 'ইতিহাস ১ দিনের বেশি হওয়ায় আপনি এটি পরিবর্তন করতে পারবেন না',
+    debt_amount_locked_hint: 'ইতিহাস ৭ দিনের বেশি হওয়ায় আপনি এটি পরিবর্তন করতে পারবেন না',
     alert_amount_above_remaining: 'এটি বাকি থাকা পরিমাণের (৳{amt}) চেয়ে বেশি। বাকি থাকা পরিমাণের মধ্যে একটি সংখ্যা লিখুন।',
     confirm_delete_record_permanently: 'এই রেকর্ডটি স্থায়ীভাবে মুছে ফেলবেন?',
-    alert_insufficient_balance_edit_fund: 'ওই ফান্ডে পর্যাপ্ত ব্যালেন্স নেই! আগে ফান্ড এডিট করুন অথবা টাকা যোগ করুন।',
+    alert_insufficient_balance_edit_fund: 'ফান্ডে পর্যাপ্ত ব্যালেন্স নেই! আগে ফান্ডে টাকা যোগ করুন।',
     alert_need_2_accounts: 'ট্রান্সফার করতে অন্তত ২টি ফান্ড থাকা দরকার। আগে আরেকটি ফান্ড যোগ করুন।',
     alert_choose_two_different_accounts: 'দয়া করে ট্রান্সফারের জন্য দুটি ভিন্ন ফান্ড বেছে নিন!',
     alert_insufficient_source_balance: 'উৎস ফান্ডে পর্যাপ্ত ব্যালেন্স নেই!',
@@ -7755,6 +7759,18 @@ function getDebtRemaining(d) {
   return Math.max(0, (d.amount || 0) - getDebtPaidAmount(d));
 }
 
+// After 7 full days from creation, a Debt/Receivable's amount becomes
+// permanently locked - everything else (name, note, due date, reminder,
+// type) can still be edited freely, only the amount itself is frozen.
+// Uses createdDate (set once, at creation - see saveDebtEntry's "else"
+// branch) rather than any later-edited field, so re-saving other fields
+// doesn't reset the 7-day window.
+const DEBT_AMOUNT_LOCK_MS = 7 * 24 * 60 * 60 * 1000;
+function isDebtAmountLocked(entry) {
+  if (!entry || !entry.createdDate) return false;
+  return (Date.now() - new Date(entry.createdDate).getTime()) > DEBT_AMOUNT_LOCK_MS;
+}
+
 // Toggles a single entry's "Key Person" star (tapped from the star icon
 // next to the person's name on each card). This is per-ENTRY, not
 // per-person - if the same person has multiple debts/receivables, each
@@ -8073,7 +8089,11 @@ function updateDebtReminderTimeDisplay() {
 function openAddDebtModal(presetType) {
   document.getElementById('debt-edit-id').value = '';
   document.getElementById('debt-person-input').value = '';
-  document.getElementById('debt-amount-input').value = '';
+  const debtAmountInputAdd = document.getElementById('debt-amount-input');
+  debtAmountInputAdd.value = '';
+  debtAmountInputAdd.readOnly = false;
+  debtAmountInputAdd.classList.remove('opacity-50');
+  document.getElementById('debt-amount-locked-hint').classList.add('hidden');
   document.getElementById('debt-note-input').value = '';
   document.getElementById('debt-duedate-input').value = '';
   document.getElementById('debt-reminder-time-input').value = '10:00';
@@ -8098,7 +8118,19 @@ function editDebtEntry(id) {
 
   document.getElementById('debt-edit-id').value = entry.id;
   document.getElementById('debt-person-input').value = entry.person;
-  document.getElementById('debt-amount-input').value = formatAmountForInput(entry.amount);
+  const debtAmountInput = document.getElementById('debt-amount-input');
+  debtAmountInput.value = formatAmountForInput(entry.amount);
+  // Amount becomes read-only 7 full days after the entry was created - see
+  // isDebtAmountLocked/saveDebtEntry. Name, note, due date, reminder and
+  // type stay editable regardless of this lock.
+  const debtAmountLocked = isDebtAmountLocked(entry);
+  debtAmountInput.readOnly = debtAmountLocked;
+  debtAmountInput.classList.toggle('opacity-50', debtAmountLocked);
+  const debtLockHint = document.getElementById('debt-amount-locked-hint');
+  debtLockHint.classList.toggle('hidden', !debtAmountLocked);
+  if (debtAmountLocked) {
+    debtLockHint.querySelector('span').innerText = tr('debt_amount_locked_hint', "You can't change this because the history is more than 7 days old.");
+  }
   document.getElementById('debt-note-input').value = entry.note || '';
   document.getElementById('debt-duedate-input').value = entry.dueDate || '';
   document.getElementById('debt-reminder-time-input').value = entry.reminderTime || '10:00';
@@ -8161,18 +8193,28 @@ function saveDebtEntry() {
     const entry = appState.debts.find(d => d.id === parseInt(editId));
     if (!entry) { closeAddDebtModal(); return; }
 
+    // Amount is frozen 7 days after creation (the input is also made
+    // read-only in editDebtEntry, but re-check here too) - silently keep
+    // the original amount rather than block the whole save, so person/
+    // note/due-date/reminder/type edits still go through.
+    const debtAmountLocked = isDebtAmountLocked(entry);
+    const finalAmount = debtAmountLocked ? entry.amount : amount;
+
     // The new total can't be dropped below what's already been paid -
     // that would make "amount paid so far" exceed the total, which
-    // would break the progress bar and remaining-balance math.
-    const paidSoFar = getDebtPaidAmount(entry);
-    if (amount < paidSoFar) {
-      customAlert(trf('alert_amount_below_paid', `The amount can't be less than what's already been paid (৳${fmtMoney(paidSoFar)}).`, { amt: fmtMoney(paidSoFar) }));
-      return;
+    // would break the progress bar and remaining-balance math. Only
+    // relevant when the amount actually changed (i.e. not locked).
+    if (!debtAmountLocked) {
+      const paidSoFar = getDebtPaidAmount(entry);
+      if (finalAmount < paidSoFar) {
+        customAlert(trf('alert_amount_below_paid', `The amount can't be less than what's already been paid (৳${fmtMoney(paidSoFar)}).`, { amt: fmtMoney(paidSoFar) }));
+        return;
+      }
     }
 
     entry.type = type;
     entry.person = person;
-    entry.amount = amount;
+    entry.amount = finalAmount;
     entry.note = note;
     entry.dueDate = dueDate;
     entry.reminderTime = reminderTime;
@@ -9446,6 +9488,16 @@ async function deleteTransferEntry(txId) {
 let editingTxId = null;
 const EDIT_TX_QUICK_CATEGORIES = ['Food', 'Shopping', 'Bills', 'Transport'].concat(QUICK_CATEGORIES_MORE);
 
+// After 1 full day from creation, a transaction's amount becomes
+// permanently locked (fund, description, category stay editable). Uses
+// tx.date, which is set once at creation time (see saveTransaction) and
+// never touched again by an edit - see saveEditedTransaction below.
+const TX_AMOUNT_LOCK_MS = 24 * 60 * 60 * 1000;
+function isTxAmountLocked(tx) {
+  if (!tx || !tx.date) return false;
+  return (Date.now() - new Date(tx.date).getTime()) > TX_AMOUNT_LOCK_MS;
+}
+
 function openEditTransactionModal(txId) {
   const tx = appState.transactions.find(t => t.id === txId);
   if (!tx) return;
@@ -9458,7 +9510,19 @@ function openEditTransactionModal(txId) {
 
   editingTxId = txId;
   document.getElementById('edit-tx-id').value = txId;
-  document.getElementById('edit-tx-amount-input').value = formatAmountForInput(tx.amount);
+  const editTxAmountInput = document.getElementById('edit-tx-amount-input');
+  editTxAmountInput.value = formatAmountForInput(tx.amount);
+  // Amount becomes read-only once the 1-day edit window has passed - see
+  // isTxAmountLocked/saveEditedTransaction. Everything else on this modal
+  // (fund, description, category) stays editable regardless.
+  const txAmountLocked = isTxAmountLocked(tx);
+  editTxAmountInput.readOnly = txAmountLocked;
+  editTxAmountInput.classList.toggle('opacity-50', txAmountLocked);
+  const txLockHint = document.getElementById('edit-tx-amount-locked-hint');
+  txLockHint.classList.toggle('hidden', !txAmountLocked);
+  if (txAmountLocked) {
+    txLockHint.querySelector('span').innerText = tr('tx_amount_locked_hint', "You can't change this because the history is more than 1 day old.");
+  }
   document.getElementById('edit-tx-description-input').value = tx.description || '';
   const txCanonicalCategory = resolveCanonicalCategory(tx.category);
   document.getElementById('edit-tx-category-input').value = txCanonicalCategory ? categoryDisplayName(txCanonicalCategory) : (tx.category || '');
@@ -9522,13 +9586,33 @@ function saveEditedTransaction() {
   const tx = appState.transactions.find(t => t.id === editingTxId);
   if (!tx) return;
 
-  const amount = parseAmountInput(document.getElementById('edit-tx-amount-input').value);
+  // Amount is frozen once the 1-day window has passed (the input is also
+  // made read-only in openEditTransactionModal, but re-check here too in
+  // case the value was tampered with) - silently keep the original amount
+  // rather than block the whole save, so fund/description/category edits
+  // still go through.
+  const txAmountLocked = isTxAmountLocked(tx);
+  const amount = txAmountLocked ? tx.amount : parseAmountInput(document.getElementById('edit-tx-amount-input').value);
   const description = document.getElementById('edit-tx-description-input').value.trim();
   const typedCategory = document.getElementById('edit-tx-category-input').value.trim();
   const category = (typedCategory ? resolveCanonicalCategory(typedCategory) : null) || typedCategory || 'Other';
   const targetFund = document.getElementById('edit-tx-selected-fund').value || tx.fund;
 
   if (!amount || amount <= 0) { customAlert(tr('alert_valid_amount', "Please enter a valid amount!")); return; }
+
+  // Never let an edit push a fund's balance below zero. Check this BEFORE
+  // touching any state: temporarily "refund" the original amount back to
+  // its original fund to see what that fund's balance would be without
+  // this transaction, then confirm the new amount can actually come out
+  // of the (possibly different) target fund.
+  const refundedOriginalBalance = (appState.funds[tx.fund] !== undefined) ? appState.funds[tx.fund] + tx.amount : undefined;
+  const projectedTargetBalance = (targetFund === tx.fund)
+    ? (refundedOriginalBalance !== undefined ? refundedOriginalBalance - amount : undefined)
+    : (appState.funds[targetFund] !== undefined ? appState.funds[targetFund] - amount : undefined);
+  if (projectedTargetBalance !== undefined && projectedTargetBalance < 0) {
+    customAlert(tr('alert_insufficient_balance_edit_fund', "Insufficient balance in that fund! Please edit fund/add cash first."));
+    return;
+  }
 
   // Always refund the ORIGINAL amount back to the ORIGINAL fund first, then
   // deduct the NEW amount from the (possibly different) target fund - this
