@@ -10856,7 +10856,7 @@ async function exportLogs() {
   if (hours === 0) hours = 12;
   const hoursStr = String(hours).padStart(2, '0');
   const minutesStr = String(now.getMinutes()).padStart(2, '0');
-  const filename = `Tracker_${day}_${month}_${year}_${hoursStr}-${minutesStr}${ampm}.json`;
+  const filename = `Tracker_${day}_${month}_${year}_${hoursStr}:${minutesStr}${ampm}.json`;
 
   const method = await downloadFile(filename, 'application/json', jsonStr);
   if (!method) {
