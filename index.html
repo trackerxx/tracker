@@ -6353,6 +6353,16 @@ function toggleFundsPanel() {
       // Instant show - no animation, no transition. Just put it back in
       // the layout immediately.
       categoryCard.style.display = '';
+      // The category list's height-clamp (fitListToVisibleCount, called
+      // from updateChart) bails out early whenever this card is hidden
+      // (offsetParent is null while display:none, so every row would
+      // measure 0px) - so switching the active fund WHILE this panel was
+      // open re-rendered the list's content but silently skipped
+      // re-measuring its clamp height, leaving it locked to whatever was
+      // last measured before the panel opened. Re-run it now that the
+      // card is visible again, so the clamp reflects the CURRENT fund's
+      // data (e.g. showing exactly 2 categories, not a stale 3).
+      safeRun(updateChart);
     }
     // Restore the bottom nav bar once the panel is collapsed again -
     // same instant snap as above, matching the keyboard-close case.
