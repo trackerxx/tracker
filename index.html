@@ -10846,7 +10846,7 @@ async function exportLogs() {
   // backup file itself shows exactly when it was taken at a glance.
   // Localized per app language, using the same building blocks used
   // elsewhere in the app (BN_MONTHS_SHORT, toBnDigits, reminder_am/pm):
-  //   en: Tracker_21_Aug_2026_03.45PM.json
+  //   en: Tracker_21_Aug_2026_03.45_PM.json
   //   bn: ট্র্যাকার_২১_আগ._২০২৬_০৩.৪৫_পিএম.json
   const now = new Date();
   const monthNamesShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -10867,7 +10867,7 @@ async function exportLogs() {
   } else {
     const month = monthNamesShort[now.getMonth()];
     const ampm = isPm ? 'PM' : 'AM';
-    filename = `Tracker_${day}_${month}_${year}_${hoursStr}.${minutesStr}${ampm}.json`;
+    filename = `Tracker_${day}_${month}_${year}_${hoursStr}.${minutesStr}_${ampm}.json`;
   }
 
   const method = await downloadFile(filename, 'application/json', jsonStr);
