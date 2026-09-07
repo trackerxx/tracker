@@ -6869,6 +6869,12 @@ async function openFundHistoryDateCalendar() {
 // gets a red tint via .logs-tx-card-full-match instead of just the text.
 function generateTxCardBody(t, actionsHtml, query) {
   const icon = getCategoryIcon(t.category);
+  // "Receivable Collected" (money coming IN from someone who owed you) and
+  // "Debt Repayment" (money going OUT to someone you owed) share the same
+  // fa-hand-holding-dollar icon - mirrored horizontally for the collected
+  // case so the hand visually "receives" from the opposite side instead
+  // of "giving", distinguishing the two at a glance.
+  const iconFlipStyle = (t.category === 'Debt Collection') ? ' style="transform: scaleX(-1);"' : '';
   const categoryLabel = translatedCategoryLabel(t.category);
   const dateLabel = fmtDate(t.date, { day: '2-digit', month: 'short' });
   const timeLabel = fmtTime(t.date);
@@ -6920,7 +6926,7 @@ function generateTxCardBody(t, actionsHtml, query) {
 
   return `<div class="logs-tx-card flex justify-between items-center p-3 bg-white rounded-xl border border-gray-100 shadow-sm transition-colors duration-300 ease-out${cardExtraCls}">
     <div class="flex items-center space-x-2.5 min-w-0 flex-1">
-      <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-base flex-shrink-0"><i class="fas ${icon} text-gray-500 text-sm"></i></div>
+      <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-base flex-shrink-0"><i class="fas ${icon} text-gray-500 text-sm"${iconFlipStyle}></i></div>
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-1.5 min-w-0">
           <p class="text-xs font-bold text-gray-800 truncate min-w-0">${categoryHtml}</p>
@@ -11676,7 +11682,7 @@ function transferInlineBadge(t) {
   const inner = t.type === 'transfer_in'
     ? `${toSpan}<i class="fas fa-arrow-left text-[5px] text-gray-400 flex-shrink-0"></i>${fromSpan}`
     : `${fromSpan}<i class="fas fa-arrow-right text-[5px] text-gray-400 flex-shrink-0"></i>${toSpan}`;
-  return `<span class="inline-flex items-center gap-0.5 text-[6px] font-bold flex-shrink-0 min-w-0">${inner}</span>`;
+  return `<span class="inline-flex items-center gap-0.5 text-[7.5px] font-bold flex-shrink-0 min-w-0">${inner}</span>`;
 }
 
 // Same badge treatment as a Fund Transfer entry (small icon + colored line
