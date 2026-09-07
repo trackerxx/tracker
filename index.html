@@ -10746,27 +10746,17 @@ function renderLogsList() {
 // error, the click just has no effect). We try the native plugin path first
 // and fall back gracefully for the browser-preview case.
 async function downloadFile(filename, mimeType, content) {
+  // 1) Capacitor Filesystem, saved DIRECTLY to a fixed public folder
+  //    (Documents) - no Share sheet ("send to...") in between. Android
+  //    asks for storage permission the first time this runs, then every
+  //    export after that lands straight in the same folder with no extra
+  //    dialog. This trades away per-export folder choice for a much
+  //    faster, more predictable save - the person always knows exactly
+  //    where their backups are.
   const cap = getCap();
-  const native = isNativeApp();
-
-  if (native && cap && cap.Filesystem) {
-    // 1) Try requesting storage permission, then writing DIRECTLY to the
-    //    fixed public Documents folder - no Share sheet ("send to...") in
-    //    between, so the person always knows exactly where their backups
-    //    are. This only actually works on Android 10 and below (and only
-    //    if the app has requestLegacyExternalStorage set) - on Android 11+
-    //    the public Documents folder is locked down by scoped storage and
-    //    this throws, which is expected and handled by falling through to
-    //    step 2 below rather than treated as a hard failure.
+  if (isNativeApp() && cap && cap.Filesystem) {
     try {
-      if (cap.Filesystem.requestPermissions) {
-        try {
-          await cap.Filesystem.requestPermissions();
-        } catch (permErr) {
-          console.warn("Filesystem permission request failed:", permErr);
-        }
-      }
-      await cap.Filesystem.writeFile({
+      const written = await cap.Filesystem.writeFile({
         path: filename,
         data: content,
         directory: cap.Directory ? cap.Directory.Documents : undefined,
@@ -10774,62 +10764,16 @@ async function downloadFile(filename, mimeType, content) {
       });
       return 'documents';
     } catch (fsErr) {
-      console.warn("Direct Documents write failed, falling back to native share:", fsErr);
+      console.warn("Filesystem export failed, falling back:", fsErr);
     }
-
-    // 2) Write to the app's own private cache directory (always permitted,
-    //    no runtime permission needed on any Android version) and then hand
-    //    the file to the native Share sheet so the person picks exactly
-    //    where it goes (Downloads, Drive, a Files app, etc). This is the
-    //    reliable path on modern Android where step 1 is blocked by scoped
-    //    storage.
-    if (cap.Share) {
-      try {
-        await cap.Filesystem.writeFile({
-          path: filename,
-          data: content,
-          directory: cap.Directory ? cap.Directory.Cache : undefined,
-          encoding: 'utf8'
-        });
-        const uriResult = await cap.Filesystem.getUri({
-          directory: cap.Directory ? cap.Directory.Cache : undefined,
-          path: filename
-        });
-        await cap.Share.share({ title: filename, url: uriResult.uri });
-        return 'share';
-      } catch (shareErr) {
-        console.warn("Native share fallback failed:", shareErr);
-      }
-    }
-
-    // On native, deliberately do NOT fall through to the Blob/data: URI
-    // paths below: a plain <a download> click does nothing inside the
-    // Capacitor WebView (no download listener is registered on the native
-    // side) - it neither throws nor saves anything, so returning a
-    // "success" value there is what was causing the app to claim the
-    // backup saved when no file existed anywhere. Report failure honestly
-    // instead.
-    return null;
   }
 
-  // --- Plain browser (not the native wrapped app) ---
-
-  // 2) Web Share API with a real File — works in a normal mobile browser
-  //    and also brings up a "save to..." style picker.
-  try {
-    if (navigator.canShare && navigator.share) {
-      const file = new File([content], filename, { type: mimeType });
-      if (navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: filename });
-        return 'share';
-      }
-    }
-  } catch (shareErr) {
-    console.warn("navigator.share failed, falling back:", shareErr);
-  }
-
-  // 3) Blob + object URL — works in essentially every modern desktop/mobile
-  //    browser tab.
+  // 2) Blob + object URL — works in essentially every modern desktop/mobile
+  //    browser tab (but not inside a plain wrapped WebView - see above).
+  //    (The Web Share API "send to..." sheet used to sit here as a second
+  //    fallback, but that popup is exactly what we don't want, so it's been
+  //    removed - Filesystem is now the only "real" save path, and this is
+  //    just the plain-browser-preview fallback.)
   try {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -10845,7 +10789,7 @@ async function downloadFile(filename, mimeType, content) {
     console.warn("Blob download failed, falling back:", blobErr);
   }
 
-  // 4) data: URI — last resort, kept for very old/limited browsers.
+  // 4) data: URI — last resort, kept for very old/limited WebViews.
   try {
     const base64 = btoa(unescape(encodeURIComponent(content)));
     const dataStr = `data:${mimeType};base64,${base64}`;
@@ -10938,15 +10882,6 @@ async function exportLogs() {
   if (method === 'documents') {
     customAlert(
       trf('alert_backup_saved_to_documents', 'Backup saved to Documents/{filename}', { filename }),
-      { icon: 'fa-circle-check' }
-    );
-  } else if (method === 'share') {
-    // Native Share sheet (or the browser's Web Share API) - the person
-    // picked the destination themselves, so tell them that explicitly
-    // instead of the generic "saved" message, which would wrongly imply
-    // it always lands in the same fixed folder.
-    customAlert(
-      trf('alert_backup_shared', 'Backup file ({filename}) was shared. You will find it wherever you chose to save it.', { filename }),
       { icon: 'fa-circle-check' }
     );
   } else {
