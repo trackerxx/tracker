@@ -95,35 +95,22 @@ html.lang-bn select, html.lang-bn textarea, html.lang-bn optgroup {
   font-family: 'Noto Sans Bengali', 'Nirmala UI', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Open Sans', Roboto, Helvetica, Arial, sans-serif !important;
 }
 
-/* The Fund account-select popups (Add/Edit Transaction, Fund Transfer,
-   Debt Payment) open centered within their modal card (fixed + top:50%/
-   -translate-y-50%, contained by the glass-card's own transform - see
-   showAccountDropdownBlurOverlay/toggleAccountDropdown) rather than
-   anchored to whichever Fund button opened them. The full-card blur
-   overlay already hides every other field behind the popup regardless of
-   the popup's own size or position, so no extra padding is needed here to
-   grow the box toward any particular field. A max-height keeps the popup
-   itself from overflowing the card when a lot of funds are listed - the
-   inner *-account-dropdown-list already scrolls independently. */
+/* The Add/Edit Transaction "Fund" account-select popup opens upward
+   (bottom-full + margin-bottom, so its *bottom* edge is pinned just above
+   the Fund button) but its background box was only ever as tall as its
+   rendered rows. With few funds, that left the popup's top edge landing
+   partway up the "Enter Category" field above it, so that field's text
+   peeked out from behind the popup instead of being fully hidden. Because
+   the popup's bottom edge is pinned, adding padding-top only grows the box
+   upward - the bottom position near the button is untouched - so the same
+   solid background now reaches high enough to fully cover the field
+   behind it. A "Select Fund" heading was added inside the popup to make
+   use of that space, so the extra padding-top here is reduced by roughly
+   the heading's own height, keeping the popup's total height (and the
+   coverage of the field behind it) about the same as before. */
 #modal-account-dropdown,
-#edit-tx-account-dropdown,
-#transfer-from-account-dropdown,
-#transfer-to-account-dropdown,
-#edit-transfer-from-account-dropdown,
-#edit-transfer-to-account-dropdown,
-#debt-payment-account-dropdown {
-  max-height: 70vh;
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-#modal-account-dropdown::-webkit-scrollbar,
-#edit-tx-account-dropdown::-webkit-scrollbar,
-#transfer-from-account-dropdown::-webkit-scrollbar,
-#transfer-to-account-dropdown::-webkit-scrollbar,
-#edit-transfer-from-account-dropdown::-webkit-scrollbar,
-#edit-transfer-to-account-dropdown::-webkit-scrollbar,
-#debt-payment-account-dropdown::-webkit-scrollbar {
-  display: none;
+#edit-tx-account-dropdown {
+  padding-top: 1rem !important;
 }
 
 /* Fund/section "Note" textarea: split into a static outer "frame"
@@ -948,22 +935,7 @@ body {
 body::before {
   content: "";
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  /* Height comes from --app-full-height (set in JS to the tallest
-     viewport height seen since load/rotation - see setupFixedBgHeight())
-     instead of `inset: 0` / height:100%. On this WebView packaged app,
-     opening the on-screen keyboard shrinks the WHOLE layout viewport
-     (not just the visual one), so an `inset:0`/`100%`-sized fixed
-     element used to shrink right along with it - and since the
-     radial-gradient glow below is anchored to "50% 100%" (its own
-     bottom edge), that glow visibly rode up with the keyboard and slid
-     back down when the keyboard closed, even though nothing about the
-     actual screen size changed. Locking the height to the tallest
-     genuine viewport height keeps this layer (and its glow) pinned to
-     the real bottom of the screen regardless of keyboard state. */
-  height: var(--app-full-height, 100vh);
+  inset: 0;
   z-index: -2;
   background-color: #0b0b0d;
   background-image: radial-gradient(ellipse 130% 55% at 50% 100%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0) 75%);
@@ -995,11 +967,11 @@ html:not(.dark-theme) body::before {
 
 <div id="screen-home" class="screen-content space-y-5">
 <div class="flex justify-between items-center">
-<div class="min-w-0 flex-1 pr-2">
-<p class="text-sm font-bold uppercase tracking-wider text-gray-400" data-i18n="home_welcome" data-i18n-en="Welcome Back">Welcome Back</p>
-<h1 id="home-user-title" class="text-2xl font-bold tracking-tight text-gray-900 whitespace-nowrap overflow-hidden text-ellipsis leading-tight">User</h1>
+<div>
+<p class="text-xs font-bold uppercase tracking-wider text-gray-400" data-i18n="home_welcome" data-i18n-en="Welcome Back">Welcome Back</p>
+<h1 id="home-user-title" class="text-2xl font-bold tracking-tight text-gray-900">User</h1>
 </div>
-<div class="flex items-center space-x-2 flex-shrink-0">
+<div class="flex items-center space-x-2">
 <div id="home-today-badge" class="flex items-center space-x-1.5 bg-gray-200/80 rounded-full pl-3 pr-3.5 py-2">
 <i class="far fa-calendar-alt text-[#e2443b] text-xs"></i>
 <span id="home-today-label" class="text-[11px] font-bold text-gray-700 whitespace-nowrap">Wed, 12 Aug</span>
@@ -1078,7 +1050,7 @@ html:not(.dark-theme) body::before {
 </div>
 </button>
 
-<div id="category-breakdown-card" class="daymode-flip-card bg-black text-white p-5 rounded-[28px] shadow-xl relative overflow-hidden">
+<div class="daymode-flip-card bg-black text-white p-5 rounded-[28px] shadow-xl relative overflow-hidden">
 <div class="flex justify-between items-start mb-3">
 <div class="flex items-center space-x-2.5">
 <span class="w-9 h-9 rounded-2xl bg-white flex items-center justify-center shadow-sm flex-shrink-0">
@@ -1121,10 +1093,7 @@ html:not(.dark-theme) body::before {
 <div class="flex items-center gap-2">
 <div class="relative flex-1">
 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-<input type="text" id="logs-search-input" oninput="onSearchInput(this, 'transactions', renderLogsList)" placeholder="Search by Category..." data-i18n-placeholder="logs_search_by_category" data-i18n-placeholder-en="Search by Category..." class="w-full pl-10 pr-9 py-3 bg-gray-200/50 rounded-2xl text-xs font-bold focus:outline-none placeholder-gray-400">
-<button type="button" onclick="clearSearchInput('logs-search-input', renderLogsList)" id="logs-search-input-clear-btn" title="Clear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-200 transition active:scale-90">
-<i class="fas fa-xmark text-[10px]"></i>
-</button>
+<input type="text" id="logs-search-input" oninput="renderLogsList()" placeholder="Search by Category..." data-i18n-placeholder="logs_search_by_category" data-i18n-placeholder-en="Search by Category..." class="w-full pl-10 pr-4 py-3 bg-gray-200/50 rounded-2xl text-xs font-bold focus:outline-none placeholder-gray-400">
 </div>
 <button onclick="openSearchFilterModal('transactions')" title="Search Filter" class="relative flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
 <i class="fas fa-search"></i>
@@ -1146,17 +1115,17 @@ html:not(.dark-theme) body::before {
 </div>
 
 <div class="grid grid-cols-3 gap-1.5">
-<button onclick="openFilterModal('sort')" class="bg-white border border-gray-200/80 rounded-xl px-2 py-2.5 flex justify-center items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition active:scale-95">
+<button onclick="openFilterModal('sort')" class="bg-white border border-gray-200/80 rounded-xl px-2 py-2.5 flex justify-between items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition active:scale-95">
 <span class="flex items-center min-w-0"><i class="fas fa-sort-amount-down text-red-500 mr-1.5 flex-shrink-0"></i><span id="label-sort" data-i18n="logs_newest" data-i18n-en="Newest">Newest</span><span id="logs-sort-filter-dot" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[#e2443b] ml-1 animate-pulse"></span></span>
 <i class="fas fa-caret-down text-gray-400 text-[10px] flex-shrink-0"></i>
 </button>
 
-<button onclick="openFilterModal('time')" class="bg-white border border-gray-200/80 rounded-xl px-2 py-2.5 flex justify-center items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition active:scale-95">
+<button onclick="openFilterModal('time')" class="bg-white border border-gray-200/80 rounded-xl px-2 py-2.5 flex justify-between items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition active:scale-95">
 <span class="flex items-center min-w-0"><i class="far fa-calendar-alt text-red-500 mr-1.5 flex-shrink-0"></i><span id="label-time" data-i18n="logs_this_month" data-i18n-en="Month">Month</span><span id="logs-time-filter-dot" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[#e2443b] ml-1 animate-pulse"></span></span>
 <i class="fas fa-caret-down text-gray-400 text-[10px] flex-shrink-0"></i>
 </button>
 
-<button onclick="openFilterModal('price')" class="bg-white border border-gray-200/80 rounded-xl pl-4 pr-2 py-2.5 flex justify-between items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition active:scale-95">
+<button onclick="openFilterModal('price')" class="bg-white border border-gray-200/80 rounded-xl px-2 py-2.5 flex justify-between items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition active:scale-95">
 <span class="flex items-center min-w-0"><i class="fas fa-money-bill-wave text-red-500 mr-1.5 flex-shrink-0"></i><span id="label-price" data-i18n="logs_all_prices" data-i18n-en="All Amounts">All Amounts</span><span id="logs-price-filter-dot" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[#e2443b] ml-1 animate-pulse"></span></span>
 <i class="fas fa-caret-down text-gray-400 text-[10px] flex-shrink-0"></i>
 </button>
@@ -1182,7 +1151,7 @@ html:not(.dark-theme) body::before {
 <div class="daymode-flip-card bg-black text-white p-5 rounded-[24px] shadow-lg space-y-1 relative">
 <button onclick="openDateCalendarIcon('debts')" id="debts-date-filter-btn" title="Filter History" class="absolute top-4 right-4 flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
 <i class="far fa-calendar-alt"></i>
-<span id="debts-date-filter-dot" class="hidden absolute top-2.5 right-2.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="debts-date-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
 </button>
 <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400 pr-14"><span data-i18n="logs_total_owed" data-i18n-en="Total Owed">Total Owed</span><span id="debts-total-pending-label" data-i18n="logs_pending_suffix" data-i18n-en=" (Pending)"> (Pending)</span></p>
 <h2 id="debts-total-amount" class="text-3xl font-extrabold tracking-tight text-[#e2443b]">৳0.00</h2>
@@ -1191,10 +1160,7 @@ html:not(.dark-theme) body::before {
 <div class="flex items-center gap-2">
 <div class="relative flex-1">
 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-<input type="text" id="debts-search-input" oninput="onSearchInput(this, 'debts', renderDebtsList)" placeholder="Search by Person Name..." data-i18n-placeholder="logs_search_by_person" data-i18n-placeholder-en="Search by Person Name..." class="w-full pl-10 pr-9 py-3 bg-gray-200/50 rounded-2xl text-xs font-bold focus:outline-none placeholder-gray-400">
-<button type="button" onclick="clearSearchInput('debts-search-input', renderDebtsList)" id="debts-search-input-clear-btn" title="Clear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-200 transition active:scale-90">
-<i class="fas fa-xmark text-[10px]"></i>
-</button>
+<input type="text" id="debts-search-input" oninput="renderDebtsList()" placeholder="Search by Person Name..." data-i18n-placeholder="logs_search_by_person" data-i18n-placeholder-en="Search by Person Name..." class="w-full pl-10 pr-4 py-3 bg-gray-200/50 rounded-2xl text-xs font-bold focus:outline-none placeholder-gray-400">
 </div>
 <button onclick="openSearchFilterModal('debts')" title="Search Filter" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
 <i class="fas fa-search text-sm"></i>
@@ -1243,7 +1209,7 @@ html:not(.dark-theme) body::before {
 <div class="daymode-flip-card bg-black text-white p-5 rounded-[24px] shadow-lg space-y-1 relative">
 <button onclick="openDateCalendarIcon('receivables')" id="receivables-date-filter-btn" title="Filter History" class="absolute top-4 right-4 flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
 <i class="far fa-calendar-alt"></i>
-<span id="receivables-date-filter-dot" class="hidden absolute top-2.5 right-2.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="receivables-date-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
 </button>
 <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400 pr-14"><span data-i18n="logs_total_collectible" data-i18n-en="Total Collectible">Total Collectible</span><span id="receivables-total-pending-label" data-i18n="logs_pending_suffix" data-i18n-en=" (Pending)"> (Pending)</span></p>
 <h2 id="receivables-total-amount" class="text-3xl font-extrabold tracking-tight text-green-500">৳0.00</h2>
@@ -1252,10 +1218,7 @@ html:not(.dark-theme) body::before {
 <div class="flex items-center gap-2">
 <div class="relative flex-1">
 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
-<input type="text" id="receivables-search-input" oninput="onSearchInput(this, 'receivables', renderReceivablesList)" placeholder="Search by Person Name..." data-i18n-placeholder="logs_search_by_person" data-i18n-placeholder-en="Search by Person Name..." class="w-full pl-10 pr-9 py-3 bg-gray-200/50 rounded-2xl text-xs font-bold focus:outline-none placeholder-gray-400">
-<button type="button" onclick="clearSearchInput('receivables-search-input', renderReceivablesList)" id="receivables-search-input-clear-btn" title="Clear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-200 transition active:scale-90">
-<i class="fas fa-xmark text-[10px]"></i>
-</button>
+<input type="text" id="receivables-search-input" oninput="renderReceivablesList()" placeholder="Search by Person Name..." data-i18n-placeholder="logs_search_by_person" data-i18n-placeholder-en="Search by Person Name..." class="w-full pl-10 pr-4 py-3 bg-gray-200/50 rounded-2xl text-xs font-bold focus:outline-none placeholder-gray-400">
 </div>
 <button onclick="openSearchFilterModal('receivables')" title="Search Filter" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
 <i class="fas fa-search text-sm"></i>
@@ -1306,6 +1269,10 @@ html:not(.dark-theme) body::before {
 <h1 id="stats-title" class="text-2xl font-bold tracking-tight text-gray-900">Spending Analytics</h1>
 <p id="stats-subtitle" class="text-xs text-gray-500 mt-0.5">Deep insights into your spending patterns.</p>
 </div>
+<button onclick="openStatsMonthPicker()" id="stats-month-filter-btn" title="Filter by month" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95 mt-1">
+<i class="far fa-calendar-alt text-sm"></i>
+<span id="stats-month-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+</button>
 </div>
 
 <div class="grid grid-cols-2 gap-1.5 bg-gray-200/60 p-1 rounded-2xl">
@@ -1484,7 +1451,7 @@ html:not(.dark-theme) body::before {
 </span>
 <i id="modal-account-chevron" class="fas fa-chevron-down text-[10px] text-gray-400 transition-transform"></i>
 </button>
-<div id="modal-account-dropdown" class="fixed left-6 right-6 top-1/2 -translate-y-1/2 bg-gray-100 rounded-lg p-2.5 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="modal-account-dropdown-list" class="space-y-2 overflow-y-auto no-scrollbar"></div></div>
+<div id="modal-account-dropdown" class="absolute left-0 right-0 bottom-full mb-8 bg-gray-100 rounded-lg p-2.5 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="modal-account-dropdown-list" class="space-y-2 overflow-y-auto no-scrollbar"></div></div>
 </div>
 </div>
 <input type="hidden" id="modal-selected-fund">
@@ -1532,7 +1499,7 @@ html:not(.dark-theme) body::before {
 </span>
 <i id="edit-tx-account-chevron" class="fas fa-chevron-down text-[10px] text-gray-400 transition-transform"></i>
 </button>
-<div id="edit-tx-account-dropdown" class="fixed left-6 right-6 top-1/2 -translate-y-1/2 bg-gray-100 rounded-lg p-2.5 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="edit-tx-account-dropdown-list" class="space-y-2 overflow-y-auto no-scrollbar"></div></div>
+<div id="edit-tx-account-dropdown" class="absolute left-0 right-0 bottom-full mb-8 bg-gray-100 rounded-lg p-2.5 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="edit-tx-account-dropdown-list" class="space-y-2 overflow-y-auto no-scrollbar"></div></div>
 </div>
 </div>
 <input type="hidden" id="edit-tx-selected-fund">
@@ -1569,7 +1536,7 @@ html:not(.dark-theme) body::before {
 </span>
 <i id="transfer-from-account-chevron" class="fas fa-chevron-down text-[9px] text-gray-400 transition-transform flex-shrink-0"></i>
 </button>
-<div id="transfer-from-account-dropdown" class="fixed left-6 right-6 top-1/2 -translate-y-1/2 bg-gray-100 rounded-lg p-2 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="transfer-from-account-dropdown-list" class="space-y-1 overflow-y-auto no-scrollbar"></div></div>
+<div id="transfer-from-account-dropdown" class="absolute left-0 right-0 bottom-full mb-1.5 bg-gray-100 rounded-lg p-2 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="transfer-from-account-dropdown-list" class="space-y-1 overflow-y-auto no-scrollbar"></div></div>
 </div>
 </div>
 <input type="hidden" id="transfer-from-selected-fund">
@@ -1588,7 +1555,7 @@ html:not(.dark-theme) body::before {
 </span>
 <i id="transfer-to-account-chevron" class="fas fa-chevron-down text-[9px] text-gray-400 transition-transform flex-shrink-0"></i>
 </button>
-<div id="transfer-to-account-dropdown" class="fixed left-6 right-6 top-1/2 -translate-y-1/2 bg-gray-100 rounded-lg p-2 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="transfer-to-account-dropdown-list" class="space-y-1 overflow-y-auto no-scrollbar"></div></div>
+<div id="transfer-to-account-dropdown" class="absolute left-0 right-0 top-full mt-1.5 bg-gray-100 rounded-lg p-2 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="transfer-to-account-dropdown-list" class="space-y-1 overflow-y-auto no-scrollbar"></div></div>
 </div>
 </div>
 <input type="hidden" id="transfer-to-selected-fund">
@@ -1687,7 +1654,7 @@ html:not(.dark-theme) body::before {
 </span>
 <i id="edit-transfer-from-account-chevron" class="fas fa-chevron-down text-[9px] text-gray-400 transition-transform flex-shrink-0"></i>
 </button>
-<div id="edit-transfer-from-account-dropdown" class="fixed left-6 right-6 top-1/2 -translate-y-1/2 bg-gray-100 rounded-lg p-2 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="edit-transfer-from-account-dropdown-list" class="space-y-1 overflow-y-auto no-scrollbar"></div></div>
+<div id="edit-transfer-from-account-dropdown" class="absolute left-0 right-0 bottom-full mb-1.5 bg-gray-100 rounded-lg p-2 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="edit-transfer-from-account-dropdown-list" class="space-y-1 overflow-y-auto no-scrollbar"></div></div>
 </div>
 </div>
 <input type="hidden" id="edit-transfer-from-selected-fund">
@@ -1706,7 +1673,7 @@ html:not(.dark-theme) body::before {
 </span>
 <i id="edit-transfer-to-account-chevron" class="fas fa-chevron-down text-[9px] text-gray-400 transition-transform flex-shrink-0"></i>
 </button>
-<div id="edit-transfer-to-account-dropdown" class="fixed left-6 right-6 top-1/2 -translate-y-1/2 bg-gray-100 rounded-lg p-2 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="edit-transfer-to-account-dropdown-list" class="space-y-1 overflow-y-auto no-scrollbar"></div></div>
+<div id="edit-transfer-to-account-dropdown" class="absolute left-0 right-0 top-full mt-1.5 bg-gray-100 rounded-lg p-2 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="edit-transfer-to-account-dropdown-list" class="space-y-1 overflow-y-auto no-scrollbar"></div></div>
 </div>
 </div>
 <input type="hidden" id="edit-transfer-to-selected-fund">
@@ -1732,6 +1699,9 @@ html:not(.dark-theme) body::before {
 </button>
 </div>
 
+<div class="bg-gray-200/60 rounded-xl p-1">
+<div id="debt-type-badge" class="py-2.5 rounded-lg text-xs font-bold text-center transition bg-[#e2443b] text-white shadow-sm" data-i18n="debt_badge_i_owe" data-i18n-en="I Owe">I Owe</div>
+</div>
 <input type="hidden" id="debt-modal-type" value="debt">
 <input type="hidden" id="debt-edit-id" value="">
 
@@ -1802,7 +1772,7 @@ html:not(.dark-theme) body::before {
 </span>
 <i id="debt-payment-account-chevron" class="fas fa-chevron-down text-[10px] text-gray-400 transition-transform"></i>
 </button>
-<div id="debt-payment-account-dropdown" class="fixed left-6 right-6 top-1/2 -translate-y-1/2 bg-gray-100 rounded-lg p-2 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="debt-payment-account-dropdown-list" class="space-y-2 overflow-y-auto no-scrollbar"></div></div>
+<div id="debt-payment-account-dropdown" class="absolute left-0 right-0 bottom-full mb-1.5 bg-gray-100 rounded-lg p-2 shadow-2xl z-20 hidden"><p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1.5 px-1" data-i18n="modal_select_fund" data-i18n-en="Select Fund">Select Fund</p><div id="debt-payment-account-dropdown-list" class="space-y-2 overflow-y-auto no-scrollbar"></div></div>
 </div>
 <input type="hidden" id="debt-payment-selected-fund">
 </div>
@@ -2040,6 +2010,30 @@ Yes, Delete
 <button onclick="clearTimeCalendarFilter()" class="w-full bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="filter_clear_filter" data-i18n-en="Clear Filter">Clear Filter</button>
 </div>
 <button onclick="closeTimeCalendarModal()" class="w-full bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_close" data-i18n-en="Close">Close</button>
+</div>
+</div>
+</div>
+
+<div id="popup-stats-month" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[75] hidden">
+<div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
+<div class="flex items-center space-x-2 text-gray-900">
+<div class="w-8 h-8 rounded-xl bg-gray-200/50 flex items-center justify-center text-[#e2443b]">
+<i class="far fa-calendar-alt text-xs"></i>
+</div>
+<h3 class="font-extrabold text-lg tracking-tight" data-i18n="stats_select_month" data-i18n-en="Select a Month">Select a Month</h3>
+</div>
+<div class="flex items-center justify-between bg-white/60 rounded-2xl px-2 py-2">
+<button onclick="navigateStatsMonthPicker(-1)" class="w-9 h-9 rounded-full bg-white/70 hover:bg-white flex items-center justify-center transition active:scale-95">
+<i class="fas fa-chevron-left text-xs text-gray-600"></i>
+</button>
+<span id="stats-month-picker-label" class="text-sm font-extrabold text-gray-900"></span>
+<button onclick="navigateStatsMonthPicker(1)" id="stats-month-picker-next-btn" class="w-9 h-9 rounded-full bg-white/70 hover:bg-white flex items-center justify-center transition active:scale-95">
+<i class="fas fa-chevron-right text-xs text-gray-600"></i>
+</button>
+</div>
+<div class="pt-2 space-y-2">
+<button id="stats-month-clear-btn" onclick="clearStatsMonthPicker()" class="hidden w-full bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="filter_clear_filter" data-i18n-en="Clear Filter">Clear Filter</button>
+<button onclick="confirmStatsMonthPicker()" class="w-full bg-[#e2443b] hover:bg-[#c93a32] text-white py-2 rounded-xl text-xs font-bold transition" data-i18n="common_set" data-i18n-en="Set">Set</button>
 </div>
 </div>
 </div>
@@ -2647,11 +2641,11 @@ const I18N = {
     logs_total_owed: 'মোট দেনা',
     logs_total_collectible: 'মোট পাওনা',
     logs_pending_suffix: ' (বাকি)',
-    logs_search_name_note: 'নাম বা চিরকুট দিয়ে খুঁজুন...',
+    logs_search_name_note: 'নাম বা নোট দিয়ে খুঁজুন...',
     logs_search_by_category: 'ক্যাটাগরি দিয়ে খুঁজুন...',
     logs_search_by_person: 'ব্যক্তির নাম দিয়ে খুঁজুন...',
-    logs_search_by_note: 'চিরকুট দিয়ে খুঁজুন...',
-    logs_search_by_description: 'চিরকুট দিয়ে খুঁজুন...',
+    logs_search_by_note: 'নোট দিয়ে খুঁজুন...',
+    logs_search_by_description: 'নোট দিয়ে খুঁজুন...',
     logs_search_by_amount: 'পরিমাণ দিয়ে খুঁজুন...',
     logs_pending: 'বাকি',
     logs_settled: 'পরিশোধিত',
@@ -2693,8 +2687,8 @@ const I18N = {
     search_filter_person: 'ব্যক্তির নাম',
     search_filter_category: 'ক্যাটাগরি',
     search_filter_person: 'ব্যক্তির নাম',
-    search_filter_description: 'চিরকুট',
-    search_filter_note: 'চিরকুট',
+    search_filter_description: 'নোট',
+    search_filter_note: 'নোট',
     search_filter_amount: 'পরিমাণ',
     filter_select_time: 'সময় নির্বাচন করুন',
     filter_pick_a_date: 'একটি তারিখ নির্বাচন করুন',
@@ -2762,7 +2756,7 @@ const I18N = {
     modal_add_transaction_title: 'লেনদেন যোগ করুন',
     modal_edit_transaction_title: 'লেনদেন সম্পাদনা করুন',
     modal_amount_placeholder: 'পরিমাণ (৳)',
-    modal_description_placeholder: 'চিরকুট',
+    modal_description_placeholder: 'নোট',
     modal_enter_category_placeholder: 'ক্যাটাগরি লিখুন',
     modal_select_category: 'ক্যাটাগরি নির্বাচন করুন',
     modal_more: 'আরও',
@@ -2801,7 +2795,7 @@ const I18N = {
     modal_transfer_fund_title: 'ফান্ড ট্রান্সফার',
     modal_from_account: 'যেখান থেকে',
     modal_to_account: 'যেখানে',
-    modal_note_optional_placeholder: 'চিরকুট (ঐচ্ছিক)',
+    modal_note_optional_placeholder: 'নোট (ঐচ্ছিক)',
 
     // Add Money / Edit Amount popup
     modal_add_money_title: 'টাকা যোগ করুন',
@@ -2855,7 +2849,7 @@ const I18N = {
     debt_badge_i_owe: 'আমার দেনা',
     debt_badge_owed_to_me: 'আমার পাওনা',
     modal_person_name_placeholder: 'ব্যক্তির নাম',
-    modal_reason_note_placeholder: 'চিরকুট',
+    modal_reason_note_placeholder: 'নোট',
     modal_due_date_optional_label: 'শেষ তারিখ (ঐচ্ছিক)',
     modal_remind_me_at_label: 'যে সময়ে মনে করিয়ে দেবে',
     modal_debt_reminder_note: 'শেষ তারিখ থেকে শুরু করে পরিশোধ না হওয়া পর্যন্ত প্রতিদিন এই ব্যক্তির নাম উল্লেখ করে একটি নোটিফিকেশন পাবেন।',
@@ -2960,8 +2954,6 @@ const I18N = {
     confirm_restore_backup: 'এই ব্যাকআপ থেকে আপনার নাম, ফান্ড, ব্যালেন্স, টার্গেট, রিমাইন্ডার, থিম, সেটিংস এবং পুরো লেনদেনের ইতিহাস পুনরুদ্ধার হবে, যা বর্তমান ডেটা প্রতিস্থাপন করবে। চালিয়ে যাবেন?',
     alert_backup_restored: 'ব্যাকআপ সফলভাবে পুনরুদ্ধার হয়েছে!',
     alert_backup_saved_to_documents: 'ব্যাকআপ Documents/{filename}-এ সেভ হয়েছে',
-    alert_backup_saved_to_downloads: 'ব্যাকআপ Downloads/{filename}-এ সেভ হয়েছে',
-    alert_backup_shared: 'ব্যাকআপ ফাইল ({filename}) শেয়ার করা হয়েছে। আপনি যেখানে সেভ করতে বেছে নিয়েছেন সেখানে এটি পাবেন।',
     alert_backup_saved: 'ব্যাকআপ সফলভাবে সেভ হয়েছে!',
     alert_logs_imported: 'লগ সফলভাবে ইমপোর্ট হয়েছে!',
     alert_invalid_backup_format: 'ব্যাকআপ ফাইলের ফরম্যাট সঠিক নয়!',
@@ -2996,6 +2988,7 @@ const I18N = {
     // Fund Details - Transaction History filter (calendar icon)
     fund_history_filter_title: 'ইতিহাস ফিল্টার করুন',
     fund_history_select_month: 'মাস নির্বাচন করুন',
+    stats_select_month: 'মাস নির্বাচন করুন',
     fund_history_select_date: 'তারিখ নির্বাচন করুন',
     fund_history_month_label: 'মাস',
     fund_history_year_label: 'বছর',
@@ -3005,12 +2998,12 @@ const I18N = {
     fund_history_no_tx_date: 'নির্বাচিত তারিখে কোনো লেনদেন নেই।',
 
     // Fund Details - Note popup (note icon next to the calendar icon)
-    modal_fund_note_title: 'চিরকুট',
-    modal_fund_note_placeholder: 'একটি চিরকুট লিখুন...',
-    modal_fund_note_placeholder_named: '{name} সম্পর্কে একটি চিরকুট লিখুন...',
+    modal_fund_note_title: 'নোট',
+    modal_fund_note_placeholder: 'একটি নোট লিখুন...',
+    modal_fund_note_placeholder_named: '{name} সম্পর্কে একটি নোট লিখুন...',
     modal_fund_note_related_label: '{name} সম্পর্কিত',
-    confirm_delete_fund_note_title: 'এই চিরকুটটি মুছে ফেলবেন?',
-    confirm_delete_fund_note_message: 'এটি স্থায়ীভাবে এই চিরকুটটি মুছে ফেলবে।',
+    confirm_delete_fund_note_title: 'এই নোটটি মুছে ফেলবেন?',
+    confirm_delete_fund_note_message: 'এটি স্থায়ীভাবে এই নোটটি মুছে ফেলবে।',
 
     // PIN pad (setup / confirm / verify)
     pin_setup_title: '৪ সংখ্যার পিন সেট করুন',
@@ -3067,46 +3060,6 @@ function toBnDigits(str) {
 // plain number.
 function fromBnDigits(str) {
   return String(str).replace(/[০-৯]/g, d => String(BN_DIGITS.indexOf(d)));
-}
-// Amount-search comparisons need to survive two things the plain
-// String.includes() calls around the codebase didn't account for:
-// (1) the AMOUNT'S OWN text (fmtMoney output) gets thousands commas AND,
-// in Bangla mode, gets its digits localized to Bangla numerals - while
-// the typed search query is always normalized to ASCII digits
-// (fromBnDigits) upstream, but may still carry commas of its own (e.g.
-// Amount-mode search auto-formats what you type as "2,000" while you
-// type it - see formatAmountTyping/onSearchInput). Stripping commas and
-// normalizing digits on BOTH sides here, in one shared place, is what
-// lets a typed "2,000" (or its Bangla-numeral equivalent) actually find
-// an entry whose amount displays as "২,০০০.০০" - every amount-search
-// site in the app (Logs/Debts/Receivables filtering, per-letter
-// highlight, and the "whole card" exact-match tint) funnels through
-// this instead of comparing raw fmtMoney() text against the query directly.
-function amountTextMatchesQuery(amountText, query) {
-  const normQuery = fromBnDigits(String(query || '')).replace(/,/g, '').toLowerCase();
-  if (!normQuery) return false;
-  const normText = fromBnDigits(String(amountText || '')).replace(/,/g, '').toLowerCase();
-  return normText.includes(normQuery);
-}
-function amountTextExactMatchesQuery(amountText, query) {
-  const normQuery = fromBnDigits(String(query || '')).replace(/,/g, '').trim().toLowerCase();
-  if (!normQuery) return false;
-  const normText = fromBnDigits(String(amountText || '')).replace(/,/g, '').trim().toLowerCase();
-  if (normText === normQuery) return true;
-  // The user typing an amount into Amount-mode search never types the
-  // ".00" themselves (formatAmountTyping doesn't add one either) - once
-  // they've finished the whole-taka digits (e.g. "2000"), that alone
-  // should count as a complete match against "2000.00" without also
-  // requiring ".00" to be typed. Only the whole-taka part has to match
-  // exactly, though - if the amount actually has real paisa/cents (e.g.
-  // "2000.50"), a bare "2000" is genuinely incomplete and must NOT be
-  // treated as an exact match, so this only fires when every digit after
-  // the decimal point is a zero.
-  if (!normQuery.includes('.') && normText.startsWith(normQuery + '.')) {
-    const fraction = normText.slice(normQuery.length + 1);
-    if (/^0*$/.test(fraction)) return true;
-  }
-  return false;
 }
 // Localizes digits in a value only when the app is currently in Bangla -
 // otherwise returns the value unchanged. Convenience wrapper so call
@@ -3686,166 +3639,28 @@ function unlockBackgroundScroll(id) {
 }
 
 /* ---------- Generic smooth open/close for all "popup-*" modals ---------- */
-// Tracks a text input/textarea that JUST lost focus, even if
-// document.activeElement has already moved on to something else by the
-// time a click handler runs. This matters because tapping a <button>
-// (e.g. "Select a date", "Save") blurs the previously-focused field
-// *before* the button's click handler fires, and in many WebViews the
-// button itself becomes document.activeElement in that same moment - so
-// by the time showPopup()/hidePopup() checks document.activeElement, the
-// field that actually had the keyboard up is no longer "active" and the
-// keyboard-close wait below would be silently skipped. Recording the
-// blurred field here (cleared shortly after, so this only reflects the
-// blur from *this* interaction) lets both functions still catch that case.
-let recentlyBlurredInputEl = null;
-document.addEventListener('focusout', function(e) {
-  const t = e.target;
-  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA')) {
-    recentlyBlurredInputEl = t;
-    setTimeout(() => { if (recentlyBlurredInputEl === t) recentlyBlurredInputEl = null; }, 100);
-  }
-}, true);
-
 function showPopup(id) {
   const el = document.getElementById(id);
   if (!el) return;
-
-  // If a text field currently has focus, the on-screen keyboard is up and
-  // about to animate closed (its close + the viewport resize it triggers
-  // is a heavy operation). Starting the popup's own fade/backdrop-blur
-  // animation in that exact same frame is what caused the janky/torn look
-  // when opening a popup right after typing. Blurring here and waiting for
-  // the keyboard's close+resize to actually finish (see
-  // waitForKeyboardCloseThenReveal below) keeps the two animations from
-  // overlapping, without adding any delay when no keyboard was open to
-  // begin with. Also treated as "keyboard was open" if a field was blurred
-  // moments ago by this same tap (see recentlyBlurredInputEl above) - e.g.
-  // tapping "Select a date" right after typing in Amount/Note.
-  const active = document.activeElement;
-  const activeIsField = active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
-  const keyboardWasOpen = activeIsField || !!recentlyBlurredInputEl;
-  if (activeIsField) active.blur();
-  recentlyBlurredInputEl = null;
-
-  const reveal = () => {
-    el.classList.remove('hidden');
-    if (id === 'popup-filter-picker') {
-      const clearBtnEl = document.getElementById('filter-modal-clear-btn');
-      if (clearBtnEl) clearBtnEl.textContent = tr('filter_clear_filter', 'Clear Filter');
-    }
-    // Force a reflow so the browser registers the pre-animation state before
-    // we flip to visible - otherwise the transition gets skipped entirely.
-    void el.offsetWidth;
-    el.classList.add('popup-visible');
-    lockBackgroundScroll(id);
-  };
-
-  if (keyboardWasOpen) {
-    waitForKeyboardCloseThenReveal(reveal);
-  } else {
-    reveal();
+  el.classList.remove('hidden');
+  if (id === 'popup-filter-picker') {
+    const clearBtnEl = document.getElementById('filter-modal-clear-btn');
+    if (clearBtnEl) clearBtnEl.textContent = tr('filter_clear_filter', 'Clear Filter');
   }
-}
-// Waits for the on-screen keyboard's close animation (and the viewport
-// resize it drives) to actually finish before running `reveal`, instead of
-// guessing a single fixed delay. Keyboard-close speed varies a lot across
-// phones/Android versions/WebViews - a fixed delay is either too short on
-// slower devices (the popup's own fade/blur animation starts while the
-// viewport is still resizing underneath it, which is exactly what reads as
-// a jittery/"torn" pop-up) or too long on faster ones (feels laggy). We
-// watch window.visualViewport's 'resize' event, which fires repeatedly
-// while the keyboard is animating closed, and treat the keyboard as fully
-// closed once no resize event has fired for a short SETTLE_MS window. A
-// hard MAX_WAIT_MS cap guarantees this never blocks the popup indefinitely
-// (e.g. on WebViews without visualViewport support, or if some unrelated
-// resize kept firing) - hitting the cap just reveals the popup anyway.
-function waitForKeyboardCloseThenReveal(reveal) {
-  const vv = window.visualViewport;
-  if (!vv) {
-    // No visualViewport support on this WebView - fall back to the old
-    // fixed-delay behavior rather than not waiting at all.
-    setTimeout(reveal, 160);
-    return;
-  }
-
-  const SETTLE_MS = 65;    // no viewport-height change for this long = keyboard has settled
-  const MAX_WAIT_MS = 500; // absolute cap so opening a popup can never feel stuck
-  // visualViewport reports the keyboard's final height as soon as the resize
-  // is done firing, but on many Android WebViews the keyboard's own slide-
-  // down close animation is still visibly playing for a short moment after
-  // that - the layout has already settled to its final size while the pixels
-  // are still animating. Revealing the popup right at SETTLE_MS therefore
-  // still started the popup's fade-in while the keyboard was visibly mid-
-  // close, which is the "clash" - the screen hadn't actually finished
-  // sliding all the way down yet. This extra cushion is only added on the
-  // keyboard-was-open path (never delays a popup that had no keyboard to
-  // close), and simply holds `reveal` back a bit longer so the keyboard is
-  // fully, visually gone before the popup starts appearing.
-  const POST_SETTLE_BUFFER_MS = 155;
-
-  let settleTimer = null;
-  let maxWaitTimer = null;
-  let done = false;
-
-  const finish = () => {
-    if (done) return;
-    done = true;
-    vv.removeEventListener('resize', onResize);
-    clearTimeout(settleTimer);
-    clearTimeout(maxWaitTimer);
-    setTimeout(reveal, POST_SETTLE_BUFFER_MS);
-  };
-
-  const onResize = () => {
-    clearTimeout(settleTimer);
-    settleTimer = setTimeout(finish, SETTLE_MS);
-  };
-
-  vv.addEventListener('resize', onResize);
-  // Also start the settle timer immediately, in case the keyboard was
-  // already essentially closed and no further resize event fires at all.
-  settleTimer = setTimeout(finish, SETTLE_MS);
-  maxWaitTimer = setTimeout(finish, MAX_WAIT_MS);
+  // Force a reflow so the browser registers the pre-animation state before
+  // we flip to visible - otherwise the transition gets skipped entirely.
+  void el.offsetWidth;
+  el.classList.add('popup-visible');
+  lockBackgroundScroll(id);
 }
 function hidePopup(id) {
   const el = document.getElementById(id);
   if (!el) return;
-
-  // Same fix as showPopup()'s keyboard-first handling above, but for the
-  // close direction: if a text field inside this popup still has focus
-  // (e.g. the user tapped Save while the amount/note field was focused),
-  // blurring here and starting the popup's own close animation in the
-  // same frame as the keyboard's close+resize is what caused the popup
-  // and keyboard to visibly close on top of each other / look torn.
-  // Blur first and wait for the keyboard to actually finish closing
-  // (waitForKeyboardCloseThenReveal), then run the popup's close
-  // animation - so the keyboard always finishes closing before the popup
-  // starts closing, with no added delay when no keyboard was open. Also
-  // treated as "keyboard was open" if a field inside this popup was
-  // blurred moments ago by this same tap (see recentlyBlurredInputEl
-  // above) - e.g. tapping "Save" itself steals focus from the Amount
-  // field before this function runs, so document.activeElement would
-  // otherwise already be the Save button by the time we check.
-  const active = document.activeElement;
-  const activeFieldInPopup = el.contains(active) && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA');
-  const blurredFieldWasInPopup = recentlyBlurredInputEl && el.contains(recentlyBlurredInputEl);
-  const keyboardWasOpen = activeFieldInPopup || blurredFieldWasInPopup;
-  if (activeFieldInPopup) active.blur();
-  recentlyBlurredInputEl = null;
-
-  const doHide = () => {
-    el.classList.remove('popup-visible');
-    unlockBackgroundScroll(id);
-    setTimeout(() => {
-      if (!el.classList.contains('popup-visible')) el.classList.add('hidden');
-    }, 150);
-  };
-
-  if (keyboardWasOpen) {
-    waitForKeyboardCloseThenReveal(doHide);
-  } else {
-    doHide();
-  }
+  el.classList.remove('popup-visible');
+  unlockBackgroundScroll(id);
+  setTimeout(() => {
+    if (!el.classList.contains('popup-visible')) el.classList.add('hidden');
+  }, 150);
 }
 /* Swaps directly from one open popup to another (e.g. Filter -> Customize
    calendar) without the two full-screen backdrop overlays stacking on top
@@ -4023,6 +3838,13 @@ function setDebtDateFilter(category, value) {
 }
 let activeDebtFilterCategory = 'debts';
 let statsSubtab = 'spending';
+// Spending Analytics date scope. 'month' is the default - it always
+// means "the current calendar month", so stats naturally start fresh
+// each month without any extra logic. Picking a past month via the
+// calendar button instead pins it to a fixed 'YYYY-M' (0-indexed
+// month) string, which stays put until reset back to 'month'.
+let statsSpendDateFilter = 'month';
+let statsMonthPickerViewDate = new Date();
 let categoryChartInstance = null;
 let updateSliderIndex = 0;
 let updateSliderTimer = null;
@@ -4181,6 +4003,8 @@ function initApp() {
   safeRun(resetLogsTransactionFilters);
   safeRun(() => resetDebtCategoryFilters('debts'));
   safeRun(() => resetDebtCategoryFilters('receivables'));
+  safeRun(resetStatsSpendMonthFilter);
+
   reRenderApp();
 }
 
@@ -6167,8 +5991,6 @@ document.addEventListener('DOMContentLoaded', () => {
     svg.addEventListener('pointerup', patternPointerUp);
     svg.addEventListener('pointercancel', patternPointerUp);
   }
-  setupFixedBgHeight();
-  setupKeyboardAwareBottomNav();
 });
 
 /* Runs the same fingerprint/Face ID prompt used elsewhere (native
@@ -6268,64 +6090,13 @@ async function verifyBiometricUnlock() {
   }
 }
 
-// The bottom nav bar can be hidden for more than one reason at once (the
-// funds panel being expanded, and/or the on-screen keyboard being up - see
-// setupKeyboardAwareBottomNav() below). Each reason just flips its own flag
-// here and calls this shared function, which decides the bar's actual
-// on-screen state from ALL the flags together - so e.g. closing the funds
-// panel while the keyboard is still open correctly leaves the bar hidden
-// instead of yanking it back on screen underneath the keyboard.
-//
-// `instant`: the bar (and the + button riding inside it) has its own fade/
-// scale transitions for the "normal" cases - funds panel expanding, or
-// switching to a tab that hides the + button (see updateAddButtonVisibility)
-// - and that animation is exactly right there. But the keyboard opening/
-// closing is a much faster, more frequent event, and animating the bar for
-// it reads as a laggy shrink-then-hide / grow-then-appear right as the
-// keyboard itself is already moving. Passing `instant: true` (used only by
-// the keyboard listeners below) briefly clears the transition so THAT one
-// change snaps instead of animating, without touching how the bar animates
-// for any other reason.
-const bottomNavHideReasons = { fundsPanel: false, keyboard: false };
-function updateBottomNavVisibility(instant) {
-  const bottomNav = document.getElementById('bottom-nav-bar');
-  if (!bottomNav) return;
-  const shouldHide = bottomNavHideReasons.fundsPanel || bottomNavHideReasons.keyboard;
-  if (instant) bottomNav.style.transition = 'none';
-  if (shouldHide) {
-    bottomNav.style.opacity = '0';
-    bottomNav.style.visibility = 'hidden';
-    bottomNav.style.pointerEvents = 'none';
-  } else {
-    bottomNav.style.opacity = '';
-    bottomNav.style.visibility = '';
-    bottomNav.style.pointerEvents = '';
-  }
-  if (instant) {
-    // Force layout so the 'none' transition is actually applied to the
-    // opacity/visibility change above before we hand control back to the
-    // stylesheet's normal transition - otherwise the browser could batch
-    // both style changes together and animate anyway.
-    void bottomNav.offsetHeight;
-    bottomNav.style.transition = '';
-  }
-}
-
 function toggleFundsPanel() {
   const panel = document.getElementById('funds-expansion-panel');
   const arrow = document.getElementById('arrow-icon');
-  // Category Breakdown card (Home screen) hides/shows in lockstep with the
-  // funds panel expanding/collapsing, the same way #bottom-nav-bar does
-  // below - so it never visually crowds or sits behind the expanded panel.
-  const categoryCard = document.getElementById('category-breakdown-card');
+  const bottomNav = document.getElementById('bottom-nav-bar');
   if (panel.style.display === "none" || panel.style.display === "") {
     panel.style.display = "block";
     arrow.style.transform = "rotate(180deg)";
-    if (categoryCard) {
-      // Instant hide - no animation, no transition. Just remove it from
-      // the layout entirely so it disappears immediately.
-      categoryCard.style.display = 'none';
-    }
     // The account list clamps its height by measuring the real rendered
     // row heights (see renderFundsList). While this panel sits collapsed
     // (display:none) - which is the case right after a fresh app open,
@@ -6336,172 +6107,22 @@ function toggleFundsPanel() {
     renderFundsList();
     // Hide the bottom nav bar while the fund list is expanded, so it
     // doesn't visually crowd or sit behind the expanded panel's own
-    // content and its Transfer/Add Fund buttons. Pass instant=true so it
-    // snaps at the same speed as the keyboard-open case below, instead of
-    // using its own slower default transition.
-    bottomNavHideReasons.fundsPanel = true;
-    updateBottomNavVisibility(true);
+    // content and its Transfer/Add Fund buttons.
+    if (bottomNav) {
+      bottomNav.style.opacity = '0';
+      bottomNav.style.visibility = 'hidden';
+      bottomNav.style.pointerEvents = 'none';
+    }
   } else {
     panel.style.display = "none";
     arrow.style.transform = "rotate(0deg)";
-    if (categoryCard) {
-      // Instant show - no animation, no transition. Just put it back in
-      // the layout immediately.
-      categoryCard.style.display = '';
+    // Restore the bottom nav bar once the panel is collapsed again.
+    if (bottomNav) {
+      bottomNav.style.opacity = '';
+      bottomNav.style.visibility = '';
+      bottomNav.style.pointerEvents = '';
     }
-    // Restore the bottom nav bar once the panel is collapsed again -
-    // same instant snap as above, matching the keyboard-close case.
-    bottomNavHideReasons.fundsPanel = false;
-    updateBottomNavVisibility(true);
   }
-}
-
-// Auto-hides the bottom nav bar while the on-screen keyboard is up, and
-// brings it back once the keyboard closes. #bottom-nav-bar is a
-// position:fixed element - on a WebView packaged app like this one
-// (android:windowSoftInputMode="adjustResize", via cap-bridge.js/
-// Capacitor), the keyboard shrinks the WHOLE layout viewport, not just the
-// visual one - so window.innerHeight shrinks right along with
-// visualViewport.height, and the two stay roughly equal. Comparing them
-// against EACH OTHER (as an earlier version of this function did) is a
-// browser-chrome-only trick that never sees a difference here, so the
-// keyboard is never detected. Instead we remember the tallest height
-// visualViewport has reported since load/rotation, and compare every new
-// reading against that remembered max - a keyboard opening always shows up
-// as a real drop from that max, regardless of how window.innerHeight
-// behaves on this particular WebView.
-// Keeps the body::before background layer (see its CSS above) pinned to
-// the real screen height instead of shrinking with the WebView's layout
-// viewport when the on-screen keyboard opens. Same "remember the tallest
-// height seen" approach as setupKeyboardAwareBottomNav() below, just
-// driving a CSS var instead of a show/hide flag: any drop from the
-// tallest recorded height is treated as a keyboard (or browser-chrome)
-// shrink and ignored, while a genuine increase (rotation, multi-window
-// resize) updates the var so the layer still tracks the real screen.
-function setupFixedBgHeight() {
-  const root = document.documentElement;
-  const setVar = (h) => root.style.setProperty('--app-full-height', h + 'px');
-
-  const vv = window.visualViewport;
-  let maxHeight = vv ? vv.height : window.innerHeight;
-  setVar(maxHeight);
-
-  const onResize = () => {
-    const h = vv ? vv.height : window.innerHeight;
-    if (h > maxHeight) {
-      maxHeight = h;
-      setVar(maxHeight);
-    }
-  };
-
-  if (vv) {
-    vv.addEventListener('resize', onResize);
-  } else {
-    window.addEventListener('resize', onResize);
-  }
-
-  // Same rotation reset as setupKeyboardAwareBottomNav(): the old
-  // orientation's "tallest height" ceiling is meaningless in the new one,
-  // so re-measure once the WebView has settled into its new size.
-  window.addEventListener('orientationchange', () => {
-    setTimeout(() => {
-      maxHeight = vv ? vv.height : window.innerHeight;
-      setVar(maxHeight);
-    }, 300);
-  });
-}
-
-function setupKeyboardAwareBottomNav() {
-  const vv = window.visualViewport;
-  if (!vv) return; // No visualViewport support - leave the bar as-is rather than guess.
-
-  // Minimum viewport shrink (in CSS px) to count as "the keyboard is open"
-  // rather than e.g. minor browser-chrome jitter.
-  const KEYBOARD_HEIGHT_THRESHOLD = 150;
-
-  let maxViewportHeight = vv.height;
-
-  const onViewportResize = () => {
-    // A genuine increase (rotation, multi-window resize, etc.) raises the
-    // ceiling we compare against; a keyboard opening only ever shrinks the
-    // reading, so it never raises this ceiling itself.
-    if (vv.height > maxViewportHeight) {
-      maxViewportHeight = vv.height;
-    }
-    const heightDiff = maxViewportHeight - vv.height;
-    const isKeyboardOpen = heightDiff > KEYBOARD_HEIGHT_THRESHOLD;
-    if (bottomNavHideReasons.keyboard !== isKeyboardOpen) {
-      bottomNavHideReasons.keyboard = isKeyboardOpen;
-      updateBottomNavVisibility(true);
-    }
-  };
-
-  vv.addEventListener('resize', onViewportResize);
-  vv.addEventListener('scroll', onViewportResize);
-
-  // On rotation the "tallest height seen" ceiling from the old orientation
-  // is meaningless in the new one (e.g. a tall portrait height would look
-  // like a permanently-open keyboard once rotated to landscape). Reset it
-  // shortly after rotation, once the WebView has settled on its new size.
-  window.addEventListener('orientationchange', () => {
-    setTimeout(() => {
-      maxViewportHeight = vv.height;
-      bottomNavHideReasons.keyboard = false;
-      updateBottomNavVisibility(true);
-    }, 300);
-  });
-
-  // The visualViewport check above only reports the keyboard as open once
-  // the WebView has actually finished (most of) its resize animation -
-  // by design, since it's measuring a real, already-shrunk height. That
-  // makes it accurate but a beat slow: the nav bar (and its + button)
-  // visibly hangs around while the keyboard is still sliding up. Focusing
-  // a text field is the very first signal that the keyboard is about to
-  // open, well before any resize happens, so hide immediately on that
-  // instead of waiting for the viewport to catch up. The warm-up input is
-  // excluded since it's an invisible, instantly-blurred field used only to
-  // pre-connect the IME (see warmUpKeyboard/warmUpKeyboardOnFirstTouch) and
-  // was never meant to visibly affect the UI.
-  document.addEventListener('focusin', (e) => {
-    const el = e.target;
-    if (!el || el.id === 'keyboard-warmup-input') return;
-    if (isTextEntryField(el)) {
-      bottomNavHideReasons.keyboard = true;
-      updateBottomNavVisibility(true);
-    }
-  });
-
-  // Deliberately no focusout-based reveal here. An earlier version of this
-  // listener re-showed the bar as soon as focus left every text field,
-  // guessing that the keyboard was on its way down - but the keyboard's
-  // own close animation takes a beat longer than that guess, so the bar
-  // would blink/snap back into view WHILE the keyboard was still visibly
-  // sliding down, then the screen would finish resizing underneath it.
-  // Revealing is left ENTIRELY to the visualViewport 'resize'/'scroll'
-  // listener above, which only reports isKeyboardOpen=false once the
-  // viewport has actually grown back to (near) its pre-keyboard height -
-  // i.e. once the keyboard has genuinely finished closing, however that
-  // close was triggered (tapping elsewhere, the back button, a "Done" key,
-  // etc.), so the bar only ever reappears after the screen has fully
-  // settled, never mid-animation.
-}
-
-// Whether focusing this element could actually bring up the on-screen
-// keyboard - true text-entry fields only. <input type="checkbox">/
-// "radio" (e.g. the Profile screen's Day Mode / Language toggles),
-// range sliders, and similar non-typing inputs still receive DOM focus
-// when tapped, but never summon a keyboard, so they must NOT trigger the
-// keyboard-aware nav-hide logic above (that previously hid the bottom
-// nav the instant a toggle switch was tapped, and kept it hidden - since
-// a checkbox holds focus after being clicked - until the user tapped
-// somewhere else to blur it).
-const NON_TEXT_INPUT_TYPES = new Set(['checkbox', 'radio', 'range', 'button', 'submit', 'reset', 'file', 'color', 'image']);
-function isTextEntryField(el) {
-  if (!el) return false;
-  if (el.tagName === 'TEXTAREA') return true;
-  if (el.tagName !== 'INPUT') return false;
-  const type = (el.type || 'text').toLowerCase();
-  return !NON_TEXT_INPUT_TYPES.has(type);
 }
 
 // ONE-CLICK TO SWITCH ASSET & SEPARATE BUTTON TO EDIT
@@ -6855,7 +6476,7 @@ function generateTxCardBody(t, actionsHtml, query) {
   const timeLabel = fmtTime(t.date);
   const transferInline = transferInlineBadge(t);
   const hasQuery = !!query;
-  const descText = getTxNoteText(t);
+  const descText = t.description || '';
   const isTransferIn = t.type === 'transfer_in';
   const isAddMoney = t.type === 'add_money';
   const isIncoming = isTransferIn || isAddMoney;
@@ -6878,24 +6499,22 @@ function generateTxCardBody(t, actionsHtml, query) {
   const checkDescription = searchMode === 'description';
   const checkAmount = searchMode === 'amount';
 
-  const categoryIsMatch = hasQuery && checkCategory && normalizeHyphenForSearch(categoryLabel).toLowerCase().startsWith(query);
-  const descriptionIsMatch = hasQuery && checkDescription && normalizeHyphenForSearch(descText).toLowerCase().startsWith(query);
+  const categoryIsMatch = hasQuery && checkCategory && categoryLabel.toLowerCase().includes(query);
+  const descriptionIsMatch = hasQuery && checkDescription && descText.toLowerCase().includes(query);
+  const amountIsMatch = hasQuery && checkAmount && (String(t.amount != null ? t.amount : '').includes(query) || amountText.toLowerCase().includes(query.replace(/,/g, '')));
 
-  const descLine = addMoneyBadgeLine(t, query, descriptionIsMatch) || (descText ? `<p class="text-[9px] text-gray-500 font-medium truncate max-w-[150px]">${descriptionIsMatch ? highlightMatch(descText, query) : escapeHtml(descText)}</p>` : '');
+  const descLine = addMoneyBadgeLine(t) || (descText ? `<p class="text-[9px] text-gray-500 font-medium truncate max-w-[150px]">${descriptionIsMatch ? highlightMatch(descText, query) : escapeHtml(descText)}</p>` : '');
 
   const categoryHtml = categoryIsMatch ? highlightMatch(categoryLabel, query) : escapeHtml(categoryLabel);
-  // Transactions' amount is already colored green/red for income/expense
-  // (amountColor below) - unlike Debts/Receivables, it doesn't sit in
-  // otherwise-plain text, so layering the per-digit match color on top of
-  // that would just be redundant. So, on this card only, Amount-mode
-  // search still filters/scopes the list (checkAmount above) but never
-  // recolors the digits themselves - plain text always, regardless of
-  // whether it matched.
-  const amountHtml = escapeHtml(amountText);
+  // Amount uses the comma-insensitive highlighter (highlightMatchAmount)
+  // instead of the plain one - typing "6434" needs to highlight "6,434"
+  // as shown on the card, thousands-comma included, not fail to match
+  // just because the comma sits in the middle of the digits.
+  const amountHtml = amountIsMatch ? highlightMatchAmount(amountText, query, isIncoming ? '#16a34a' : undefined) : escapeHtml(amountText);
   const isFullMatch = hasQuery && (
-    (checkCategory && normalizeHyphenForSearch(categoryLabel).trim().toLowerCase() === query) ||
-    (checkDescription && !!descText && normalizeHyphenForSearch(descText).trim().toLowerCase() === query) ||
-    (checkAmount && amountTextExactMatchesQuery(amountText, query))
+    (checkCategory && categoryLabel.trim().toLowerCase() === query) ||
+    (checkDescription && !!descText && descText.trim().toLowerCase() === query) ||
+    (checkAmount && (String(t.amount != null ? t.amount : '').trim() === query || amountText.trim().toLowerCase() === query.replace(/,/g, '')))
   );
   const cardExtraCls = isFullMatch ? ' logs-tx-card-full-match' : '';
 
@@ -7211,7 +6830,8 @@ function updateAddButtonVisibility() {
 }
 
 /* Logs > Transactions: Sort/Time/Price filter chips (and the search box)
-   are meant to be a quick, one-off look rather than a sticky setting. Leaving
+   are meant to be a quick, one-off look rather than a sticky setting -
+   same idea as resetStatsSpendMonthFilter() for the Stats screen. Leaving
    the Transactions subtab (switching to Debts/Receivables, or leaving the
    Logs screen entirely) drops them back to their defaults (Newest / This
    Month / All Prices, empty search) so coming back to Transactions later
@@ -7327,6 +6947,16 @@ function switchStatsSubtab(name) {
     ? tr('stats_subtitle_spending', 'Deep insights into your spending patterns.')
     : tr('stats_subtitle_debts', 'Insights into your outstanding debts and receivables.');
 
+  // Manually picked past month is only meaningful for Spending, so the
+  // calendar icon is fully removed from the DOM on the Debts & Receivables
+  // tab (not just hidden, matching the same detach/reattach pattern used
+  // for the debt-list date filter icon below) since it has nothing to do
+  // there. The picked month value itself is left untouched when switching
+  // subtabs - it stays as the user left it for the rest of the session,
+  // and only resets on a genuine fresh app launch (see the reset calls at
+  // the top of initApp()).
+  setDebtFilterElVisible('stats-month', 'stats-month-filter-btn', name === 'spending');
+
   if (name === 'spending') renderAnalyticsList();
   if (name === 'debts') renderLiabilityAnalytics();
 }
@@ -7420,20 +7050,6 @@ function openDebtAmountPickerModal(category) {
   updateFilterModalClearBtnVisibility();
 }
 
-// Fixed sizing for the amount-sort pill's label + its dot indicator: the
-// pill's own normal base size (left unset) for "All Amounts", 6px for the
-// two longer "High to Low" / "Low to High" states - text and dot never a
-// measured/dynamic size, per how every other font-size in this app is set.
-function fitDebtAmountLabelToPill(category, isSortByAmount) {
-  const label = document.getElementById(`${category}-sort-label-amount`);
-  const dot = document.getElementById(`${category}-sort-dot-amount`);
-  if (label) label.style.fontSize = isSortByAmount ? '6px' : '';
-  if (dot) {
-    dot.style.width = isSortByAmount ? '4px' : '';
-    dot.style.height = isSortByAmount ? '4px' : '';
-  }
-}
-
 function updateDebtSortButtonsUI(category, instant) {
   // "Priority" now shows on BOTH Pending and Settled. Its "Urgent Due"
   // sub-option still only makes sense on Pending (a settled entry's due
@@ -7461,7 +7077,6 @@ function updateDebtSortButtonsUI(category, instant) {
   if (amountLabel) {
     const labels = { all: tr('logs_all_prices', 'All Amounts'), high: tr('logs_high_to_low', 'High to Low'), low: tr('logs_low_to_high', 'Low to High') };
     amountLabel.innerText = labels[amountMode];
-    fitDebtAmountLabelToPill(category, amountMode === 'high' || amountMode === 'low');
   }
 }
 
@@ -7550,17 +7165,7 @@ function setDebtFilterElVisible(key, elementId, visible) {
 
 function getFilteredDebtEntries(type, category) {
   const searchInput = document.getElementById(`${category}-search-input`);
-  // fromBnDigits() here means the typed query always ends up compared in
-  // plain ASCII digits no matter which script the user actually typed the
-  // number in (Bangla numerals or ASCII) - amounts are always stored/
-  // matched as ASCII internally (see matchesAmount below and fmtMoney),
-  // so without this an Amount-mode search typed in Bangla numerals while
-  // e.g. the app itself is in English would silently match nothing.
-  // normalizeHyphenForSearch() here means a hyphen typed (or not typed) in
-  // the search box never breaks a match either way - see its comment for
-  // why (person names get joined into some templates with a hyphen, e.g.
-  // debt_note_received_from's "{name}-এর কাছ থেকে...").
-  const query = searchInput ? normalizeHyphenForSearch(fromBnDigits(searchInput.value)).toLowerCase().trim() : '';
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
   const statusFilter = debtStatusFilters[category];
 
   let entries = (appState.debts || []).filter(d => d.type === type);
@@ -7592,18 +7197,9 @@ function getFilteredDebtEntries(type, category) {
     // (openSearchFilterModal/searchFieldFilters) - 'person' (the
     // default), 'note', or 'amount'.
     const searchMode = searchFieldFilters[category] || 'person';
-    // Person matching uses startsWith (not includes) - mirrors the same
-    // rule already used for Category matching in the Transactions/Logs
-    // list (see matchesCategory in renderLogsList): typing "ন্যা" should
-    // NOT match "বন্যা" just because those letters appear somewhere
-    // inside the name - it only counts when what's typed is actually the
-    // BEGINNING of the person's name. Note matching now uses the same
-    // startsWith rule (matching the Description filter on the
-    // Transactions list) - for a multi-word note, only the first word is
-    // checked, i.e. this matches the start of the whole string only.
-    const matchesPerson = d => normalizeHyphenForSearch(d.person || '').toLowerCase().startsWith(query);
-    const matchesNote = d => normalizeHyphenForSearch(d.note || '').toLowerCase().startsWith(query);
-    const matchesAmount = d => amountTextMatchesQuery(d.amount != null ? d.amount : '', query) || amountTextMatchesQuery(fmtMoney(d.amount || 0), query);
+    const matchesPerson = d => (d.person || '').toLowerCase().includes(query);
+    const matchesNote = d => (d.note || '').toLowerCase().includes(query);
+    const matchesAmount = d => String(d.amount != null ? d.amount : '').includes(query) || fmtMoney(d.amount || 0).toLowerCase().includes(query);
     if (searchMode === 'note') entries = entries.filter(matchesNote);
     else if (searchMode === 'amount') entries = entries.filter(matchesAmount);
     else entries = entries.filter(matchesPerson);
@@ -7684,11 +7280,7 @@ function renderDebtsList() {
   totalEl.innerText = `৳${fmtMoney(totalPending)}`;
   const pendingLabel = document.getElementById('debts-total-pending-label');
   if (pendingLabel) pendingLabel.style.display = totalPending > 0 ? '' : 'none';
-  // Same fromBnDigits() normalization as getFilteredDebtEntries() above -
-  // this copy of `query` is only used for the per-letter highlight below,
-  // but needs to match the same ASCII-normalized form so highlighting
-  // stays in sync with which entries actually got filtered in.
-  const query = normalizeHyphenForSearch(fromBnDigits(document.getElementById('debts-search-input')?.value || '')).toLowerCase().trim();
+  const query = (document.getElementById('debts-search-input')?.value || '').toLowerCase().trim();
   // Debts tab highlights matched person-name letters in red, matching the
   // "you owe" red used everywhere else on this tab (borrowed icon, due
   // badges, etc.).
@@ -7706,11 +7298,7 @@ function renderReceivablesList() {
   totalEl.innerText = `৳${fmtMoney(totalPending)}`;
   const pendingLabel = document.getElementById('receivables-total-pending-label');
   if (pendingLabel) pendingLabel.style.display = totalPending > 0 ? '' : 'none';
-  // Same fromBnDigits() normalization as getFilteredDebtEntries() above -
-  // this copy of `query` is only used for the per-letter highlight below,
-  // but needs to match the same ASCII-normalized form so highlighting
-  // stays in sync with which entries actually got filtered in.
-  const query = normalizeHyphenForSearch(fromBnDigits(document.getElementById('receivables-search-input')?.value || '')).toLowerCase().trim();
+  const query = (document.getElementById('receivables-search-input')?.value || '').toLowerCase().trim();
   // Receivables tab highlights matched person-name letters in green,
   // matching the "owed to you" green used everywhere else on this tab
   // (lent icon, incoming amounts, etc.).
@@ -7815,8 +7403,9 @@ function generateDebtCardMarkup(d, query, highlightColor) {
   const displayedAmount = d.settled ? d.amount : remaining;
   const displayedAmountText = fmtMoney(displayedAmount);
 
-  const personIsMatch = hasQuery && checkPerson && normalizeHyphenForSearch(d.person || '').toLowerCase().startsWith(query);
-  const noteIsMatch = hasQuery && checkNote && normalizeHyphenForSearch(d.note || '').toLowerCase().startsWith(query);
+  const personIsMatch = hasQuery && checkPerson && (d.person || '').toLowerCase().includes(query);
+  const noteIsMatch = hasQuery && checkNote && (d.note || '').toLowerCase().includes(query);
+  const amountIsMatch = hasQuery && checkAmount && (String(displayedAmount).includes(query) || displayedAmountText.toLowerCase().includes(query));
 
   // Same "whole card" full-match signal as the Logs search
   // (.logs-tx-card-full-match) - when the typed search text is an EXACT
@@ -7826,9 +7415,9 @@ function generateDebtCardMarkup(d, query, highlightColor) {
   // shared red tint class; Receivables gets its own green tint class (see
   // the CSS rules above) so the tab's own color language stays intact.
   const isFullMatch = hasQuery && (
-    (checkPerson && normalizeHyphenForSearch(d.person || '').trim().toLowerCase() === query) ||
-    (checkNote && !!d.note && normalizeHyphenForSearch(d.note).trim().toLowerCase() === query) ||
-    (checkAmount && amountTextExactMatchesQuery(displayedAmountText, query))
+    (checkPerson && (d.person || '').trim().toLowerCase() === query) ||
+    (checkNote && !!d.note && d.note.trim().toLowerCase() === query) ||
+    (checkAmount && (String(displayedAmount).trim() === query || displayedAmountText.trim().toLowerCase() === query))
   );
   const fullMatchCls = isFullMatch ? (isReceivable ? ' debt-card-full-match-green' : ' logs-tx-card-full-match') : '';
   // createdDate is captured as a full timestamp the instant the entry is
@@ -7891,14 +7480,7 @@ function generateDebtCardMarkup(d, query, highlightColor) {
   const detailLineCls = d.settled
     ? 'text-xs text-gray-500 font-medium border-t border-gray-200/70 pt-2'
     : 'text-xs text-gray-500 font-medium border-t border-gray-200/70 pt-1 truncate';
-  // Debts/Receivables amounts are always shown in their tab's own color
-  // (red for what you owe, green for what's owed to you - see
-  // highlightColor, passed in per-tab by the caller) rather than the
-  // default black/gray card text, so - same reasoning as Transactions
-  // above - a per-digit Amount-search highlight on top of that would be
-  // redundant. Amount-mode search still filters the list (checkAmount),
-  // it just never recolors the digits beyond their normal tab color.
-  const amountHtml = escapeHtml(displayedAmountText);
+  const amountHtml = amountIsMatch ? highlightMatchAmount(displayedAmountText, query, highlightColor) : escapeHtml(displayedAmountText);
 
   return `<div class="bg-gray-100/70 rounded-2xl ${paddingCls} cursor-pointer transition active:scale-[0.99]${CARD_HEIGHT_CLS}${fullMatchCls}" onclick="openDebtHistoryModal(${d.id})">
     <div class="flex justify-between items-start">
@@ -7915,7 +7497,7 @@ function generateDebtCardMarkup(d, query, highlightColor) {
         </div>
       </div>
       <div class="text-right flex-shrink min-w-0 max-w-[42%] pl-2">
-        <p class="text-base font-black truncate" style="color:${highlightColor}">৳${amountHtml}</p>
+        <p class="text-base font-black text-gray-900 truncate">${amountIsMatch ? `<span style="color:${highlightColor}">৳</span>` : '৳'}${amountHtml}</p>
         ${!d.settled && hasPayments ? `<p class="text-[8px] text-gray-400 font-bold truncate">${trf('debt_of_amount', `of <span class="money-amt">৳${fmtMoney(d.amount)}</span>`, { amt: `<span class="money-amt">৳${fmtMoney(d.amount)}</span>` })}</p>` : ''}
         ${settledBadge}
       </div>
@@ -8138,6 +7720,7 @@ async function deleteDebtFromEditModal() {
 function setDebtModalType(type) {
   document.getElementById('debt-modal-type').value = type;
   document.getElementById('debt-modal-title').textContent = (type === 'receivable') ? tr('debt_add_receivable_title', 'Add Receivable') : tr('debt_add_debt_title', 'Add Debt');
+  document.getElementById('debt-type-badge').textContent = (type === 'receivable') ? tr('debt_badge_owed_to_me', 'Owed to Me') : tr('debt_badge_i_owe', 'I Owe');
 }
 
 function closeAddDebtModal() {
@@ -8269,7 +7852,7 @@ function fillFullRemainingPayment() {
   const id = parseInt(document.getElementById('debt-payment-entry-id').value);
   const entry = (appState.debts || []).find(d => d.id === id);
   if (!entry) return;
-  document.getElementById('debt-payment-amount-input').value = formatAmountForInput(safeToFixed(getDebtRemaining(entry), 2));
+  document.getElementById('debt-payment-amount-input').value = formatAmountForInput(getDebtRemaining(entry).toFixed(2));
 }
 
 async function submitDebtPayment() {
@@ -8808,16 +8391,17 @@ function renderAccountDropdownList(context) {
   // Every account dropdown clamps to a fixed number of fully-visible rows
   // and scrolls the rest in - the same never-a-sliced-row treatment used
   // for the Category Breakdown / Transaction History lists - instead of
-  // stretching to fit every account. All account dropdowns (Add/Edit
-  // Transaction, Fund Transfer From/To, Edit Transfer From/To,
-  // Debt/Receivable Payment) now show the same 3 rows before scrolling.
-  // Measured from the actual rendered rows (not a guessed pixel height)
-  // so it stays correct if the row size or spacing ever changes.
+  // stretching to fit every account. Transfer From/To dropdowns (the ones
+  // with a paired context - see TRANSFER_CONTEXT_PAIR) show 2 rows since
+  // they sit stacked inside the smaller Transfer modal; the Add/Edit
+  // Transaction account dropdowns show 3. Measured from the actual
+  // rendered rows (not a guessed pixel height) so it stays correct if the
+  // row size or spacing ever changes.
   // Debt/Receivable payment modal's rows render compact (see the
   // `compact` branch above) specifically so 3 funds fit without a scroll
   // at all, staying within the room between the button and the modal's
   // own title above it.
-  capDropdownToRows(listEl, 3, selectedIndex);
+  capDropdownToRows(listEl, pairedCtx ? 2 : 3, selectedIndex);
 }
 
 // Caps a dropdown list's height to exactly `maxRows` fully-visible rows and
@@ -9945,15 +9529,6 @@ function applyFilterModal() {
     const category = activeSearchFilterCategory;
     searchFieldFilters[category] = pendingFilterValue;
     updateSearchFieldFilterUI(category);
-    // If the box already has text typed in from before the switch and the
-    // newly-picked scope is Amount, reformat it immediately (same live
-    // digit-localization as onSearchInput while typing) rather than
-    // leaving whatever raw text/script was there from the previous mode.
-    if (pendingFilterValue === 'amount') {
-      const inputId = category === 'transactions' ? 'logs-search-input' : `${category}-search-input`;
-      const inputEl = document.getElementById(inputId);
-      if (inputEl && inputEl.value) inputEl.value = formatAmountTyping(inputEl.value);
-    }
     closeFilterModal();
     if (category === 'transactions') renderLogsList();
     else if (category === 'debts') renderDebtsList();
@@ -10585,20 +10160,6 @@ function syncLogFilterLabels(sortVal, timeVal, priceVal) {
   const priceEl = document.getElementById('label-price');
   if (priceEl) {
     priceEl.innerText = priceVal === 'high' ? tr('logs_high_to_low', 'High to Low') : priceVal === 'low' ? tr('logs_low_to_high', 'Low to High') : tr('logs_all_prices', 'All Amounts');
-    // Fixed sizing (never measured/dynamic): 7px for the two longer "High
-    // to Low" / "Low to High" states, applied to both the label text and
-    // its dot indicator (logs-price-filter-dot). "All Amounts" is short
-    // enough to just use the pill's own normal 9px (same as the Sort/Time
-    // pills next to it), so its size is left unset here instead of forced
-    // smaller.
-    const isSortByAmount = priceVal === 'high' || priceVal === 'low';
-    priceEl.classList.add('whitespace-nowrap');
-    priceEl.style.fontSize = isSortByAmount ? '7px' : '';
-    const priceDotSizeEl = document.getElementById('logs-price-filter-dot');
-    if (priceDotSizeEl) {
-      priceDotSizeEl.style.width = isSortByAmount ? '4px' : '';
-      priceDotSizeEl.style.height = isSortByAmount ? '4px' : '';
-    }
   }
 
   const timeEl = document.getElementById('label-time');
@@ -10632,23 +10193,13 @@ function syncLogFilterLabels(sortVal, timeVal, priceVal) {
 
 function renderLogsList() {
   const container = document.getElementById('logs-tx-list');
-  // fromBnDigits() normalizes any Bangla numerals in the typed query back
-  // to ASCII before matching/highlighting - transaction amounts are always
-  // stored and matched as ASCII digits (see matchesAmount below), so a
-  // query typed in Bangla numerals needs this to ever match anything.
-  const query = normalizeHyphenForSearch(fromBnDigits(document.getElementById('logs-search-input').value)).toLowerCase().trim();
+  const query = document.getElementById('logs-search-input').value.toLowerCase().trim();
 
   if (!appState.filters) appState.filters = { sort: 'newest', time: 'month', price: 'all' };
   const sortVal = appState.filters.sort;
   const timeVal = appState.filters.time;
   const priceVal = appState.filters.price;
   syncLogFilterLabels(sortVal, timeVal, priceVal);
-
-  // Spending Analytics (Stats) mirrors this same Time filter (see
-  // getStatsSpendMonthScope) - keep it live-synced any time the
-  // Transactions filter changes, even if Stats isn't the visible screen
-  // right now (a no-op there since its container won't exist/matter).
-  safeRun(renderAnalyticsList);
 
   let filtered = appState.transactions.filter(t => t.fund === appState.activeFund);
 
@@ -10661,21 +10212,10 @@ function renderLogsList() {
     // falls back to). Category matching always checks the category's
     // name in BOTH English and Bangla (categorySearchLabels), not just
     // whichever language happens to be on screen right now.
-    // Category matching uses startsWith (not includes) - so typing "পহার"
-    // does NOT match "উপহার" just because the letters appear somewhere
-    // inside it. A category only matches when what's typed is actually
-    // the BEGINNING of its name (in either language), same rule for
-    // English and Bangla labels via categorySearchLabels below.
     const searchMode = searchFieldFilters.transactions || 'category';
-    const matchesCategory = t => categorySearchLabels(t.category).some(label => normalizeHyphenForSearch(label).toLowerCase().startsWith(query));
-    // Description/Note matching uses startsWith (not includes), mirroring
-    // Category matching above: typing "পহার" should NOT match "উপহার" just
-    // because those letters appear somewhere inside it - it only counts
-    // when what's typed is actually the BEGINNING of the note. For a
-    // multi-word note, only the first word is checked (i.e. this matches
-    // the start of the whole string, not the start of every word).
-    const matchesDescription = t => normalizeHyphenForSearch(getTxNoteText(t)).toLowerCase().startsWith(query);
-    const matchesAmount = t => amountTextMatchesQuery(t.amount != null ? t.amount : '', query) || amountTextMatchesQuery(fmtMoney(t.amount || 0), query);
+    const matchesCategory = t => categorySearchLabels(t.category).some(label => label.toLowerCase().includes(query));
+    const matchesDescription = t => (t.description || '').toLowerCase().includes(query);
+    const matchesAmount = t => String(t.amount != null ? t.amount : '').includes(query) || fmtMoney(t.amount || 0).toLowerCase().includes(query);
     if (searchMode === 'description') filtered = filtered.filter(matchesDescription);
     else if (searchMode === 'amount') filtered = filtered.filter(matchesAmount);
     else filtered = filtered.filter(matchesCategory);
@@ -10768,12 +10308,22 @@ async function downloadFile(filename, mimeType, content) {
     }
   }
 
-  // 2) Blob + object URL — works in essentially every modern desktop/mobile
+  // 2) Web Share API with a real File — works in a normal mobile browser
+  //    and also brings up a "save to..." style picker.
+  try {
+    if (navigator.canShare && navigator.share) {
+      const file = new File([content], filename, { type: mimeType });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: filename });
+        return 'share';
+      }
+    }
+  } catch (shareErr) {
+    console.warn("navigator.share failed, falling back:", shareErr);
+  }
+
+  // 3) Blob + object URL — works in essentially every modern desktop/mobile
   //    browser tab (but not inside a plain wrapped WebView - see above).
-  //    (The Web Share API "send to..." sheet used to sit here as a second
-  //    fallback, but that popup is exactly what we don't want, so it's been
-  //    removed - Filesystem is now the only "real" save path, and this is
-  //    just the plain-browser-preview fallback.)
   try {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
@@ -10836,38 +10386,19 @@ async function exportLogs() {
 
   // Human-readable filename instead of a raw timestamp number, so the
   // backup file itself shows exactly when it was taken at a glance:
-  // Tracker_21_Aug_2026_03:45_PM.json (English) /
-  // ট্র্যাকার_২১_আগস্ট_২০২৬_০৩:৪৫_পিএম.json (Bangla) - mirrors every
-  // other date/time spot in the app (fmtDate/fmtTime): in Bangla mode the
-  // month name comes from BN_MONTHS_SHORT and every digit is localized via
-  // toBnDigits, instead of the filename staying in English even when the
-  // rest of the app is in Bangla. AM/PM becomes এএম/পিএম (not the
-  // Morning/Afternoon/Evening/Night words bnTimePeriod uses elsewhere -
-  // those don't map to a 12hr AM/PM split).
-  // The hour:minute separator is now a colon instead of a hyphen, matching
-  // how a clock time is actually written - note this makes the filename
-  // technically invalid on Windows (":" is a reserved filename character
-  // there), so a backup opened/renamed on a Windows PC may need the colon
-  // swapped out; it's unaffected on Android/iOS/most browsers.
+  // Tracker_21_Aug_2026_03-45PM.json
   const now = new Date();
-  const lang = getLang();
   const monthNamesShort = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const day = String(now.getDate()).padStart(2, '0');
-  const month = lang === 'bn' ? BN_MONTHS_SHORT[now.getMonth()] : monthNamesShort[now.getMonth()];
+  const month = monthNamesShort[now.getMonth()];
   const year = now.getFullYear();
   let hours = now.getHours();
-  const isPM = hours >= 12;
+  const ampm = hours >= 12 ? 'PM' : 'AM';
   hours = hours % 12;
   if (hours === 0) hours = 12;
   const hoursStr = String(hours).padStart(2, '0');
   const minutesStr = String(now.getMinutes()).padStart(2, '0');
-  const dayOut = lang === 'bn' ? toBnDigits(day) : day;
-  const yearOut = lang === 'bn' ? toBnDigits(year) : String(year);
-  const hoursOut = lang === 'bn' ? toBnDigits(hoursStr) : hoursStr;
-  const minutesOut = lang === 'bn' ? toBnDigits(minutesStr) : minutesStr;
-  const ampmOut = lang === 'bn' ? (isPM ? 'পিএম' : 'এএম') : (isPM ? 'PM' : 'AM');
-  const trackerLabel = lang === 'bn' ? 'ট্র্যাকার' : 'Tracker';
-  const filename = `${trackerLabel}_${dayOut}_${month}_${yearOut}_${hoursOut}:${minutesOut}_${ampmOut}.json`;
+  const filename = `Tracker_${day}_${month}_${year}_${hoursStr}-${minutesStr}${ampm}.json`;
 
   const method = await downloadFile(filename, 'application/json', jsonStr);
   if (!method) {
@@ -10999,7 +10530,7 @@ function getCategoryFAIcon(label) {
   if (c.includes('transfer')) return 'fa-right-left';
   if (c.includes('add money')) return 'fa-circle-dollar-to-slot';
   if (c.includes('debt collect') || c.includes('পাওনা আদায়')) return 'fa-hand-holding-dollar';
-  if (c.includes('debt repay') || c.includes('ধার পরিশোধ')) return 'fa-hand-holding-dollar';
+  if (c.includes('debt repay') || c.includes('ধার পরিশোধ')) return 'fa-file-contract';
   if (c.includes('grocery') || c.includes('মুদি')) return 'fa-cart-shopping';
   if (c.includes('medic') || c.includes('ওষুধ')) return 'fa-briefcase-medical';
   if (c.includes('event') || c.includes('অনুষ্ঠান')) return 'fa-calendar-days';
@@ -11027,33 +10558,96 @@ function getCategoryFAIcon(label) {
   return 'fa-circle-plus';
 }
 
-/* ---------- Stats: Spending Analytics month scope ----------
-   Spending Analytics no longer has its own separate month picker - it
-   simply mirrors whatever Time filter is currently active on the
-   Transactions (Logs) screen for the active fund (appState.filters.time),
-   since both screens are always scoped to the same fund/data anyway.
-   - Picking a specific month there (time: 'custommonth' + customMonth)
-     shows that month's full stats here.
-   - Picking a specific date there (time: 'custom' + customDate) shows
-     the FULL month that date falls in (per product decision - a single
-     day's stats aren't very informative on their own).
-   - Anything else (the default 'month', or 'today'/'week') falls back to
-     the real current calendar month, same as before.
-   Clearing the Transactions filter (back to 'month') therefore
-   automatically snaps Spending Analytics back to the current month too -
-   no separate "reset" step needed here. */
-function getStatsSpendMonthScope() {
+/* ---------- Stats: Spending Analytics Month Filter ---------- */
+
+function openStatsMonthPicker() {
+  // Land the picker on whichever month is currently applied - the real
+  // current month if statsSpendDateFilter is still the default 'month',
+  // or the previously-pinned 'YYYY-M' month otherwise - so reopening the
+  // picker doesn't lose your place.
+  statsMonthPickerViewDate = (statsSpendDateFilter === 'month')
+    ? new Date()
+    : (() => { const [y, m] = statsSpendDateFilter.split('-').map(Number); return new Date(y, m, 1); })();
+  renderStatsMonthPickerLabel();
+  // Clear Filter only makes sense - and only shows - once a specific
+  // past month is actually pinned. On a fresh open (still on the
+  // default, auto-following current month) there's nothing to clear.
+  const clearBtn = document.getElementById('stats-month-clear-btn');
+  if (clearBtn) clearBtn.classList.toggle('hidden', statsSpendDateFilter === 'month');
+  showPopup('popup-stats-month');
+}
+
+function closeStatsMonthPicker() {
+  hidePopup('popup-stats-month');
+}
+
+function navigateStatsMonthPicker(delta) {
   const now = new Date();
-  const f = appState.filters;
-  if (f && f.time === 'custommonth' && f.customMonth) {
-    const [y, m] = f.customMonth.split('-').map(Number);
-    return { year: y, monthIdx: m - 1 };
-  }
-  if (f && f.time === 'custom' && f.customDate) {
-    const d = new Date(f.customDate);
-    return { year: d.getFullYear(), monthIdx: d.getMonth() };
-  }
-  return { year: now.getFullYear(), monthIdx: now.getMonth() };
+  const next = new Date(statsMonthPickerViewDate.getFullYear(), statsMonthPickerViewDate.getMonth() + delta, 1);
+  // Never let the picker move past the current month - there's no
+  // future spending data yet to show stats for.
+  if (next.getFullYear() > now.getFullYear() || (next.getFullYear() === now.getFullYear() && next.getMonth() > now.getMonth())) return;
+  statsMonthPickerViewDate = next;
+  renderStatsMonthPickerLabel();
+}
+
+function renderStatsMonthPickerLabel() {
+  const label = document.getElementById('stats-month-picker-label');
+  if (!label) return;
+  const y = statsMonthPickerViewDate.getFullYear();
+  const m = statsMonthPickerViewDate.getMonth();
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  label.innerText = getLang() === 'bn' ? `${BN_MONTHS[m]} ${toBnDigits(y)}` : `${monthNames[m]} ${y}`;
+
+  const now = new Date();
+  const atCurrentMonth = (y === now.getFullYear() && m === now.getMonth());
+  const nextBtn = document.getElementById('stats-month-picker-next-btn');
+  if (nextBtn) nextBtn.classList.toggle('opacity-30', atCurrentMonth);
+}
+
+function confirmStatsMonthPicker() {
+  const y = statsMonthPickerViewDate.getFullYear();
+  const m = statsMonthPickerViewDate.getMonth();
+  const now = new Date();
+  // Picking the current month is just the default 'month' state (so it
+  // keeps auto-following the calendar going forward) rather than
+  // pinning to this specific year/month.
+  statsSpendDateFilter = (y === now.getFullYear() && m === now.getMonth()) ? 'month' : `${y}-${m}`;
+  updateStatsMonthFilterIndicator();
+  closeStatsMonthPicker();
+  renderAnalyticsList();
+}
+
+// Resets the pinned month back to the default 'month' state (current
+// month, auto-following the calendar), same as picking the current
+// month in confirmStatsMonthPicker above.
+function clearStatsMonthPicker() {
+  statsSpendDateFilter = 'month';
+  updateStatsMonthFilterIndicator();
+  closeStatsMonthPicker();
+  renderAnalyticsList();
+}
+
+// Silently drops a manually picked past month back to the default
+// 'month' state (current month, auto-following the calendar). Called
+// when the user navigates away from Spending Analytics - a picked
+// month is meant to be a quick one-off look, not a sticky setting, so
+// it's never left pinned once you leave the screen. No popup-closing
+// or re-render here since this always runs as a side effect of
+// switching to a different screen/subtab, which already re-renders
+// (or hides) the relevant content on its own.
+function resetStatsSpendMonthFilter() {
+  if (statsSpendDateFilter === 'month') return;
+  statsSpendDateFilter = 'month';
+  updateStatsMonthFilterIndicator();
+}
+
+// Small dot on the calendar icon, same pattern as the Debts/Receivables
+// date filter - shows whenever a past month is pinned (i.e. not the
+// default, auto-following "current month" state).
+function updateStatsMonthFilterIndicator() {
+  const dot = document.getElementById('stats-month-filter-dot');
+  if (dot) dot.classList.toggle('hidden', statsSpendDateFilter === 'month');
 }
 
 function renderAnalyticsList() {
@@ -11065,9 +10659,21 @@ function renderAnalyticsList() {
   // money arriving, not a category of spend.
   let filtered = appState.transactions.filter(t => t.fund === appState.activeFund && t.type !== 'transfer_in' && t.type !== 'add_money');
 
-  // Scope to whichever month the Transactions screen's Time filter
-  // currently points at (see getStatsSpendMonthScope above).
-  const { year: statsYear, monthIdx: statsMonthIdx } = getStatsSpendMonthScope();
+  // Scope to the selected month. Default ('month') always means the
+  // CURRENT calendar month, so the stats naturally start fresh at the
+  // top of every month with no extra "reset" step needed - a specific
+  // past month can still be reached with the calendar button, which
+  // pins statsSpendDateFilter to a fixed 'YYYY-M' string instead.
+  let statsYear, statsMonthIdx;
+  if (statsSpendDateFilter === 'month') {
+    const now = new Date();
+    statsYear = now.getFullYear();
+    statsMonthIdx = now.getMonth();
+  } else {
+    const [y, m] = statsSpendDateFilter.split('-').map(Number);
+    statsYear = y;
+    statsMonthIdx = m;
+  }
   filtered = filtered.filter(t => {
     const d = new Date(t.date);
     return d.getFullYear() === statsYear && d.getMonth() === statsMonthIdx;
@@ -11340,23 +10946,6 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-// Treats a hyphen the same as a space for search-matching purposes only -
-// e.g. a person's name inserted into a hyphen-joined template phrase like
-// "{name}-এর কাছ থেকে ধারের টাকা পেলাম" (see debt_note_received_from)
-// should still match/highlight when the user types it the natural way,
-// with a space where the hyphen sits ("বন্যা এর কাছে") instead of typing
-// the hyphen itself. Swapping "-" for " " char-for-char (rather than
-// deleting it) keeps the string EXACTLY the same length as the original,
-// so any index found by comparing normalized copies lines up 1:1 with the
-// same index in the real, un-normalized text - callers can search on the
-// normalized copy but still slice/highlight the original safely, with no
-// separate position-remapping step needed (contrast with
-// highlightMatchAmount's comma-stripping below, which removes characters
-// and therefore does need an explicit index map).
-function normalizeHyphenForSearch(str) {
-  return (str || '').replace(/-/g, ' ');
-}
-
 // Wraps EVERY case-insensitive occurrence of `query` inside `text` in a
 // colored span (red by default; callers can pass a different hex, e.g.
 // green for the Receivables tab) - used by the Logs search (see
@@ -11364,31 +10953,27 @@ function normalizeHyphenForSearch(str) {
 // person-name search (see generateDebtCardMarkup) to mirror the same
 // "matched letters turn color" feedback. Returns the escaped,
 // unhighlighted text unchanged when there's no query or no match in this
-// particular field. Only the FIRST occurrence of the query in the text
-// gets colored, even if the same letters appear again later in the same
-// field (e.g. "ফ" inside "ফান্ড ট্রান্সফার" also appears a second time
-// inside "ট্রান্সফার" itself) - matching is decided by the leading
-// occurrence (startsWith, for Category/Person fields), so lighting up a
-// later, unrelated repeat of those letters would be misleading.
+// particular field. Loops instead of a single indexOf so a query that
+// appears more than once in the same field (e.g. "o" in "Money Added")
+// gets every occurrence colored, not just the first.
 function highlightMatch(text, query, color) {
   const safeText = text || '';
   if (!query) return escapeHtml(safeText);
-  // See normalizeHyphenForSearch's comment above - hyphens are treated as
-  // spaces when LOCATING the match, so a query typed with a space (the
-  // natural way) still finds a hyphen-joined phrase in the real text. The
-  // found index is then used to slice `safeText` itself below, so the
-  // hyphen still displays normally (un-colored, in its original spot) -
-  // only the matching logic ignores it, never the on-screen text.
-  const lowerText = normalizeHyphenForSearch(safeText).toLowerCase();
-  const lowerQuery = normalizeHyphenForSearch(query).toLowerCase();
+  const lowerText = safeText.toLowerCase();
+  const lowerQuery = query.toLowerCase();
   const highlightColor = color || '#e2443b';
-  const idx = lowerText.indexOf(lowerQuery);
+  let result = '';
+  let pos = 0;
+  let idx = lowerText.indexOf(lowerQuery, pos);
   if (idx === -1) return escapeHtml(safeText);
-  return (
-    escapeHtml(safeText.slice(0, idx)) +
-    `<span style="color:${highlightColor}">${escapeHtml(safeText.slice(idx, idx + query.length))}</span>` +
-    escapeHtml(safeText.slice(idx + query.length))
-  );
+  while (idx !== -1) {
+    result += escapeHtml(safeText.slice(pos, idx));
+    result += `<span style="color:${highlightColor}">${escapeHtml(safeText.slice(idx, idx + query.length))}</span>`;
+    pos = idx + query.length;
+    idx = lowerText.indexOf(lowerQuery, pos);
+  }
+  result += escapeHtml(safeText.slice(pos));
+  return result;
 }
 
 // Same idea as highlightMatch above, but comma-insensitive - built for
@@ -11417,15 +11002,7 @@ function highlightMatchAmount(text, query, color) {
     origIndex.push(i);
   }
 
-  // stripped may be showing Bangla numerals (fmtMoney() localizes digits
-  // whenever the app is in Bangla mode), while `query` here always comes
-  // in already normalized to ASCII digits (fromBnDigits, applied by every
-  // caller before this function runs). fromBnDigits() is a 1-char-for-
-  // 1-char digit swap, so running it on `stripped` for comparison purposes
-  // doesn't shift any position and origIndex stays valid - without this,
-  // an ASCII query could never match Bangla-numeral text and the amount
-  // would silently never highlight even though it's a real match.
-  const lowerStripped = fromBnDigits(stripped).toLowerCase();
+  const lowerStripped = stripped.toLowerCase();
   const lowerQuery = digitsOnlyQuery.toLowerCase();
   let idx = lowerStripped.indexOf(lowerQuery, 0);
   if (idx === -1) return escapeHtml(safeText);
@@ -11435,9 +11012,14 @@ function highlightMatchAmount(text, query, color) {
   while (idx !== -1) {
     const origStart = origIndex[idx];
     let origEnd = origIndex[idx + lowerQuery.length - 1] + 1;
-    // Highlight exactly the digits the user typed - nothing more, not even
-    // the ".00" decimal tail, so what's colored always matches character-
-    // for-character with what's in the search box.
+    // If the matched digits run right up to the decimal point (e.g. typing
+    // "230" matches the whole-taka part of "230.00"), extend the highlight
+    // to swallow the ".00" too - the user typed the complete amount as far
+    // as they're concerned, so the decimal tail shouldn't stay unhighlighted
+    // and look like it didn't match.
+    if (safeText[origEnd] === '.') {
+      origEnd = safeText.length;
+    }
     result += escapeHtml(safeText.slice(pos, origStart));
     result += `<span style="color:${highlightColor}">${escapeHtml(safeText.slice(origStart, origEnd))}</span>`;
     pos = origEnd;
@@ -11492,31 +11074,11 @@ function transferInlineBadge(t) {
 // Same badge treatment as a Fund Transfer entry (small icon + colored line
 // under the category name) but for a manual "Add Money" entry - shows the
 // user's note if they gave one, otherwise just names the account.
-//
-// The fallback text below ("Added to <fund>") is what actually gets shown
-// on screen for an Add Money entry with no manually-typed note - but it's
-// generated on the fly here and never written into t.description. Search's
-// Note filter used to check t.description directly, so it looked for that
-// visible text in a field that was actually empty and could never match it
-// (e.g. typing "ম" found nothing for an entry visibly starting with
-// "মাসিক..."). getTxNoteText centralizes this fallback so the Note filter
-// and its highlight (see generateTxCardBody / renderLogsList) check the
-// same text that's actually on screen, not just the raw stored field.
-function getTxNoteText(t) {
-  if (t.description) return t.description;
-  if (t.type === 'add_money') {
-    return trf('home_added_to_fund', `Added to ${fundDisplayName(t.fund)}`, { fund: fundDisplayName(t.fund) });
-  }
-  return '';
-}
-
-function addMoneyBadgeLine(t, query, isMatch) {
+function addMoneyBadgeLine(t) {
   if (t.type !== 'add_money') return '';
-  const label = getTxNoteText(t);
-  const inner = isMatch ? highlightMatch(label, query) : escapeHtml(label);
-  return `<p class="text-[9px] text-gray-500 font-medium truncate max-w-[150px]">${inner}</p>`;
+  const label = t.description ? t.description : trf('home_added_to_fund', `Added to ${fundDisplayName(t.fund)}`, { fund: fundDisplayName(t.fund) });
+  return `<p class="text-[9px] text-gray-500 font-medium truncate max-w-[150px]">${escapeHtml(label)}</p>`;
 }
-
 
 function generateLogsTxMarkup(t, query) {
   const isTransferIn = t.type === 'transfer_in';
@@ -11582,36 +11144,6 @@ function handleStorageQuotaExceeded() {
   ).then(() => { _storageFullAlertShown = false; });
 }
 
-/* Number.prototype.toFixed() (and plain String()/`${n}`) silently
-   switch to scientific notation ("6.76e+26") the moment a number
-   reaches 1e21 - that's in the JS spec, not a bug in the engine. If a
-   string like that ever reaches formatAmountTyping()'s digit-only
-   regex (used by the comma-formatted amount inputs below), the "e"
-   and "+" get stripped out but the exponent's digits survive and get
-   glued straight onto the mantissa - turning a huge, correct balance
-   into a short, wrong-looking decimal (this is exactly what caused
-   the "amount" field to fill with garbage after tapping "Pay full
-   remaining amount" on an entry whose balance had grown past 1e21).
-   These two helpers are drop-in, exponential-safe replacements: below
-   1e21 they behave identically to toFixed()/String(), and above it
-   they expand the number to its full plain-digit form instead. */
-function safeToFixed(n, decimals) {
-  n = Number(n) || 0;
-  decimals = decimals === undefined ? 2 : decimals;
-  if (Math.abs(n) < 1e21) return n.toFixed(decimals);
-  return n.toLocaleString('en-US', {
-    useGrouping: false,
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  });
-}
-function safeNumberToString(n) {
-  if (typeof n !== 'number' || !isFinite(n)) return String(n);
-  const str = String(n);
-  if (!/e/i.test(str)) return str;
-  return n.toLocaleString('en-US', { useGrouping: false, maximumFractionDigits: 20 });
-}
-
 /* Formats a number as money with thousand-separator commas, e.g.
    91673613.5 -> "91,673,613.50". decimals defaults to 2 (matches the
    .toFixed(2) used everywhere for ৳ amounts); pass 0 for whole-number
@@ -11633,7 +11165,7 @@ function fmtMoney(n, decimals) {
   const CRORE = 10000000;
   if (absNum >= CRORE) {
     const croreValue = Math.floor((absNum / CRORE) * 10) / 10;
-    const croreStr = Number.isInteger(croreValue) ? String(croreValue) : safeToFixed(croreValue, 1);
+    const croreStr = Number.isInteger(croreValue) ? String(croreValue) : croreValue.toFixed(1);
     return sign + localizeDigits(croreStr) + (getLang() === 'bn' ? ' কোটি' : 'Cr');
   }
   const fixed = absNum.toFixed(decimals);
@@ -11675,59 +11207,9 @@ function onAmountInput(el) {
   const pos = Math.max(0, el.value.length - cursorFromEnd);
   el.setSelectionRange(pos, pos);
 }
-// Live digit-localization for the Logs/Debts/Receivables search boxes,
-// used only while that box is scoped to "Amount" search (via the
-// magnifying-glass filter picker - see searchFieldFilters). Reuses the
-// same formatAmountTyping() live-formatting as the real amount inputs
-// (Add/Edit Transaction etc.) so that no matter which script the
-// person's keyboard actually typed digits in, the box always shows them
-// in the app's CURRENTLY SELECTED language (Bangla numerals in Bangla
-// mode, ASCII in English mode) - e.g. typing "2000" on an English
-// keyboard while the app is set to Bangla displays "২,০০০", and typing
-// "২০০০" on a Bangla keyboard while the app is set to English displays
-// "2,000". Person/Note/Category search modes are left completely alone
-// here (formatAmountTyping would strip letters), so this only ever
-// touches the box's own display while a numeric filter is active - the
-// actual matching against saved amounts is separately normalized back to
-// ASCII in getFilteredDebtEntries()/renderLogsList() via fromBnDigits().
-function onSearchInput(el, category, renderFn) {
-  const defaultMode = category === 'transactions' ? 'category' : 'person';
-  const mode = searchFieldFilters[category] || defaultMode;
-  if (mode === 'amount') {
-    const cursorFromEnd = el.value.length - el.selectionEnd;
-    el.value = formatAmountTyping(el.value);
-    const pos = Math.max(0, el.value.length - cursorFromEnd);
-    el.setSelectionRange(pos, pos);
-  }
-  updateSearchClearBtn(el);
-  renderFn();
-}
-
-// Shows/hides the small "x" clear button sitting inside a search box
-// (right side, next to the typed text) based on whether that box
-// currently has any text in it - called on every keystroke (see
-// onSearchInput above) and once after clearSearchInput below resets it.
-function updateSearchClearBtn(el) {
-  if (!el) return;
-  const btn = document.getElementById(`${el.id}-clear-btn`);
-  if (btn) btn.classList.toggle('hidden', el.value.length === 0);
-}
-
-// Clears a search box's text (the small "x" button next to the search
-// icon) and re-runs that tab's render function so the full unfiltered
-// list shows again immediately - same effect as manually selecting all
-// the typed text and deleting it, just in one tap.
-function clearSearchInput(inputId, renderFn) {
-  const el = document.getElementById(inputId);
-  if (!el) return;
-  el.value = '';
-  updateSearchClearBtn(el);
-  el.focus();
-  renderFn();
-}
 function formatAmountForInput(n) {
   if (n === '' || n === null || n === undefined || isNaN(n)) return '';
-  return formatAmountTyping(safeNumberToString(n));
+  return formatAmountTyping(String(n));
 }
 function parseAmountInput(str) {
   if (str === '' || str === null || str === undefined) return NaN;
