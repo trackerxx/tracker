@@ -2946,6 +2946,7 @@ const I18N = {
     alert_pattern_set: 'আপনার প্যাটার্ন সেট হয়েছে। এটি মনে রাখুন - প্যাটার্ন ভুলে গেলে অ্যাপ ডেটা রিসেট করা ছাড়া আর কোনো উপায়ে সেটি পুনরুদ্ধার করা যাবে না।',
     confirm_delete_debt_entry: 'এই এন্ট্রিটি মুছে ফেলবেন? পরিমাণটি ফান্ডের ব্যালেন্স থেকে বাদ যাবে।',
     confirm_delete_transaction: 'এই লেনদেনটি মুছে ফেলবেন? পরিমাণটি ফান্ডে ফেরত যোগ হবে।',
+    confirm_delete_transaction_locked: 'এই এন্ট্রিটি মুছে ফেলবেন? এটি ১ দিনের বেশি পুরনো হওয়ায় পরিমাণটি ফান্ডে ফেরত যোগ হবে না - এটি খরচ হিসেবেই গণ্য থাকবে।',
     alert_type_account_name: 'দয়া করে একটি ফান্ডের নাম লিখুন!',
     alert_fund_name_needs_letter: 'ফান্ডের নামে শুধু সংখ্যা রাখা যাবে না, অন্তত একটি অক্ষর থাকতে হবে।',
     alert_fund_starting_balance_required: 'দয়া করে ০-এর বেশি একটি শুরুর ব্যালেন্স লিখুন!',
@@ -6721,6 +6722,13 @@ function renderAccountDetails() {
   const totalSpent = filteredTx.filter(t => t.type !== 'transfer_in' && t.type !== 'add_money').reduce((sum, t) => sum + t.amount, 0);
   document.getElementById('details-fund-spent').innerText = `৳${fmtMoney(totalSpent)}`;
 
+  // Soft-deleted (historyHidden) entries stay counted in Total Spent just
+  // above - the money is still gone from the fund, it's just no longer a
+  // visible log line - but they're excluded from the card list below and
+  // from the "any transactions at all?" checks that decide its empty state.
+  const visibleTx = filteredTx.filter(t => !t.historyHidden);
+  const visibleFundTx = fundTx.filter(t => !t.historyHidden);
+
   const filterDot = document.getElementById('fund-history-filter-dot');
   const isManualDateToday = fundHistoryFilter.mode === 'date' && isDateFilterToday(fundHistoryFilter.value);
   if (filterDot) filterDot.classList.toggle('hidden', !hasManualFilter || isManualDateToday);
@@ -6730,8 +6738,8 @@ function renderAccountDetails() {
   if (noteDot) noteDot.classList.toggle('hidden', !currentNote.trim());
 
   const listContainer = document.getElementById('details-tx-list');
-  if (filteredTx.length === 0) {
-    const emptyMsg = fundTx.length === 0
+  if (visibleTx.length === 0) {
+    const emptyMsg = visibleFundTx.length === 0
       ? tr('acct_no_transactions', 'No transactions logged from this fund.')
       : hasManualFilter
         ? (fundHistoryFilter.mode === 'month' ? tr('fund_history_no_tx_month', 'No transactions in the selected month.') : tr('fund_history_no_tx_date', 'No transactions on the selected date.'))
@@ -6742,7 +6750,7 @@ function renderAccountDetails() {
     return;
   }
 
-  const sorted = [...filteredTx].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const sorted = [...visibleTx].sort((a, b) => new Date(b.date) - new Date(a.date));
   listContainer.innerHTML = sorted.map(t => generateDetailsTxMarkup(t)).join('');
   fitListToVisibleCount(listContainer, 5, undefined, true);
 }
@@ -6987,6 +6995,29 @@ async function deleteTransaction(txId) {
     saveState();
     initApp();
     if (currentDetailsFund) renderAccountDetails();
+    return;
+  }
+
+  // Once amount-locked (>1 day old), this is a SOFT delete: the entry is
+  // hidden from every visible list (Ledger & Logs, Fund Details - see the
+  // historyHidden checks in renderLogsList/renderAccountDetails) but stays
+  // in appState.transactions rather than being removed outright, and the
+  // fund balance is NOT refunded. That keeps it counted in Stats/Total
+  // Spent - the money is still gone, it's just no longer a visible log
+  // line. It's only actually erased for good if "Clear History" (which
+  // wipes the full range regardless of this flag) is used instead.
+  const txAmountLocked = isTxAmountLocked(tx);
+  if (txAmountLocked) {
+    const ok = await customConfirm(tr('confirm_delete_transaction_locked', "Delete this entry? Since it's more than 1 day old, the amount will NOT be refunded to the fund - it stays counted as spent."), { icon: 'fa-trash-alt' });
+    if (!ok) return;
+    tx.historyHidden = true;
+    saveState();
+    initApp();
+    if (currentDetailsFund) renderAccountDetails();
+    const lockedEditPopup = document.getElementById('popup-edit-transaction');
+    if (lockedEditPopup && !lockedEditPopup.classList.contains('hidden') && editingTxId === txId) {
+      closeEditTransactionModal();
+    }
     return;
   }
 
@@ -10806,7 +10837,7 @@ function renderLogsList() {
   // right now (a no-op there since its container won't exist/matter).
   safeRun(renderAnalyticsList);
 
-  let filtered = appState.transactions.filter(t => t.fund === appState.activeFund);
+  let filtered = appState.transactions.filter(t => t.fund === appState.activeFund && !t.historyHidden);
 
   if (query !== "") {
     // Which field the typed text is matched against is picked via the
