@@ -73,6 +73,8 @@ jobs:
               this.bridge.getWebView().setOverScrollMode(android.webkit.WebView.OVER_SCROLL_NEVER);
               this.bridge.getWebView().setScrollBarStyle(android.view.View.SCROLLBARS_INSIDE_OVERLAY);
               this.bridge.getWebView().getSettings().setTextZoom(100);
+              this.bridge.getWebView().getSettings().setMinimumFontSize(1);
+              this.bridge.getWebView().getSettings().setMinimumLogicalFontSize(1);
               this.bridge.getWebView().clearCache(true);
             }
           '''
