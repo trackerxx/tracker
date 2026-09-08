@@ -1158,6 +1158,13 @@ html:not(.dark-theme) body::before {
   .hover\:bg-red-600:hover { background-color: var(--brand-red-hover) !important; }
 }
 .hover\:bg-red-600:active { background-color: var(--brand-red-hover) !important; }
+/* The unlock button specifically should never darken on press - it just
+   stays var(--brand-red) at all times, tap or no tap, and the popup opens
+   either automatically or on click without any color change happening
+   first. */
+#biometric-unlock-btn, #biometric-unlock-btn:hover, #biometric-unlock-btn:active {
+  background-color: var(--brand-red) !important;
+}
 
 /* ---------- Same treatment for green: unify every remaining Tailwind-named
    green utility to the one professional green (#16a34a) already used for
@@ -2639,7 +2646,7 @@ Yes, Delete
 </div>
 <h2 class="text-xl font-bold text-white" data-i18n="lock_title" data-i18n-en="Tracker is Locked">Tracker is Locked</h2>
 <p class="text-sm font-medium text-gray-400 mt-1.5 mb-8" data-i18n="biometric_verify_continue_desc" data-i18n-en="Verify your identity to continue">Verify your identity to continue</p>
-<button onclick="verifyBiometricUnlock()" class="bg-[var(--brand-red)] hover:bg-red-600 text-white font-bold py-3.5 px-8 rounded-2xl text-sm flex items-center justify-center space-x-2 shadow-lg transition">
+<button id="biometric-unlock-btn" onclick="verifyBiometricUnlock()" class="bg-[var(--brand-red)] hover:bg-red-600 text-white font-bold py-3.5 px-8 rounded-2xl text-sm flex items-center justify-center space-x-2 shadow-lg transition">
 <i class="fas fa-fingerprint"></i> <span data-i18n="biometric_unlock_btn" data-i18n-en="Unlock">Unlock</span>
 </button>
 <p id="biometric-lock-error" class="text-[11px] text-red-400 font-medium mt-4 hidden" data-i18n="biometric_verify_failed" data-i18n-en="Verification failed. Try again.">Verification failed. Try again.</p>
