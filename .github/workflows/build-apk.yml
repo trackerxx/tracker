@@ -30,6 +30,7 @@ jobs:
         run: |
           npm install
           npm install @capacitor/browser@^6.0.0 --legacy-peer-deps
+          npm install @capacitor/status-bar@^6.0.0 @capacitor/app@^6.0.0 --legacy-peer-deps
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
