@@ -7290,7 +7290,7 @@ function renderAccountDetails() {
 
   const sorted = [...visibleTx].sort((a, b) => new Date(b.date) - new Date(a.date));
   listContainer.innerHTML = sorted.map(t => generateDetailsTxMarkup(t)).join('');
-  fitListToVisibleCount(listContainer, 5, undefined, true);
+  fitListToVisibleCount(listContainer, 4, undefined, true);
 }
 
 // ---------- Fund Details "Transaction History" calendar filter ----------
