@@ -2934,8 +2934,8 @@ const I18N = {
     logs_no_matching_tx: 'এখনো কোনো লেনদেন যুক্ত করা হয়নি।',
     debt_lent: 'ধার দিয়েছেন',
     debt_borrowed: 'ধার নিয়েছেন',
-    debt_note_paid_back_to: 'ধার শোধ - {name}',
-    debt_note_received_from: '{name}-এর কাছ থেকে ধারের টাকা পেলাম',
+    debt_note_paid_back_to: '{name}র দেনা পরিশোধ করলাম',
+    debt_note_received_from: '{name}র ধারের টাকা পেলাম',
     debt_from_fund: '{fund} থেকে',
     debt_for_note: '({note}-এর জন্য)',
     debt_due: 'শেষ তারিখ',
@@ -3494,6 +3494,23 @@ function trf(key, englishFallback, vars) {
     });
   }
   return str;
+}
+
+// A Debts/Receivables settlement's auto-generated transaction (see
+// submitDebtPayment) carries debtNoteKind + debtNotePerson alongside its
+// plain-text description - those two fields let the note re-translate
+// LIVE, on every render, using whatever language is active right now
+// (see getTxNoteText/addMoneyInlineBadge/debtRepaymentInlineBadge below),
+// instead of staying stuck in whatever language was active the instant
+// the payment was made. Returns null (not a translated string) for any
+// transaction that doesn't carry these fields - older entries saved
+// before this existed simply fall back to their frozen description text
+// wherever this is used.
+function debtPaymentNoteText(t) {
+  if (!t || !t.debtNoteKind || !t.debtNotePerson) return null;
+  if (t.debtNoteKind === 'received_from') return trf('debt_note_received_from', `Received from ${t.debtNotePerson}`, { name: t.debtNotePerson });
+  if (t.debtNoteKind === 'paid_back_to') return trf('debt_note_paid_back_to', `Paid back to ${t.debtNotePerson}`, { name: t.debtNotePerson });
+  return null;
 }
 
 // Updates every element with a data-i18n attribute to the current language,
@@ -9002,6 +9019,14 @@ async function submitDebtPayment() {
         // identical to money the user added manually.
         category: 'Debt Collection',
         description: trf('debt_note_received_from', `Received from ${entry.person}`, { name: entry.person }),
+        // These two explicit fields let the note text re-translate LIVE
+        // whenever the app's language is switched (see
+        // debtPaymentNoteText/getTxNoteText/addMoneyInlineBadge below) -
+        // description above stays as a plain-text snapshot for older
+        // code paths/exports, but display always prefers re-deriving the
+        // text from these fields when present.
+        debtNoteKind: 'received_from',
+        debtNotePerson: entry.person,
         amount: amount,
         date: new Date().toISOString(),
         // Marks this as auto-generated from a Debts/Receivables settlement -
@@ -9019,6 +9044,8 @@ async function submitDebtPayment() {
         fund: selectedFund,
         category: 'Debt Repayment',
         description: trf('debt_note_paid_back_to', `Paid back to ${entry.person}`, { name: entry.person }),
+        debtNoteKind: 'paid_back_to',
+        debtNotePerson: entry.person,
         amount: amount,
         date: new Date().toISOString(),
         fromDebtPayment: true
@@ -12059,7 +12086,7 @@ function renderAnalyticsList() {
           <div class="w-8 h-8 rounded-xl bg-white flex items-center justify-center"><i class="fas fa-receipt text-gray-500 text-xs"></i></div>
           <div>
             <p class="text-xs font-bold text-gray-900">${tr('stats_biggest_expense', 'Biggest Expense')}</p>
-            <p class="text-[9px] text-gray-400 font-bold">${biggest.description ? `${escapeHtml(biggest.description)} (${escapeHtml(biggestLabel)})` : escapeHtml(biggestLabel)}</p>
+            <p class="text-[9px] text-gray-400 font-bold">${(debtPaymentNoteText(biggest) || biggest.description) ? `${escapeHtml(debtPaymentNoteText(biggest) || biggest.description)} (${escapeHtml(biggestLabel)})` : escapeHtml(biggestLabel)}</p>
           </div>
         </div>
         <span class="text-xs font-black text-gray-900">৳${fmtMoney(Math.round(biggest.amount), 0)}</span>
@@ -12408,6 +12435,8 @@ function transferInlineBadge(t) {
 // and its highlight (see generateTxCardBody / renderLogsList) check the
 // same text that's actually on screen, not just the raw stored field.
 function getTxNoteText(t) {
+  const debtNote = debtPaymentNoteText(t);
+  if (debtNote) return debtNote;
   if (t.description) return t.description;
   if (t.type === 'add_money') {
     return trf('home_added_to_fund', `Added to ${fundDisplayName(t.fund)}`, { fund: fundDisplayName(t.fund) });
@@ -12431,22 +12460,23 @@ function addMoneyInlineBadge(t) {
   if (t.type !== 'add_money') return '';
   // A "Receivable Collected" entry (fromDebtPayment - i.e. money settled
   // from a Debts/Receivables record) shows its own note here instead of
-  // the fund name, since who paid (t.description, e.g. "Received from X")
-  // is more useful than which fund it landed in. A genuine "Add Money"
-  // entry (not fromDebtPayment) still shows the fund it was added to.
-  const label = t.fromDebtPayment ? (t.description || fundDisplayName(t.fund)) : fundDisplayName(t.fund);
+  // the fund name, since who paid (debtPaymentNoteText/t.description,
+  // e.g. "Received from X") is more useful than which fund it landed in.
+  // A genuine "Add Money" entry (not fromDebtPayment) still shows the
+  // fund it was added to.
+  const label = t.fromDebtPayment ? (debtPaymentNoteText(t) || t.description || fundDisplayName(t.fund)) : fundDisplayName(t.fund);
   const span = `<span style="color:var(--brand-green)" class="whitespace-nowrap">${escapeHtml(label)}</span>`;
   return `<span class="inline-flex items-center gap-0.5 text-[7px] font-bold flex-shrink-0 min-w-0">${span}</span>`;
 }
 
 // Same badge as addMoneyInlineBadge above, but for a "Debt Repayment" entry
 // (money paid back out of one of the user's own funds when settling a
-// debt - see submitDebtPayment) - shows its own note (t.description, e.g.
-// "Paid back to X") instead of the fund name, colored red since the money
-// is leaving that fund.
+// debt - see submitDebtPayment) - shows its own note
+// (debtPaymentNoteText/t.description, e.g. "Paid back to X") instead of
+// the fund name, colored red since the money is leaving that fund.
 function debtRepaymentInlineBadge(t) {
   if (t.category !== 'Debt Repayment' || !t.fund) return '';
-  const label = t.description || fundDisplayName(t.fund);
+  const label = debtPaymentNoteText(t) || t.description || fundDisplayName(t.fund);
   const span = `<span style="color:var(--brand-red)" class="whitespace-nowrap">${escapeHtml(label)}</span>`;
   return `<span class="inline-flex items-center gap-0.5 text-[7px] font-bold flex-shrink-0 min-w-0">${span}</span>`;
 }
