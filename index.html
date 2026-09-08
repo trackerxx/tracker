@@ -10494,9 +10494,23 @@ function ensureLogsTransactionVisible(tx) {
 // long as the user is actually looking at the Transactions list, and is
 // only cleared once they navigate away (see clearHomeUpdateTxHighlight).
 function highlightLogsTransactionCard(txId) {
+  const list = document.getElementById('logs-tx-list');
   const card = document.querySelector(`#logs-tx-list [data-tx-id="${txId}"]`);
-  if (!card) return;
-  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (!card || !list) return;
+  // A plain card.scrollIntoView() climbs through every scrollable
+  // ancestor to bring the card into view - not just this history list
+  // (which already scrolls internally via fitListToVisibleCount) but
+  // also the page/body itself, dragging the whole Transactions screen
+  // down. We only want the history box's own internal scroll to move,
+  // with the rest of the page staying exactly where it was - so the
+  // target offset is computed manually (via getBoundingClientRect,
+  // which works regardless of any positioned-ancestor quirks with
+  // offsetTop) and applied with list.scrollTo() on just this container,
+  // instead of letting the browser touch anything outside it.
+  const listRect = list.getBoundingClientRect();
+  const cardRect = card.getBoundingClientRect();
+  const targetScrollTop = list.scrollTop + (cardRect.top - listRect.top) - (list.clientHeight / 2) + (cardRect.height / 2);
+  list.scrollTo({ top: Math.max(0, targetScrollTop), behavior: 'smooth' });
   card.classList.add('logs-tx-card-full-match');
   homeJumpTxHighlightId = txId;
 }
