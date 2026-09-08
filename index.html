@@ -2744,7 +2744,7 @@ Yes, Delete
 <h2 id="pattern-pad-title" class="text-lg font-bold text-white">Draw a pattern</h2>
 <p id="pattern-pad-subtitle" class="text-xs font-medium text-gray-400 mt-1.5 px-4">Connect at least 4 dots. You'll need this to unlock the app.</p>
 <p id="pattern-pad-error" class="text-[11px] text-red-400 font-bold mt-2 h-4"></p>
-<svg id="pattern-svg" viewBox="0 0 300 300" class="w-64 h-64 mt-3" style="touch-action:none;">
+<svg id="pattern-svg" viewBox="0 0 300 300" class="w-[300px] h-[300px] max-w-full mt-3" shape-rendering="geometricPrecision" style="touch-action:none;">
 <g id="pattern-lines-g" stroke="var(--brand-red)" stroke-width="8" stroke-linecap="round" fill="none"></g>
 <line id="pattern-live-line" x1="0" y1="0" x2="0" y2="0" stroke="var(--brand-red)" stroke-width="8" stroke-linecap="round" class="hidden"></line>
 <g id="pattern-dots-g"></g>
@@ -6226,6 +6226,25 @@ let patternDrawing = false;
 // blocks a new touch from starting a fresh pattern mid-shake, same as the
 // PIN pad naturally blocks new digits while its buffer is still full.
 let patternLocked = false;
+// Perf: getBoundingClientRect() forces a synchronous layout - calling it on
+// every single pointermove (which can fire dozens of times a second while
+// dragging) is what caused the laggy/stuttery feel. It's captured once on
+// pointerdown instead, since the pad doesn't move/resize mid-drag.
+let patternSvgRect = null;
+// Perf: batch the actual DOM redraw to at most once per animation frame
+// instead of once per pointermove event, so fast finger movement doesn't
+// pile up more paint work than the screen can actually display.
+let patternRafId = null;
+let patternPendingLivePt = null;
+// Perf: a persistent <polyline> element that we update via setAttribute,
+// instead of tearing down and rebuilding the line markup (innerHTML) on
+// every redraw.
+let patternPolylineEl = null;
+// Perf: only the fill/stroke of dots need to change, and only when a dot
+// newly becomes active (patternBuffer only grows during a drag) - track
+// what's already been painted so redrawPattern doesn't re-touch all 9
+// circles on every single move event.
+let patternPaintedActiveCount = 0;
 
 function initPatternGrid() {
   const g = document.getElementById('pattern-dots-g');
@@ -6236,6 +6255,7 @@ function initPatternGrid() {
 function openPatternPad(mode, opts = {}) {
   patternMode = mode;
   patternBuffer = [];
+  patternPaintedActiveCount = 0;
   patternFirstEntry = [];
   patternLocked = false;
   patternOnSuccess = opts.onSuccess || null;
@@ -6269,11 +6289,13 @@ function updatePatternPadTitle() {
 }
 
 function svgPointFromEvent(evt) {
-  const svg = document.getElementById('pattern-svg');
-  const rect = svg.getBoundingClientRect();
+  if (!patternSvgRect) {
+    const svg = document.getElementById('pattern-svg');
+    patternSvgRect = svg.getBoundingClientRect();
+  }
   return {
-    x: (evt.clientX - rect.left) / rect.width * 300,
-    y: (evt.clientY - rect.top) / rect.height * 300
+    x: (evt.clientX - patternSvgRect.left) / patternSvgRect.width * 300,
+    y: (evt.clientY - patternSvgRect.top) / patternSvgRect.height * 300
   };
 }
 function nearestDotIndex(pt) {
@@ -6290,8 +6312,11 @@ function patternPointerDown(evt) {
   evt.preventDefault();
   const svg = document.getElementById('pattern-svg');
   try { svg.setPointerCapture(evt.pointerId); } catch (e) {}
+  // Capture the rect once per drag instead of on every move.
+  patternSvgRect = svg.getBoundingClientRect();
   patternDrawing = true;
   patternBuffer = [];
+  patternPaintedActiveCount = 0;
   const errEl = document.getElementById('pattern-pad-error');
   if (errEl) errEl.innerText = '';
   const pt = svgPointFromEvent(evt);
@@ -6305,11 +6330,25 @@ function patternPointerMove(evt) {
   const pt = svgPointFromEvent(evt);
   const idx = nearestDotIndex(pt);
   if (idx >= 0 && !patternBuffer.includes(idx)) patternBuffer.push(idx);
-  redrawPattern(pt);
+  // Don't touch the DOM directly here - just record the latest point and
+  // let the next animation frame paint it. Fast finger movement can fire
+  // many pointermove events between two frames; painting on every one of
+  // them was pure wasted/queued work that made the line trail feel laggy.
+  scheduleRedraw(pt);
+}
+function scheduleRedraw(livePt) {
+  patternPendingLivePt = livePt;
+  if (patternRafId !== null) return;
+  patternRafId = requestAnimationFrame(() => {
+    patternRafId = null;
+    redrawPattern(patternPendingLivePt);
+  });
 }
 async function patternPointerUp(evt) {
   if (!patternDrawing) return;
   patternDrawing = false;
+  if (patternRafId !== null) { cancelAnimationFrame(patternRafId); patternRafId = null; }
+  patternSvgRect = null;
   redrawPattern();
   await processPatternEntry();
 }
@@ -6320,7 +6359,15 @@ function redrawPattern(livePt) {
   const dotsG = document.getElementById('pattern-dots-g');
   if (!linesG || !liveLine) return;
   const pts = patternBuffer.map(i => PATTERN_POINTS[i]);
-  linesG.innerHTML = pts.length > 1 ? `<polyline points="${pts.map(p => p.x + ',' + p.y).join(' ')}"></polyline>` : '';
+  // Perf: reuse one <polyline> element and just update its points attribute
+  // instead of rebuilding the line via innerHTML on every redraw (which
+  // tears down and recreates a DOM node on every pointermove).
+  if (!patternPolylineEl || !patternPolylineEl.isConnected) {
+    patternPolylineEl = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    linesG.innerHTML = '';
+    linesG.appendChild(patternPolylineEl);
+  }
+  patternPolylineEl.setAttribute('points', pts.length > 1 ? pts.map(p => p.x + ',' + p.y).join(' ') : '');
   if (livePt && pts.length) {
     const last = pts[pts.length - 1];
     liveLine.setAttribute('x1', last.x); liveLine.setAttribute('y1', last.y);
@@ -6330,10 +6377,29 @@ function redrawPattern(livePt) {
     liveLine.classList.add('hidden');
   }
   if (dotsG) {
-    dotsG.querySelectorAll('circle').forEach(c => {
-      const idx = parseInt(c.getAttribute('data-idx'));
-      c.setAttribute('fill', patternBuffer.includes(idx) ? 'var(--brand-red)' : 'rgba(0,0,0,0.45)');
-    });
+    // Perf: patternBuffer only ever grows during a drag (dots are never
+    // removed once connected), so once we know which prefix of it has
+    // already been painted active, a move that adds one dot only needs
+    // to touch that one new circle - not re-check all 9 on every event.
+    // patternPaintedActiveCount is reset to 0 (by callers) whenever the
+    // buffer is cleared/restarted, which triggers the full pass below.
+    if (patternPaintedActiveCount === 0) {
+      dotsG.querySelectorAll('circle').forEach(c => {
+        const idx = parseInt(c.getAttribute('data-idx'));
+        const active = patternBuffer.includes(idx);
+        c.setAttribute('fill', active ? 'var(--brand-red)' : 'rgba(0,0,0,0.45)');
+        // Match the border to the fill once a dot is connected so the idle
+        // dot's faint white ring (rgba(255,255,255,0.2)) doesn't sit on top
+        // of the red fill and read as a glow/halo around the dot.
+        c.setAttribute('stroke', active ? 'var(--brand-red)' : 'rgba(255,255,255,0.2)');
+      });
+    } else {
+      for (let i = patternPaintedActiveCount; i < patternBuffer.length; i++) {
+        const c = dotsG.querySelector(`circle[data-idx="${patternBuffer[i]}"]`);
+        if (c) { c.setAttribute('fill', 'var(--brand-red)'); c.setAttribute('stroke', 'var(--brand-red)'); }
+      }
+    }
+    patternPaintedActiveCount = patternBuffer.length;
   }
 }
 
@@ -6341,12 +6407,14 @@ async function processPatternEntry() {
   if (patternBuffer.length < 4) {
     showPatternError(tr('pattern_min_dots_error', 'Connect at least 4 dots.'));
     patternBuffer = [];
+    patternPaintedActiveCount = 0;
     redrawPattern();
     return;
   }
   if (patternMode === 'setup1') {
     patternFirstEntry = patternBuffer.slice();
     patternBuffer = [];
+    patternPaintedActiveCount = 0;
     patternMode = 'setup2';
     updatePatternPadTitle();
     redrawPattern();
@@ -6370,6 +6438,7 @@ async function processPatternEntry() {
       patternMode = 'setup1';
       setTimeout(() => {
         patternBuffer = [];
+        patternPaintedActiveCount = 0;
         if (svg) svg.classList.remove('lock-entry-shake');
         patternLocked = false;
         updatePatternPadTitle(); redrawPattern();
@@ -6402,6 +6471,7 @@ async function processPatternEntry() {
       patternLocked = true;
       setTimeout(() => {
         patternBuffer = [];
+        patternPaintedActiveCount = 0;
         if (svg) svg.classList.remove('lock-entry-shake');
         patternLocked = false;
         redrawPattern();
