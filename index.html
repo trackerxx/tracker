@@ -1147,8 +1147,17 @@ html:not(.dark-theme) body::before {
 .text-red-400, .text-red-500, .text-red-700 { color: var(--brand-red) !important; }
 .bg-red-50, .bg-red-100, .bg-red-600 { background-color: var(--brand-red) !important; }
 .border-red-100 { border-color: var(--brand-red) !important; }
-.hover\:bg-red-600:hover { background-color: var(--brand-red-hover) !important; }
 .to-red-50 { --tw-gradient-to: rgba(var(--brand-red-rgb),0.12) !important; }
+/* Same red-600 -> --brand-red-hover darkening as before, exact same tone -
+   just scoped to real mouse-hover devices, and mirrored on :active for
+   touch. On touch, CSS :hover can trigger on tap and linger (looks like a
+   stuck dark overlay sitting on the button before anything else happens);
+   :active only holds for as long as the finger is actually down, so it
+   releases immediately, which is what was reported as a "dark" flash. */
+@media (hover: hover) and (pointer: fine) {
+  .hover\:bg-red-600:hover { background-color: var(--brand-red-hover) !important; }
+}
+.hover\:bg-red-600:active { background-color: var(--brand-red-hover) !important; }
 
 /* ---------- Same treatment for green: unify every remaining Tailwind-named
    green utility to the one professional green (#16a34a) already used for
@@ -1158,9 +1167,12 @@ html:not(.dark-theme) body::before {
    as teal/cyan, not green, and is a distinct categorization color, not a
    positive/success indicator). */
 .bg-green-100, .bg-green-500, .bg-green-600, .bg-green-700 { background-color: var(--brand-green-btn-bg) !important; }
-.hover\:bg-green-600:hover, .hover\:bg-green-700:hover { background-color: var(--brand-green-btn-hover) !important; }
 .border-green-500 { border-color: var(--brand-green) !important; }
 .text-green-500, .text-green-600 { color: var(--brand-green) !important; }
+@media (hover: hover) and (pointer: fine) {
+  .hover\:bg-green-600:hover, .hover\:bg-green-700:hover { background-color: var(--brand-green-btn-hover) !important; }
+}
+.hover\:bg-green-600:active, .hover\:bg-green-700:active { background-color: var(--brand-green-btn-hover) !important; }
 </style>
 </head>
 <body class="font-sans antialiased text-gray-900 pb-32">
@@ -6398,8 +6410,16 @@ async function confirmBiometricScan(reason, title) {
 
 function showBiometricLockScreen() {
   document.getElementById('screen-biometric-lock').classList.remove('hidden');
-  // Wait for the user to tap "Unlock" - don't fire the native prompt
-  // automatically on show.
+  // Auto-fire the native fingerprint prompt - but only after the boot
+  // splash has fully faded out (it has its own 0.35s opacity transition,
+  // see #boot-splash above) and the lock screen has had a moment to settle
+  // in. Firing it at the exact same instant the splash starts fading made
+  // the native prompt pop up while the splash was still mid-fade, which
+  // looked jarring. The "Unlock" button stays as a manual fallback/retry
+  // in case the native prompt is dismissed or fails.
+  setTimeout(() => {
+    verifyBiometricUnlock();
+  }, 450);
 }
 
 function hideBiometricLockScreen() {
