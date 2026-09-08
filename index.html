@@ -4372,6 +4372,7 @@ window.onload = async function() {
   warmUpKeyboard();
   applyStaticTranslations();
   initApp();
+  initStatusBarThemeSync();
   loadProfileFields();
   // Re-syncs reminder notifications with the current settings/messages on
   // every app launch - without this, a notification scheduled by an older
@@ -4449,6 +4450,60 @@ function openExternalLink(url) {
     return false; // prevent the default <a> navigation
   }
   return true; // let the browser handle target="_blank" normally
+}
+
+/* Status bar colors used to mirror the app's own light/dark background,
+   so the bar itself is never lifted from the OS. Keep these in sync with
+   the light/dark body background colors used in the CSS above (#f4f4f4
+   light, #0b0b0d dark). */
+const STATUS_BAR_LIGHT_BG = '#f4f4f4';
+const STATUS_BAR_DARK_BG = '#0b0b0d';
+
+// Matches the status bar to whatever theme the app is currently in
+// (light or dark). Called on launch, on every theme toggle, and again
+// whenever the app comes back to the foreground.
+async function applyStatusBarForTheme() {
+  const cap = getCap();
+  if (!cap || !cap.StatusBar || !isNativeApp()) return;
+  const isLight = !document.documentElement.classList.contains('dark-theme');
+  try {
+    await cap.StatusBar.setStyle({ style: isLight ? cap.Style.Light : cap.Style.Dark });
+    if (cap.Capacitor.getPlatform() === 'android') {
+      await cap.StatusBar.setBackgroundColor({ color: isLight ? STATUS_BAR_LIGHT_BG : STATUS_BAR_DARK_BG });
+    }
+  } catch (e) {}
+}
+
+// Forces the status bar back to dark, regardless of the app's own theme -
+// used the moment the app leaves the foreground (home button, app
+// switcher, etc.) so it never leaves a light bar showing on the OS/home
+// screen behind it.
+async function forceStatusBarDark() {
+  const cap = getCap();
+  if (!cap || !cap.StatusBar || !isNativeApp()) return;
+  try {
+    await cap.StatusBar.setStyle({ style: cap.Style.Dark });
+    if (cap.Capacitor.getPlatform() === 'android') {
+      await cap.StatusBar.setBackgroundColor({ color: STATUS_BAR_DARK_BG });
+    }
+  } catch (e) {}
+}
+
+// Wires the status bar up to the app's foreground/background state: in
+// the foreground it tracks the current theme, in the background it's
+// always dark. Call once on launch.
+function initStatusBarThemeSync() {
+  const cap = getCap();
+  applyStatusBarForTheme();
+  if (cap && cap.App && cap.App.addListener) {
+    cap.App.addListener('appStateChange', ({ isActive }) => {
+      if (isActive) {
+        applyStatusBarForTheme();
+      } else {
+        forceStatusBarDark();
+      }
+    });
+  }
 }
 
 function initApp() {
@@ -5817,6 +5872,7 @@ function toggleLightMode(isLight) {
   // current theme (see updateChart), so it needs a manual redraw here -
   // it doesn't otherwise re-render just because the theme class changed.
   safeRun(updateChart);
+  safeRun(applyStatusBarForTheme);
 }
 
 function updateUsername(val) {
