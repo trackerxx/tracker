@@ -7,7 +7,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
-<meta name="theme-color" content="#e2443b">
+<meta name="theme-color" content="#b91c1c">
 <script>
 (function() {
   try {
@@ -41,6 +41,34 @@ window.__bootStartTime = Date.now();
 <link rel="stylesheet" href="libs/fontawesome/css/all.min.css">
 <script src="cap-bridge.js" defer></script>
 <style>
+/* Brand green and brand red as theme-aware CSS variables. Every green
+   or red accent in the app (buttons, icons, text, fund colors, tints,
+   etc.) is driven through these variables so both colors stay the same
+   single shade in light mode AND dark mode - no more separate per-theme
+   values. */
+:root {
+  --brand-green: #16a34a;
+  --brand-green-rgb: 22,163,74;
+  --brand-green-hover: #15803d;
+  /* Lighter shade used only for solid button backgrounds (bg-green-*),
+     so buttons read less deep/dark while icons, text, borders, and fund
+     colors keep the original --brand-green tone. */
+  --brand-green-btn-bg: #166534;
+  --brand-green-btn-hover: #14532d;
+  --brand-red: #b91c1c;
+  --brand-red-rgb: 185,28,28;
+  --brand-red-hover: #991b1b;
+}
+html.dark-theme {
+  --brand-green: #16a34a;
+  --brand-green-rgb: 22,163,74;
+  --brand-green-hover: #15803d;
+  --brand-green-btn-bg: #166534;
+  --brand-green-btn-hover: #14532d;
+  --brand-red: #b91c1c;
+  --brand-red-rgb: 185,28,28;
+  --brand-red-hover: #991b1b;
+}
 /* App-wide: disable text selection and the long-press
    copy/translate/select callout everywhere in the app (this is what shows
    the "G Translate / Search in Via / Copy" popup on a long-press). Inputs
@@ -269,7 +297,7 @@ justify-content: center;
 transition: background 0.15s ease, transform 0.1s ease;
 }
 .pin-key:active {
-background: rgba(226, 68, 59, 0.55);
+background: rgba(var(--brand-red-rgb),0.55);
 transform: scale(0.95);
 }
 .glass-card {
@@ -497,7 +525,7 @@ animation: bellWobble 2.2s linear infinite;
    white/gray overlay, which flashed white over this button's round dark
    background on every tap. -webkit-tap-highlight-color is disabled here
    and replaced with an explicit green :active background (matching the
-   bell icon's own green, #22c55e) so the tap feedback flashes green
+   bell icon's own green, #16a34a) so the tap feedback flashes green
    instead of the default white. */
 #home-notif-bell-btn {
 -webkit-tap-highlight-color: transparent;
@@ -525,8 +553,8 @@ animation: lockEntryShake 0.45s ease-in-out;
    beat - same red the dots turn while being typed correctly, reused
    here as the error color. */
 .pin-dot-error {
-background: #e2443b !important;
-border-color: #e2443b !important;
+background: var(--brand-red) !important;
+border-color: var(--brand-red) !important;
 }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar {
@@ -587,7 +615,7 @@ background-color: white;
 transition: .3s;
 border-radius: 50%;
 }
-input:checked + .slider { background-color: #e2443b; }
+input:checked + .slider { background-color: var(--brand-red); }
 input:checked + .slider:before { transform: translateX(20px); }
 
 /* ============ Dark theme (default) ============ */
@@ -613,6 +641,110 @@ html.dark-theme .bg-white\/70 { background-color: rgba(28,28,31,0.7) !important;
 html.dark-theme .bg-white\/80 { background-color: rgba(28,28,31,0.85) !important; }
 html.dark-theme .hover\:bg-white\/60:hover { background-color: rgba(42,42,46,0.7) !important; }
 
+/* ---- Home section: unified panel background, dark theme only (scoped, does not affect other screens). Category Breakdown card is intentionally excluded — stays bg-black. ---- */
+html.dark-theme #home-balance-card,
+html.dark-theme #home-debts-card,
+html.dark-theme #home-update-btn {
+  background-color: #141414 !important;
+  border-color: #232323 !important;
+  border-width: 0.5px !important;
+}
+html.dark-theme #home-debts-card:hover,
+html.dark-theme #home-update-btn:hover {
+  background-color: #1b1b1b !important;
+}
+/* The "Tap Fund to Switch" list (funds-list-container, inside the
+   expanded Balance card) was still plain bg-white - a lighter shade
+   than its own #141414 parent panel, so the fund rows stay visibly
+   distinct as their own tappable rows instead of blending into the
+   card they sit inside. */
+html.dark-theme #home-balance-card .bg-white {
+  background-color: #1e1e1e !important;
+  border-color: #2a2a2a !important;
+}
+/* Date badge + notification bell button (top of Home) - scoped by id
+   so other bg-gray-200/80 buttons elsewhere (e.g. popup close
+   buttons) are untouched. */
+html.dark-theme #home-today-badge,
+html.dark-theme #home-notif-bell-btn {
+  background-color: #141414 !important;
+}
+html.dark-theme #home-notif-bell-btn:hover {
+  background-color: #1b1b1b !important;
+}
+
+/* ---- Logs section: unified panel background, dark theme only (scoped, does not affect other screens). Debts/Receivables total cards (bg-black) are intentionally excluded and stay pure black, same as Category Breakdown on Home. ---- */
+html.dark-theme #screen-logs .bg-gray-200\/50,
+html.dark-theme #screen-logs .bg-gray-200\/70,
+html.dark-theme #screen-logs .bg-white,
+html.dark-theme #screen-logs .bg-gray-100\/70 {
+  background-color: #141414 !important;
+  border-color: #232323 !important;
+}
+html.dark-theme #screen-logs .hover\:bg-gray-300\/50:hover,
+html.dark-theme #screen-logs .hover\:bg-gray-300\/70:hover {
+  background-color: #1b1b1b !important;
+}
+/* The #screen-logs unified-panel rule just above wins over the plain
+   .logs-tx-card-full-match / .debt-card-full-match-green declarations
+   further down in dark mode (an ID-scoped selector always outranks a
+   class-only one, regardless of source order), which was silently
+   erasing the Debts/Receivables search "full match" red/green card
+   tint. These re-assert it with matching (ID-scoped) specificity so
+   the tint shows again on top of the unified panel color. */
+html.dark-theme #screen-logs .logs-tx-card-full-match {
+  background-color: rgba(var(--brand-red-rgb),0.16) !important;
+  border-color: var(--brand-red) !important;
+}
+html.dark-theme #screen-logs .debt-card-full-match-green {
+  background-color: rgba(var(--brand-green-rgb),0.16) !important;
+  border-color: var(--brand-green) !important;
+}
+/* .logs-tx-card is a unique class name, not reused for anything else,
+   and is shared by both the Logs transaction list AND the Fund
+   Details ("Account Details") transaction history list - so this one
+   is intentionally global rather than screen-scoped, to cover both
+   at once. */
+html.dark-theme .logs-tx-card {
+  background-color: #141414 !important;
+  border-color: #232323 !important;
+}
+
+/* ---- Stats section: unified panel background, dark theme only (scoped, does not affect other screens). Small icon-circle backdrops (plain bg-white) are left alone so icons stay visible against the panel. The "no data" empty state uses .glass-card, now flattened globally above, so it matches automatically. ---- */
+html.dark-theme #screen-stats .bg-gray-200\/50,
+html.dark-theme #screen-stats .bg-gray-200\/60,
+html.dark-theme #screen-stats .bg-white\/70 {
+  background-color: #141414 !important;
+  border-color: #232323 !important;
+}
+
+/* ---- Bottom navigation bar: match the same panel color, dark theme only ---- */
+html.dark-theme .custom-nav-bar {
+  background: #141414 !important;
+  border-color: #232323 !important;
+}
+
+/* ---- Profile section: unified panel background, dark theme only (scoped, does not affect other screens). Icon-circle backdrops (plain bg-white/bg-gray-100 avatar chips) are left alone so icons stay visible against the panel. No pure-black cards exist on this screen. ---- */
+html.dark-theme #screen-profile .bg-gray-200\/60 {
+  background-color: #141414 !important;
+  border-color: #232323 !important;
+}
+html.dark-theme #screen-profile button[onclick="exportLogs()"],
+html.dark-theme #screen-profile button[onclick="triggerImport()"] {
+  background-color: #141414 !important;
+  border-color: #232323 !important;
+}
+
+/* ---- Fund-picker dropdowns (Add/Edit Transaction, Transfer From/To, Edit Transfer From/To, Debt/Receivable Payment) - all 7 share the "*-account-dropdown" id suffix, so one attribute selector covers every one of them plus their fund choice rows. The selected row (bg-[#991b1b]/10, an accent tint) is left untouched. ---- */
+html.dark-theme [id$="-account-dropdown"] {
+  background-color: #141414 !important;
+  border-color: #232323 !important;
+}
+html.dark-theme [id$="-account-dropdown"] .bg-gray-200\/70 {
+  background-color: #2a2a2e !important;
+  border-color: #3a3a3e !important;
+}
+
 /* "Cancel" / "Clear Filter" buttons specifically (marked with
    .modal-secondary-btn) were nearly invisible in dark mode: the
    generic .bg-white override above (#131315) sits almost the same
@@ -623,12 +755,29 @@ html.dark-theme .hover\:bg-white\/60:hover { background-color: rgba(42,42,46,0.7
    bg-white + text-gray-700 but should keep their original dark-mode
    look. */
 html.dark-theme .modal-secondary-btn {
-  background-color: #232326 !important;
-  color: #e4e4e7 !important;
-  border: 1px solid rgba(255,255,255,0.12) !important;
+  background-color: #1e1e1e !important;
+  color: #d4d4d8 !important;
+  border: 1px solid #2a2a2a !important;
 }
 html.dark-theme .modal-secondary-btn:hover {
-  background-color: #2a2a2e !important;
+  background-color: #2a2a2a !important;
+}
+
+/* Close / Cancel icon-buttons (Debt History's X, Notifications' Close,
+   the generic confirm dialog's Cancel) were sitting on the brighter
+   generic bg-gray-200/80 tone, which stood out against the elevation
+   system's darker #141414/#1e1e1e panels. Scoped by id/onclick (not the
+   shared .bg-gray-200/80 class) so this doesn't dim unrelated buttons
+   that reuse the same utility, like the notification bell or date badge. */
+html.dark-theme #confirm-modal-cancel-btn,
+html.dark-theme button[onclick="closeDebtHistoryModal()"],
+html.dark-theme button[onclick="closeNotificationsPanel()"] {
+  background-color: #1e1e1e !important;
+  color: #b5b5bd !important;
+}
+html.dark-theme #confirm-modal-cancel-btn:hover,
+html.dark-theme button[onclick="closeNotificationsPanel()"]:hover {
+  background-color: #2a2a2a !important;
 }
 
 /* Logs search: when a transaction's category or description is an EXACT
@@ -640,8 +789,8 @@ html.dark-theme .modal-secondary-btn:hover {
    person-name full-match (see generateDebtCardMarkup) - same red tint,
    same "you owe" meaning. */
 .logs-tx-card-full-match {
-  border-color: #e2443b !important;
-  background-color: rgba(226,68,59,0.08) !important;
+  border-color: var(--brand-red) !important;
+  background-color: rgba(var(--brand-red-rgb),0.08) !important;
 }
 
 html.dark-theme .bg-gray-50 { background-color: #141416 !important; }
@@ -658,18 +807,18 @@ html.dark-theme .hover\:bg-gray-100:hover { background-color: #26262a !important
    both of those base-background rules to actually win and show the
    tint in dark mode. */
 html.dark-theme .logs-tx-card-full-match {
-  background-color: rgba(226,68,59,0.16) !important;
+  background-color: rgba(var(--brand-red-rgb),0.16) !important;
 }
 
 /* Same "whole card" full-match tint as .logs-tx-card-full-match above,
    but the Receivables tab's own green (money owed to you) instead of
    red - see generateDebtCardMarkup. */
 .debt-card-full-match-green {
-  border-color: #16a34a !important;
-  background-color: rgba(22,163,74,0.08) !important;
+  border-color: var(--brand-green) !important;
+  background-color: rgba(var(--brand-green-rgb),0.08) !important;
 }
 html.dark-theme .debt-card-full-match-green {
-  background-color: rgba(22,163,74,0.16) !important;
+  background-color: rgba(var(--brand-green-rgb),0.16) !important;
 }
 
 html.dark-theme .bg-gray-200 { background-color: #2a2a2e !important; }
@@ -728,10 +877,10 @@ html:not(.dark-theme) .hover\:bg-gray-200\/80:hover { background-color: rgba(212
    tint in day mode. These re-assert the tint so it shows in light mode
    too, matching what already happens in dark mode. */
 html:not(.dark-theme) .logs-tx-card-full-match {
-  background-color: rgba(226,68,59,0.10) !important;
+  background-color: rgba(var(--brand-red-rgb),0.10) !important;
 }
 html:not(.dark-theme) .debt-card-full-match-green {
-  background-color: rgba(22,163,74,0.10) !important;
+  background-color: rgba(var(--brand-green-rgb),0.10) !important;
 }
 
 /* The Fund/Account selection dropdown popups (Add/Edit Transaction, Fund
@@ -865,7 +1014,7 @@ html:not(.dark-theme) .text-gray-400 { color: #52525b !important; }
 html:not(.dark-theme) .text-gray-300 { color: #71717a !important; }
 html:not(.dark-theme) .placeholder-gray-400::placeholder { color: #9ca3af !important; }
 
-html.dark-theme .text-green-600 { color: #22c55e !important; }
+html.dark-theme .text-green-600 { color: var(--brand-green) !important; }
 
 html.dark-theme .from-gray-50 { --tw-gradient-from: #141416 !important; }
 html.dark-theme .via-gray-50 { --tw-gradient-via: #141416 !important; }
@@ -876,11 +1025,17 @@ html.dark-theme .via-gray-50 { --tw-gradient-via: #141416 !important; }
    seen at the bottom of the Welcome and Lock screens in dark mode. */
 html.dark-theme .to-red-50 { --tw-gradient-to: #141416 !important; }
 
+/* All popups/modals/dropdowns/warning dialogs share this .glass-card
+   shell - flattening it to the same #141414/#232323 panel color used
+   across Home/Logs/Stats/Profile makes every popup in the app
+   consistent in one place, instead of each one needing its own
+   override. (Previously a blurred rgba(20,20,20,0.72) - same idea as
+   the Stats "no data" card before it was flattened to match.) */
 html.dark-theme .glass-card {
-background: rgba(20, 20, 20, 0.72) !important;
-backdrop-filter: blur(22px) saturate(180%) !important;
--webkit-backdrop-filter: blur(22px) saturate(180%) !important;
-border-color: rgba(255, 255, 255, 0.1) !important;
+background: #141414 !important;
+backdrop-filter: none !important;
+-webkit-backdrop-filter: none !important;
+border-color: #232323 !important;
 }
 html:not(.dark-theme) #pin-pad-cancel-btn,
 html:not(.dark-theme) #pattern-pad-cancel-btn {
@@ -975,8 +1130,37 @@ html:not(.dark-theme) body::before {
      PIN/Pattern screens use (linear-gradient), with the original soft
      highlight layered on top - so day mode looks the same everywhere,
      minus those screens' decorative finance icons. */
-  background-image: radial-gradient(ellipse 130% 55% at 50% 100%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.18) 45%, rgba(255, 255, 255, 0) 75%), linear-gradient(to bottom, #f9fafb 0%, #f9fafb 30%, #fee2e2 100%);
+  background-image: radial-gradient(ellipse 130% 55% at 50% 100%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0.18) 45%, rgba(255, 255, 255, 0) 75%), linear-gradient(to bottom, #f9fafb 0%, #f9fafb 30%, rgba(var(--brand-red-rgb),0.12) 100%);
 }
+/* ---------- Force every remaining red-family Tailwind utility to the brand red ----------
+   The fund-type/avatar reds and all other custom-hex reds across the
+   markup/JS use var(--brand-red) / var(--brand-red-hover) directly. These
+   are the few spots that still used Tailwind's own named red-* palette
+   (a different set of hex values) instead of the brand variable, including
+   the plain (non-arbitrary-value) bg-red-600 buttons. .to-red-50 is left
+   out of this in dark theme on purpose: html.dark-theme .to-red-50
+   (further up) already overrides it to a neutral tone to fix a
+   reddish-glow bug on the Welcome/Lock/PIN screens - that fix still wins
+   in dark theme since it's more specific. In light mode, the gradient's
+   tail is a soft low-opacity red tint (not a solid fill), matching the
+   original subtle glow instead of a hard block. */
+.text-red-400, .text-red-500, .text-red-700 { color: var(--brand-red) !important; }
+.bg-red-50, .bg-red-100, .bg-red-600 { background-color: var(--brand-red) !important; }
+.border-red-100 { border-color: var(--brand-red) !important; }
+.hover\:bg-red-600:hover { background-color: var(--brand-red-hover) !important; }
+.to-red-50 { --tw-gradient-to: rgba(var(--brand-red-rgb),0.12) !important; }
+
+/* ---------- Same treatment for green: unify every remaining Tailwind-named
+   green utility to the one professional green (#16a34a) already used for
+   the custom hex greens above, so "positive/owed" indicators are all one
+   consistent shade instead of several different greens (teal #0d9488,
+   used only for the Meal Wallet fund-type icon, is left alone - it reads
+   as teal/cyan, not green, and is a distinct categorization color, not a
+   positive/success indicator). */
+.bg-green-100, .bg-green-500, .bg-green-600, .bg-green-700 { background-color: var(--brand-green-btn-bg) !important; }
+.hover\:bg-green-600:hover, .hover\:bg-green-700:hover { background-color: var(--brand-green-btn-hover) !important; }
+.border-green-500 { border-color: var(--brand-green) !important; }
+.text-green-500, .text-green-600 { color: var(--brand-green) !important; }
 </style>
 </head>
 <body class="font-sans antialiased text-gray-900 pb-32">
@@ -1001,20 +1185,20 @@ html:not(.dark-theme) body::before {
 </div>
 <div class="flex items-center space-x-2 flex-shrink-0">
 <div id="home-today-badge" class="flex items-center space-x-1.5 bg-gray-200/80 rounded-full pl-3 pr-3.5 py-2">
-<i class="far fa-calendar-alt text-[#e2443b] text-xs"></i>
+<i class="far fa-calendar-alt text-[var(--brand-red)] text-xs"></i>
 <span id="home-today-label" class="text-[11px] font-bold text-gray-700 whitespace-nowrap">Wed, 12 Aug</span>
 </div>
 <button onclick="openNotificationsPanel()" id="home-notif-bell-btn" class="w-9 h-9 rounded-full bg-gray-200/80 flex items-center justify-center text-gray-700 hover:bg-gray-300/80 transition">
-<i class="fas fa-bell text-lg bell-wobble" style="color:#22c55e; transform-origin: top center;"></i>
+<i class="fas fa-bell text-lg bell-wobble" style="color:var(--brand-green); transform-origin: top center;"></i>
 </button>
 </div>
 </div>
 
-<div class="space-y-2 bg-white/40 p-4 rounded-3xl border border-white/60 shadow-sm">
+<div id="home-balance-card" class="space-y-2 bg-white/40 p-4 rounded-3xl border border-white/60 shadow-sm">
 <div class="flex justify-between items-start">
 <div class="min-w-0 flex-1 pr-2">
 <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center">
-<span data-i18n="home_remaining_balance" data-i18n-en="Remaining Balance">Remaining Balance</span> <span id="active-fund-icon" class="w-4 h-4 rounded-full inline-flex items-center justify-center ml-1.5 mr-1" style="font-size:8px;"></span><span id="active-fund-label" class="text-[#e2443b] font-extrabold">Monthly Cash</span>
+<span data-i18n="home_remaining_balance" data-i18n-en="Remaining Balance">Remaining Balance</span> <span id="active-fund-icon" class="w-4 h-4 rounded-full inline-flex items-center justify-center ml-1.5 mr-1" style="font-size:8px;"></span><span id="active-fund-label" class="text-[var(--brand-red)] font-extrabold">Monthly Cash</span>
 </p>
 <h2 id="home-balance" class="text-4xl font-extrabold tracking-tight block w-full">৳0.00</h2>
 </div>
@@ -1043,32 +1227,32 @@ html:not(.dark-theme) body::before {
 </button>
 </div>
 </div>
-<p class="text-xs text-gray-500 font-medium pt-1"><span id="target-spent" class="text-[#e2443b] font-bold text-[12px]">৳0.00</span> <span data-i18n="home_spent_from_fund" data-i18n-en="spent from this fund">spent from this fund</span></p>
+<p class="text-xs text-gray-500 font-medium pt-1"><span id="target-spent" class="text-[var(--brand-red)] font-bold text-[12px]">৳0.00</span> <span data-i18n="home_spent_from_fund" data-i18n-en="spent from this fund">spent from this fund</span></p>
 </div>
 
-<button onclick="switchTab('logs')" class="w-full flex items-center bg-gray-200/60 hover:bg-gray-300/60 transition rounded-full pl-1.5 pr-4 py-1.5 space-x-3 text-left">
+<button id="home-update-btn" onclick="switchTab('logs')" class="w-full flex items-center bg-gray-200/60 hover:bg-gray-300/60 transition rounded-full pl-1.5 pr-4 py-1.5 space-x-3 text-left">
 <span class="daymode-flip-card flex items-center space-x-1.5 bg-black text-white text-[9px] font-bold uppercase tracking-wider px-3 py-2 rounded-full flex-shrink-0">
-<span id="home-update-dot" class="w-1 h-1 rounded-full bg-[#e2443b]"></span>
+<span id="home-update-dot" class="w-1 h-1 rounded-full bg-[var(--brand-red)]"></span>
 <span data-i18n="home_update" data-i18n-en="Update">Update</span>
 </span>
 <span id="home-update-text" class="flex-1 text-[9px] font-bold text-gray-700 truncate" style="transition: opacity .2s ease;">No recent activity yet</span>
 <i class="fas fa-arrow-right text-gray-400 text-xs flex-shrink-0"></i>
 </button>
 
-<button onclick="openStatsDebtsShortcut()" class="w-full bg-white/40 border border-white/60 rounded-3xl p-4 shadow-sm text-left transition hover:bg-white/60">
+<button id="home-debts-card" onclick="openStatsDebtsShortcut()" class="w-full bg-white/40 border border-white/60 rounded-3xl p-4 shadow-sm text-left transition hover:bg-white/60">
 <div class="flex items-center justify-between mb-3">
 <div class="flex items-center space-x-2">
 <span class="w-6 h-6 rounded-lg bg-white flex items-center justify-center shadow-sm flex-shrink-0">
-<i class="fas fa-handshake text-[#e2443b] text-xs"></i>
+<i class="fas fa-handshake text-[var(--brand-red)] text-xs"></i>
 </span>
-<h4 class="text-xs font-bold uppercase tracking-wider text-[#e2443b]" data-i18n="home_debts_overview" data-i18n-en="Debts & Receivables Overview">Debts & Receivables Overview</h4>
+<h4 class="text-xs font-bold uppercase tracking-wider text-[var(--brand-red)]" data-i18n="home_debts_overview" data-i18n-en="Debts & Receivables Overview">Debts & Receivables Overview</h4>
 </div>
 <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
 </div>
 <div class="flex items-center">
 <div class="flex-1">
 <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400" data-i18n="home_you_owe" data-i18n-en="You Owe">You Owe</p>
-<p id="home-debts-owe" class="text-xl font-extrabold text-[#e2443b]">৳0</p>
+<p id="home-debts-owe" class="text-xl font-extrabold text-[var(--brand-red)]">৳0</p>
 </div>
 <div class="w-px h-9 bg-gray-200 mx-3"></div>
 <div class="flex-1">
@@ -1082,7 +1266,7 @@ html:not(.dark-theme) body::before {
 <div class="flex justify-between items-start mb-3">
 <div class="flex items-center space-x-2.5">
 <span class="w-9 h-9 rounded-2xl bg-white flex items-center justify-center shadow-sm flex-shrink-0">
-<i class="fas fa-chart-simple text-[#e2443b] text-base"></i>
+<i class="fas fa-chart-simple text-[var(--brand-red)] text-base"></i>
 </span>
 <div>
 <h3 class="font-bold text-sm tracking-tight whitespace-nowrap" data-i18n="home_category_breakdown" data-i18n-en="Category Breakdown">Category Breakdown</h3>
@@ -1111,7 +1295,7 @@ html:not(.dark-theme) body::before {
 </div>
 
 <div class="grid grid-cols-3 gap-1.5 bg-gray-200/50 p-1 rounded-2xl">
-<button onclick="switchLogsSubtab('transactions')" id="logs-subtab-btn-transactions" class="py-2 rounded-xl text-[11px] font-bold bg-[#e2443b] text-white shadow-sm" data-i18n="logs_transactions" data-i18n-en="Transactions">Transactions</button>
+<button onclick="switchLogsSubtab('transactions')" id="logs-subtab-btn-transactions" class="py-2 rounded-xl text-[11px] font-bold bg-[var(--brand-red)] text-white shadow-sm" data-i18n="logs_transactions" data-i18n-en="Transactions">Transactions</button>
 <button onclick="switchLogsSubtab('debts')" id="logs-subtab-btn-debts" class="py-2 rounded-xl text-[11px] font-bold text-gray-600" data-i18n="logs_debts" data-i18n-en="Debts">Debts</button>
 <button onclick="switchLogsSubtab('receivables')" id="logs-subtab-btn-receivables" class="py-2 rounded-xl text-[11px] font-bold text-gray-600" data-i18n="logs_receivables" data-i18n-en="Receivables">Receivables</button>
 </div>
@@ -1126,11 +1310,11 @@ html:not(.dark-theme) body::before {
 <i class="fas fa-xmark text-[10px]"></i>
 </button>
 </div>
-<button onclick="openSearchFilterModal('transactions')" title="Search Filter" class="relative flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
+<button onclick="openSearchFilterModal('transactions')" title="Search Filter" class="relative flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
 <i class="fas fa-search"></i>
-<span id="logs-searchfield-filter-dot" class="hidden absolute top-2 right-2 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="logs-searchfield-filter-dot" class="hidden absolute top-2 right-2 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
-<button onclick="openSectionNoteModal('transactions')" title="Note" class="relative flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
+<button onclick="openSectionNoteModal('transactions')" title="Note" class="relative flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
 <svg viewBox="0 0 24 24" class="w-[18px] h-[18px]" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="4" y="5" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/>
 <path d="M8 3V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -1141,34 +1325,34 @@ html:not(.dark-theme) body::before {
 <path d="M14 15L19 10L21.5 12.5L16.5 17.5H14V15Z" fill="currentColor"/>
 <path d="M19 10L20.5 8.5L23 11L21.5 12.5L19 10Z" fill="currentColor"/>
 </svg>
-<span id="logs-fund-note-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="logs-fund-note-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
 </div>
 
 <div class="grid grid-cols-3 gap-1.5">
 <button onclick="openFilterModal('sort')" class="bg-white border border-gray-200/80 rounded-xl px-2 py-2.5 flex justify-center items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition active:scale-95">
-<span class="flex items-center min-w-0"><i class="fas fa-sort-amount-down text-red-500 mr-1.5 flex-shrink-0"></i><span id="label-sort" data-i18n="logs_newest" data-i18n-en="Newest">Newest</span><span id="logs-sort-filter-dot" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[#e2443b] ml-1 animate-pulse"></span></span>
+<span class="flex items-center min-w-0"><i class="fas fa-sort-amount-down text-red-500 mr-1.5 flex-shrink-0"></i><span id="label-sort" data-i18n="logs_newest" data-i18n-en="Newest">Newest</span><span id="logs-sort-filter-dot" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] ml-1 animate-pulse"></span></span>
 <i class="fas fa-caret-down text-gray-400 text-[10px] flex-shrink-0"></i>
 </button>
 
 <button onclick="openFilterModal('time')" class="bg-white border border-gray-200/80 rounded-xl px-2 py-2.5 flex justify-center items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition active:scale-95">
-<span class="flex items-center min-w-0"><i class="far fa-calendar-alt text-red-500 mr-1.5 flex-shrink-0"></i><span id="label-time" data-i18n="logs_this_month" data-i18n-en="Month">Month</span><span id="logs-time-filter-dot" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[#e2443b] ml-1 animate-pulse"></span></span>
+<span class="flex items-center min-w-0"><i class="far fa-calendar-alt text-red-500 mr-1.5 flex-shrink-0"></i><span id="label-time" data-i18n="logs_this_month" data-i18n-en="Month">Month</span><span id="logs-time-filter-dot" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] ml-1 animate-pulse"></span></span>
 <i class="fas fa-caret-down text-gray-400 text-[10px] flex-shrink-0"></i>
 </button>
 
 <button onclick="openFilterModal('price')" class="bg-white border border-gray-200/80 rounded-xl pl-4 pr-2 py-2.5 flex justify-between items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition active:scale-95">
-<span class="flex items-center min-w-0"><i class="fas fa-money-bill-wave text-red-500 mr-1.5 flex-shrink-0"></i><span id="label-price" data-i18n="logs_all_prices" data-i18n-en="All Amounts">All Amounts</span><span id="logs-price-filter-dot" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[#e2443b] ml-1 animate-pulse"></span></span>
+<span class="flex items-center min-w-0"><i class="fas fa-money-bill-wave text-red-500 mr-1.5 flex-shrink-0"></i><span id="label-price" data-i18n="logs_all_prices" data-i18n-en="All Amounts">All Amounts</span><span id="logs-price-filter-dot" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] ml-1 animate-pulse"></span></span>
 <i class="fas fa-caret-down text-gray-400 text-[10px] flex-shrink-0"></i>
 </button>
 </div>
 
 <div class="flex items-center justify-between">
-<button onclick="openDateCalendarIcon('transactions')" title="Pick a specific date" class="w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[#e2443b] transition active:scale-95 relative">
+<button onclick="openDateCalendarIcon('transactions')" title="Pick a specific date" class="w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95 relative">
 <i class="far fa-calendar-alt"></i>
-<span id="logs-history-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="logs-history-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
 <div class="flex items-center space-x-2 flex-shrink-0">
-<button onclick="clearAllTransactionsHistory()" title="Clear History" class="w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[#e2443b] transition active:scale-95">
+<button onclick="clearAllTransactionsHistory()" title="Clear History" class="w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
 <i class="fas fa-trash-alt text-sm"></i>
 </button>
 </div>
@@ -1180,12 +1364,12 @@ html:not(.dark-theme) body::before {
 <!-- Debts Subtab ("I Owe") -->
 <div id="logs-subtab-debts" class="space-y-4 hidden">
 <div class="daymode-flip-card bg-black text-white p-5 rounded-[24px] shadow-lg space-y-1 relative">
-<button onclick="openDateCalendarIcon('debts')" id="debts-date-filter-btn" title="Filter History" class="absolute top-4 right-4 flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
+<button onclick="openDateCalendarIcon('debts')" id="debts-date-filter-btn" title="Filter History" class="absolute top-4 right-4 flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
 <i class="far fa-calendar-alt"></i>
-<span id="debts-date-filter-dot" class="hidden absolute top-2.5 right-2.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="debts-date-filter-dot" class="hidden absolute top-2.5 right-2.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
 <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400 pr-14"><span data-i18n="logs_total_owed" data-i18n-en="Total Owed">Total Owed</span><span id="debts-total-pending-label" data-i18n="logs_pending_suffix" data-i18n-en=" (Pending)"> (Pending)</span></p>
-<h2 id="debts-total-amount" class="text-3xl font-extrabold tracking-tight text-[#e2443b]">৳0.00</h2>
+<h2 id="debts-total-amount" class="text-3xl font-extrabold tracking-tight text-[var(--brand-red)]">৳0.00</h2>
 </div>
 
 <div class="flex items-center gap-2">
@@ -1196,11 +1380,11 @@ html:not(.dark-theme) body::before {
 <i class="fas fa-xmark text-[10px]"></i>
 </button>
 </div>
-<button onclick="openSearchFilterModal('debts')" title="Search Filter" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
+<button onclick="openSearchFilterModal('debts')" title="Search Filter" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
 <i class="fas fa-search text-sm"></i>
-<span id="debts-searchfield-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="debts-searchfield-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
-<button onclick="openSectionNoteModal('debts')" title="Note" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
+<button onclick="openSectionNoteModal('debts')" title="Note" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="4" y="5" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/>
 <path d="M8 3V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -1211,24 +1395,24 @@ html:not(.dark-theme) body::before {
 <path d="M14 15L19 10L21.5 12.5L16.5 17.5H14V15Z" fill="currentColor"/>
 <path d="M19 10L20.5 8.5L23 11L21.5 12.5L19 10Z" fill="currentColor"/>
 </svg>
-<span id="debts-fund-note-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="debts-fund-note-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
 </div>
 
 <div class="flex items-center gap-2">
 <div class="flex items-center gap-1.5 flex-1 min-w-0">
-<button onclick="setDebtStatusFilter('debts','pending')" id="debts-filter-btn-pending" class="flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-[#e2443b] text-white shadow-sm flex items-center justify-center gap-0.5"><i id="debts-pending-icon" class="far fa-clock text-white flex-shrink-0"></i><span data-i18n="logs_pending" data-i18n-en="Pending">Pending</span></button>
-<button onclick="setDebtStatusFilter('debts','settled')" id="debts-filter-btn-settled" class="flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-white text-gray-600 border border-gray-200 flex items-center justify-center gap-0.5"><i id="debts-settled-icon" class="fas fa-handshake text-[#e2443b] flex-shrink-0"></i><span data-i18n="logs_settled" data-i18n-en="Settled">Settled</span></button>
-<button onclick="openPriorityPickerModal('debts')" id="debts-sort-btn-due" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition active:scale-95 focus:outline-none"><i class="fas fa-flag text-red-500 flex-shrink-0"></i><span class="whitespace-nowrap flex-shrink-0" data-i18n="logs_sort_due_soon" data-i18n-en="Priority">Priority</span><span id="debts-sort-dot-due" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
-<button onclick="openDebtAmountPickerModal('debts')" id="debts-sort-btn-amount" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition active:scale-95 focus:outline-none"><i class="fas fa-money-bill-wave text-red-500 flex-shrink-0"></i><span id="debts-sort-label-amount" class="whitespace-nowrap flex-shrink-0" data-i18n="logs_all_prices" data-i18n-en="All Amounts">All Amounts</span><span id="debts-sort-dot-amount" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
+<button onclick="setDebtStatusFilter('debts','pending')" id="debts-filter-btn-pending" class="flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-[var(--brand-red)] text-white shadow-sm flex items-center justify-center gap-0.5"><i id="debts-pending-icon" class="far fa-clock text-white flex-shrink-0"></i><span data-i18n="logs_pending" data-i18n-en="Pending">Pending</span></button>
+<button onclick="setDebtStatusFilter('debts','settled')" id="debts-filter-btn-settled" class="flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-white text-gray-600 border border-gray-200 flex items-center justify-center gap-0.5"><i id="debts-settled-icon" class="fas fa-handshake text-[var(--brand-red)] flex-shrink-0"></i><span data-i18n="logs_settled" data-i18n-en="Settled">Settled</span></button>
+<button onclick="openPriorityPickerModal('debts')" id="debts-sort-btn-due" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition active:scale-95 focus:outline-none"><i class="fas fa-flag text-red-500 flex-shrink-0"></i><span class="whitespace-nowrap flex-shrink-0" data-i18n="logs_sort_due_soon" data-i18n-en="Priority">Priority</span><span id="debts-sort-dot-due" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
+<button onclick="openDebtAmountPickerModal('debts')" id="debts-sort-btn-amount" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition active:scale-95 focus:outline-none"><i class="fas fa-money-bill-wave text-red-500 flex-shrink-0"></i><span id="debts-sort-label-amount" class="whitespace-nowrap flex-shrink-0" data-i18n="logs_all_prices" data-i18n-en="All Amounts">All Amounts</span><span id="debts-sort-dot-amount" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
 </div>
 <div class="hidden items-center gap-2 flex-shrink-0">
 <button onclick="openDebtFilterModal('debts')" id="debts-time-filter-btn" class="flex items-center space-x-1.5 bg-gray-200/80 hover:bg-gray-300/80 rounded-full pl-3 pr-2.5 py-2 transition active:scale-95 flex-shrink-0">
-<i class="far fa-calendar-alt text-[#e2443b] text-xs"></i>
+<i class="far fa-calendar-alt text-[var(--brand-red)] text-xs"></i>
 <span id="debts-time-filter-label" class="text-[9px] font-bold text-gray-700 whitespace-nowrap" data-i18n="logs_this_month" data-i18n-en="Month">Month</span>
 <i class="fas fa-caret-down text-gray-400 text-[10px]"></i>
 </button>
-<button onclick="clearAllDebtsHistory()" id="debts-clear-btn" title="Clear History" class="hidden flex-shrink-0 w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[#e2443b] transition active:scale-95">
+<button onclick="clearAllDebtsHistory()" id="debts-clear-btn" title="Clear History" class="hidden flex-shrink-0 w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
 <i class="fas fa-trash-alt text-sm"></i>
 </button>
 </div>
@@ -1241,9 +1425,9 @@ html:not(.dark-theme) body::before {
 <!-- Receivables Subtab ("Owed to Me") -->
 <div id="logs-subtab-receivables" class="space-y-4 hidden">
 <div class="daymode-flip-card bg-black text-white p-5 rounded-[24px] shadow-lg space-y-1 relative">
-<button onclick="openDateCalendarIcon('receivables')" id="receivables-date-filter-btn" title="Filter History" class="absolute top-4 right-4 flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
+<button onclick="openDateCalendarIcon('receivables')" id="receivables-date-filter-btn" title="Filter History" class="absolute top-4 right-4 flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
 <i class="far fa-calendar-alt"></i>
-<span id="receivables-date-filter-dot" class="hidden absolute top-2.5 right-2.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="receivables-date-filter-dot" class="hidden absolute top-2.5 right-2.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
 <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400 pr-14"><span data-i18n="logs_total_collectible" data-i18n-en="Total Collectible">Total Collectible</span><span id="receivables-total-pending-label" data-i18n="logs_pending_suffix" data-i18n-en=" (Pending)"> (Pending)</span></p>
 <h2 id="receivables-total-amount" class="text-3xl font-extrabold tracking-tight text-green-500">৳0.00</h2>
@@ -1257,11 +1441,11 @@ html:not(.dark-theme) body::before {
 <i class="fas fa-xmark text-[10px]"></i>
 </button>
 </div>
-<button onclick="openSearchFilterModal('receivables')" title="Search Filter" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
+<button onclick="openSearchFilterModal('receivables')" title="Search Filter" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
 <i class="fas fa-search text-sm"></i>
-<span id="receivables-searchfield-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="receivables-searchfield-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
-<button onclick="openSectionNoteModal('receivables')" title="Note" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition active:scale-95">
+<button onclick="openSectionNoteModal('receivables')" title="Note" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="4" y="5" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/>
 <path d="M8 3V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -1272,24 +1456,24 @@ html:not(.dark-theme) body::before {
 <path d="M14 15L19 10L21.5 12.5L16.5 17.5H14V15Z" fill="currentColor"/>
 <path d="M19 10L20.5 8.5L23 11L21.5 12.5L19 10Z" fill="currentColor"/>
 </svg>
-<span id="receivables-fund-note-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="receivables-fund-note-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
 </div>
 
 <div class="flex items-center gap-2">
 <div class="flex items-center gap-1.5 flex-1 min-w-0">
-<button onclick="setDebtStatusFilter('receivables','pending')" id="receivables-filter-btn-pending" class="flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-[#e2443b] text-white shadow-sm flex items-center justify-center gap-0.5"><i id="receivables-pending-icon" class="far fa-clock text-white flex-shrink-0"></i><span data-i18n="logs_pending" data-i18n-en="Pending">Pending</span></button>
-<button onclick="setDebtStatusFilter('receivables','settled')" id="receivables-filter-btn-settled" class="flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-white text-gray-600 border border-gray-200 flex items-center justify-center gap-0.5"><i id="receivables-settled-icon" class="fas fa-handshake text-[#e2443b] flex-shrink-0"></i><span data-i18n="logs_settled" data-i18n-en="Settled">Settled</span></button>
-<button onclick="openPriorityPickerModal('receivables')" id="receivables-sort-btn-due" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition active:scale-95 focus:outline-none"><i class="fas fa-flag text-red-500 flex-shrink-0"></i><span class="whitespace-nowrap flex-shrink-0" data-i18n="logs_sort_due_soon" data-i18n-en="Priority">Priority</span><span id="receivables-sort-dot-due" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
-<button onclick="openDebtAmountPickerModal('receivables')" id="receivables-sort-btn-amount" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition active:scale-95 focus:outline-none"><i class="fas fa-money-bill-wave text-red-500 flex-shrink-0"></i><span id="receivables-sort-label-amount" class="whitespace-nowrap flex-shrink-0" data-i18n="logs_all_prices" data-i18n-en="All Amounts">All Amounts</span><span id="receivables-sort-dot-amount" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
+<button onclick="setDebtStatusFilter('receivables','pending')" id="receivables-filter-btn-pending" class="flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-[var(--brand-red)] text-white shadow-sm flex items-center justify-center gap-0.5"><i id="receivables-pending-icon" class="far fa-clock text-white flex-shrink-0"></i><span data-i18n="logs_pending" data-i18n-en="Pending">Pending</span></button>
+<button onclick="setDebtStatusFilter('receivables','settled')" id="receivables-filter-btn-settled" class="flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-white text-gray-600 border border-gray-200 flex items-center justify-center gap-0.5"><i id="receivables-settled-icon" class="fas fa-handshake text-[var(--brand-red)] flex-shrink-0"></i><span data-i18n="logs_settled" data-i18n-en="Settled">Settled</span></button>
+<button onclick="openPriorityPickerModal('receivables')" id="receivables-sort-btn-due" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition active:scale-95 focus:outline-none"><i class="fas fa-flag text-red-500 flex-shrink-0"></i><span class="whitespace-nowrap flex-shrink-0" data-i18n="logs_sort_due_soon" data-i18n-en="Priority">Priority</span><span id="receivables-sort-dot-due" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
+<button onclick="openDebtAmountPickerModal('receivables')" id="receivables-sort-btn-amount" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition active:scale-95 focus:outline-none"><i class="fas fa-money-bill-wave text-red-500 flex-shrink-0"></i><span id="receivables-sort-label-amount" class="whitespace-nowrap flex-shrink-0" data-i18n="logs_all_prices" data-i18n-en="All Amounts">All Amounts</span><span id="receivables-sort-dot-amount" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
 </div>
 <div class="hidden items-center gap-2 flex-shrink-0">
 <button onclick="openDebtFilterModal('receivables')" id="receivables-time-filter-btn" class="flex items-center space-x-1.5 bg-gray-200/80 hover:bg-gray-300/80 rounded-full pl-3 pr-2.5 py-2 transition active:scale-95 flex-shrink-0">
-<i class="far fa-calendar-alt text-[#e2443b] text-xs"></i>
+<i class="far fa-calendar-alt text-[var(--brand-red)] text-xs"></i>
 <span id="receivables-time-filter-label" class="text-[9px] font-bold text-gray-700 whitespace-nowrap" data-i18n="logs_this_month" data-i18n-en="Month">Month</span>
 <i class="fas fa-caret-down text-gray-400 text-[10px]"></i>
 </button>
-<button onclick="clearAllReceivablesHistory()" id="receivables-clear-btn" title="Clear History" class="hidden flex-shrink-0 w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[#e2443b] transition active:scale-95">
+<button onclick="clearAllReceivablesHistory()" id="receivables-clear-btn" title="Clear History" class="hidden flex-shrink-0 w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
 <i class="fas fa-trash-alt text-sm"></i>
 </button>
 </div>
@@ -1309,7 +1493,7 @@ html:not(.dark-theme) body::before {
 </div>
 
 <div class="grid grid-cols-2 gap-1.5 bg-gray-200/60 p-1 rounded-2xl">
-<button onclick="switchStatsSubtab('spending')" id="stats-subtab-btn-spending" class="py-2.5 rounded-xl text-xs font-bold bg-[#e2443b] text-white shadow-sm" data-i18n="stats_tab_spending" data-i18n-en="Spending">Spending</button>
+<button onclick="switchStatsSubtab('spending')" id="stats-subtab-btn-spending" class="py-2.5 rounded-xl text-xs font-bold bg-[var(--brand-red)] text-white shadow-sm" data-i18n="stats_tab_spending" data-i18n-en="Spending">Spending</button>
 <button onclick="switchStatsSubtab('debts')" id="stats-subtab-btn-debts" class="py-2.5 rounded-xl text-xs font-bold text-gray-500" data-i18n="stats_tab_debts" data-i18n-en="Debts & Receivables">Debts & Receivables</button>
 </div>
 
@@ -1331,17 +1515,17 @@ html:not(.dark-theme) body::before {
 <div class="bg-gray-200/60 p-4 rounded-[24px] flex items-center space-x-4 relative overflow-hidden">
 <div id="profile-namebox-decor" class="absolute inset-0 pointer-events-none overflow-hidden">
 <i class="fas fa-chart-pie absolute text-white opacity-[0.16] text-lg" style="top:10%; right:34%; transform:rotate(10deg);"></i>
-<i class="fas fa-coins absolute text-[#e2443b] opacity-[0.18] text-lg" style="bottom:12%; right:22%; transform:rotate(-8deg);"></i>
+<i class="fas fa-coins absolute text-[var(--brand-red)] opacity-[0.18] text-lg" style="bottom:12%; right:22%; transform:rotate(-8deg);"></i>
 <i class="fas fa-university absolute text-white opacity-[0.16] text-xl" style="top:14%; right:9%; transform:rotate(9deg);"></i>
-<i class="fas fa-chart-line absolute text-[#e2443b] opacity-[0.18] text-lg" style="bottom:8%; right:-1%; transform:rotate(-10deg);"></i>
-<i class="fas fa-wallet absolute text-[#e2443b] opacity-[0.16] text-lg" style="top:8%; right:-2%; transform:rotate(-14deg);"></i>
+<i class="fas fa-chart-line absolute text-[var(--brand-red)] opacity-[0.18] text-lg" style="bottom:8%; right:-1%; transform:rotate(-10deg);"></i>
+<i class="fas fa-wallet absolute text-[var(--brand-red)] opacity-[0.16] text-lg" style="top:8%; right:-2%; transform:rotate(-14deg);"></i>
 </div>
 <button onclick="openAvatarPicker()" id="profile-avatar-btn" class="w-14 h-14 rounded-full relative z-10 flex items-center justify-center overflow-hidden flex-shrink-0 transition-transform active:scale-95 bg-gray-100">
 <i id="profile-avatar-icon" class="fas fa-user text-xl"></i>
 </button>
 <div class="space-y-1 relative z-10">
 <div class="flex items-center space-x-2">
-<input type="text" id="profile-username-input" oninput="autoSizeUsernameInput()" onchange="updateUsername(this.value)" class="text-base font-bold text-gray-900 bg-transparent border-b border-gray-300 focus:border-[#e2443b] focus:outline-none" style="width:1ch;" value="User">
+<input type="text" id="profile-username-input" oninput="autoSizeUsernameInput()" onchange="updateUsername(this.value)" class="text-base font-bold text-gray-900 bg-transparent border-b border-gray-300 focus:border-[var(--brand-red)] focus:outline-none" style="width:1ch;" value="User">
 </div>
 </div>
 </div>
@@ -1364,7 +1548,7 @@ html:not(.dark-theme) body::before {
 
 <div class="bg-gray-200/60 p-4 rounded-[24px] flex justify-between items-center">
 <div class="flex items-center space-x-3">
-<div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-lg text-[#e2443b]">
+<div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-lg text-[var(--brand-red)]">
 <i class="fas fa-language"></i>
 </div>
 <div>
@@ -1382,7 +1566,7 @@ html:not(.dark-theme) body::before {
 
 <button onclick="openLockTypeChooser()" class="w-full bg-gray-200/60 p-4 rounded-[24px] flex justify-between items-center text-left transition-transform active:scale-[0.99]">
 <div class="flex items-center space-x-3">
-<div id="lock-type-row-icon" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[#e2443b] text-lg">
+<div id="lock-type-row-icon" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[var(--brand-red)] text-lg">
 <i class="fas fa-lock-open"></i>
 </div>
 <div>
@@ -1413,10 +1597,10 @@ html:not(.dark-theme) body::before {
 <div class="bg-gray-200/60 p-5 rounded-[24px] text-center space-y-3 mt-4">
 <p class="text-[9px] text-gray-400 -mt-2" style="font-family: 'Roboto', sans-serif; font-weight: 700;" data-i18n="profile_developed_by" data-i18n-en="Developed by MD.INSANUL ISLAM ABIR">Developed by MD.INSANUL ISLAM ABIR</p>
 <div class="flex justify-center items-center space-x-3 -mt-2">
-<a href="https://m.facebook.com/insanul.islam.abirr/" onclick="return openExternalLink(this.href)" target="_blank" class="w-8 h-8 flex items-center justify-center text-[#e2443b] transition text-lg"><i class="fab fa-facebook-f"></i></a>
-<a href="https://wa.me/8801516531459" onclick="return openExternalLink(this.href)" target="_blank" class="w-8 h-8 flex items-center justify-center text-[#e2443b] transition text-lg"><i class="fab fa-whatsapp"></i></a>
-<a href="https://instagram.com/insaanulislaamaabiir" onclick="return openExternalLink(this.href)" target="_blank" class="w-8 h-8 flex items-center justify-center text-[#e2443b] transition text-lg"><i class="fab fa-instagram"></i></a>
-<a href="https://t.me/insanul13" onclick="return openExternalLink(this.href)" target="_blank" class="w-8 h-8 flex items-center justify-center text-[#e2443b] transition text-base"><i class="fas fa-paper-plane"></i></a>
+<a href="https://m.facebook.com/insanul.islam.abirr/" onclick="return openExternalLink(this.href)" target="_blank" class="w-8 h-8 flex items-center justify-center text-[var(--brand-red)] transition text-lg"><i class="fab fa-facebook-f"></i></a>
+<a href="https://wa.me/8801516531459" onclick="return openExternalLink(this.href)" target="_blank" class="w-8 h-8 flex items-center justify-center text-[var(--brand-red)] transition text-lg"><i class="fab fa-whatsapp"></i></a>
+<a href="https://instagram.com/insaanulislaamaabiir" onclick="return openExternalLink(this.href)" target="_blank" class="w-8 h-8 flex items-center justify-center text-[var(--brand-red)] transition text-lg"><i class="fab fa-instagram"></i></a>
+<a href="https://t.me/insanul13" onclick="return openExternalLink(this.href)" target="_blank" class="w-8 h-8 flex items-center justify-center text-[var(--brand-red)] transition text-base"><i class="fas fa-paper-plane"></i></a>
 </div>
 <p class="text-center text-[5px] text-gray-400 -mt-3" style="font-family: 'Roboto', sans-serif; font-weight: 700;" data-i18n="profile_copyright" data-i18n-en="© Copyright MD.INSANUL ISLAM ABIR. All rights reserved.">© Copyright MD.INSANUL ISLAM ABIR. All rights reserved.</p>
 </div>
@@ -1463,11 +1647,11 @@ html:not(.dark-theme) body::before {
 </div>
 
 <div class="space-y-2.5">
-<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="modal-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="modal-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
-<input type="text" id="modal-description-input" placeholder="Note" data-i18n-placeholder="modal_description_placeholder" data-i18n-placeholder-en="Note" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" id="modal-description-input" placeholder="Note" data-i18n-placeholder="modal_description_placeholder" data-i18n-placeholder-en="Note" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
-<input type="text" id="modal-category-input" oninput="handleCategoryTyped()" placeholder="Enter Category" data-i18n-placeholder="modal_enter_category_placeholder" data-i18n-placeholder-en="Enter Category" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" id="modal-category-input" oninput="handleCategoryTyped()" placeholder="Enter Category" data-i18n-placeholder="modal_enter_category_placeholder" data-i18n-placeholder-en="Enter Category" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
 <div class="space-y-2">
 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" data-i18n="modal_select_category" data-i18n-en="Select Category">Select Category</p>
@@ -1491,7 +1675,7 @@ html:not(.dark-theme) body::before {
 
 <div class="flex space-x-3 pt-2">
 <button onclick="closeAddModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="saveTransaction()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
+<button onclick="saveTransaction()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
 </div>
 </div>
 </div>
@@ -1500,23 +1684,23 @@ html:not(.dark-theme) body::before {
 <div id="popup-edit-transaction" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[75] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[88vh] overflow-y-auto no-scrollbar">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="fas fa-pen text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight flex-1" data-i18n="modal_edit_transaction_title" data-i18n-en="Edit Transaction">Edit Transaction</h3>
-<button type="button" onclick="deleteTransaction(editingTxId)" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b] hover:text-red-700 transition">
+<button type="button" onclick="deleteTransaction(editingTxId)" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)] hover:text-red-700 transition">
 <i class="fas fa-trash-alt text-xs"></i>
 </button>
 </div>
 
 <input type="hidden" id="edit-tx-id">
 <div class="space-y-3">
-<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="edit-tx-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="edit-tx-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 <p id="edit-tx-amount-locked-hint" class="hidden text-[8px] text-gray-400 font-medium -mt-1.5 px-1"><i class="fas fa-lock mr-1"></i><span></span></p>
 
-<input type="text" id="edit-tx-description-input" placeholder="Note" data-i18n-placeholder="modal_description_placeholder" data-i18n-placeholder-en="Note" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" id="edit-tx-description-input" placeholder="Note" data-i18n-placeholder="modal_description_placeholder" data-i18n-placeholder-en="Note" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
-<input type="text" id="edit-tx-category-input" oninput="handleEditTxCategoryTyped()" placeholder="Enter Category" data-i18n-placeholder="modal_enter_category_placeholder" data-i18n-placeholder-en="Enter Category" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" id="edit-tx-category-input" oninput="handleEditTxCategoryTyped()" placeholder="Enter Category" data-i18n-placeholder="modal_enter_category_placeholder" data-i18n-placeholder-en="Enter Category" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
 <div class="space-y-2">
 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider" data-i18n="modal_select_category" data-i18n-en="Select Category">Select Category</p>
@@ -1542,7 +1726,7 @@ html:not(.dark-theme) body::before {
 
 <div class="flex space-x-2 pt-2">
 <button onclick="closeEditTransactionModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="saveEditedTransaction()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
+<button onclick="saveEditedTransaction()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
 </div>
 </div>
 </div>
@@ -1551,19 +1735,19 @@ html:not(.dark-theme) body::before {
 <div id="popup-transfer-fund" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[75] hidden">
 <div class="glass-card rounded-[24px] w-full max-w-sm p-5 space-y-3 shadow-2xl max-h-[88vh]">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="fas fa-right-left text-[10px]"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="modal_transfer_fund_title" data-i18n-en="Transfer Fund">Transfer Fund</h3>
 </div>
 
 <div class="space-y-2.5">
-<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="transfer-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="transfer-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
 <div class="space-y-0.5">
 <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider" data-i18n="modal_from_account" data-i18n-en="From Fund">From Fund</p>
 <div class="relative">
-<button type="button" onclick="toggleAccountDropdown('transfer-from')" class="w-full bg-white/80 p-2 rounded-lg flex justify-between items-center text-xs font-bold text-[#e2443b] border border-gray-200">
+<button type="button" onclick="toggleAccountDropdown('transfer-from')" class="w-full bg-white/80 p-2 rounded-lg flex justify-between items-center text-xs font-bold text-[var(--brand-red)] border border-gray-200">
 <span class="flex items-center space-x-1.5 min-w-0">
 <span id="transfer-from-active-fund-icon" class="w-[18px] h-[18px] rounded-md flex items-center justify-center flex-shrink-0"><i class="fas text-[9px] text-white"></i></span>
 <span id="transfer-from-active-fund-label" class="truncate">Bank</span>
@@ -1594,11 +1778,11 @@ html:not(.dark-theme) body::before {
 </div>
 <input type="hidden" id="transfer-to-selected-fund">
 
-<input type="text" id="transfer-description-input" placeholder="Note (optional)" data-i18n-placeholder="modal_note_optional_placeholder" data-i18n-placeholder-en="Note (optional)" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" id="transfer-description-input" placeholder="Note (optional)" data-i18n-placeholder="modal_note_optional_placeholder" data-i18n-placeholder-en="Note (optional)" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
 <div class="flex space-x-2 pt-1">
 <button onclick="closeTransferFundModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="saveFundTransfer()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="home_transfer" data-i18n-en="Transfer">Transfer</button>
+<button onclick="saveFundTransfer()" class="w-1/2 bg-[var(--brand-red)] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="home_transfer" data-i18n-en="Transfer">Transfer</button>
 </div>
 </div>
 </div>
@@ -1630,7 +1814,7 @@ html:not(.dark-theme) body::before {
 <div class="glass-card rounded-[24px] w-full max-w-sm p-5 space-y-3 shadow-2xl">
 <div class="flex items-center justify-between">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <svg viewBox="0 0 24 24" class="w-[11px] h-[11px]" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="4" y="5" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/>
 <path d="M8 3V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -1645,19 +1829,19 @@ html:not(.dark-theme) body::before {
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="modal_fund_note_title" data-i18n-en="Note">Note</h3>
 </div>
 <div class="flex items-center space-x-1.5 flex-shrink-0">
-<button id="fund-note-delete-btn" onclick="deleteFundNote()" aria-label="Delete note" class="w-7 h-7 rounded-xl bg-white flex items-center justify-center text-[#e2443b] hidden"><i class="fas fa-eraser text-xs"></i></button>
+<button id="fund-note-delete-btn" onclick="deleteFundNote()" aria-label="Delete note" class="w-7 h-7 rounded-xl bg-white flex items-center justify-center text-[var(--brand-red)] hidden"><i class="fas fa-eraser text-xs"></i></button>
 </div>
 </div>
 <p id="fund-note-fund-label" class="text-[10px] font-bold uppercase tracking-wider text-gray-400 -mt-1"></p>
 
 <div class="space-y-2.5">
-<div class="w-full bg-white/80 rounded-xl border border-gray-200 focus-within:border-[#e2443b] p-3 note-textarea-frame">
+<div class="w-full bg-white/80 rounded-xl border border-gray-200 focus-within:border-[var(--brand-red)] p-3 note-textarea-frame">
 <textarea id="fund-note-textarea" placeholder="Write a note..." class="w-full h-full bg-transparent text-sm font-medium focus:outline-none border-none resize-none note-textarea-fixed-lines placeholder-gray-400"></textarea>
 </div>
 
 <div class="flex space-x-2 pt-1">
 <button onclick="closeFundNoteModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button id="fund-note-save-btn" onclick="saveFundNote()" class="w-1/2 bg-[#e2443b] hover:bg-[#c93a32] text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
+<button id="fund-note-save-btn" onclick="saveFundNote()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
 </div>
 </div>
 </div>
@@ -1666,24 +1850,24 @@ html:not(.dark-theme) body::before {
 <div id="popup-edit-transfer" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[75] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[88vh]">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="fas fa-right-left text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight flex-1" data-i18n="modal_edit_transfer_title" data-i18n-en="Edit Transfer">Edit Transfer</h3>
-<button type="button" onclick="deleteTransferEntry(editingTransferId)" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b] hover:text-red-700 transition">
+<button type="button" onclick="deleteTransferEntry(editingTransferId)" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)] hover:text-red-700 transition">
 <i class="fas fa-trash-alt text-xs"></i>
 </button>
 </div>
 
 <input type="hidden" id="edit-transfer-id">
 <div class="space-y-3">
-<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="edit-transfer-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="edit-transfer-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 <p id="edit-transfer-amount-locked-hint" class="hidden text-[8px] text-gray-400 font-medium -mt-1.5 px-1"><i class="fas fa-lock mr-1"></i><span></span></p>
 
 <div class="space-y-1">
 <p class="text-[9px] font-bold text-gray-400 uppercase tracking-wider" data-i18n="modal_from_account" data-i18n-en="From Fund">From Fund</p>
 <div class="relative">
-<button type="button" onclick="toggleAccountDropdown('edit-transfer-from')" class="w-full bg-white/80 p-2 rounded-lg flex justify-between items-center text-xs font-bold text-[#e2443b] border border-gray-200">
+<button type="button" onclick="toggleAccountDropdown('edit-transfer-from')" class="w-full bg-white/80 p-2 rounded-lg flex justify-between items-center text-xs font-bold text-[var(--brand-red)] border border-gray-200">
 <span class="flex items-center space-x-1.5 min-w-0">
 <span id="edit-transfer-from-active-fund-icon" class="w-[18px] h-[18px] rounded-md flex items-center justify-center flex-shrink-0"><i class="fas text-[9px] text-white"></i></span>
 <span id="edit-transfer-from-active-fund-label" class="truncate">Bank</span>
@@ -1714,13 +1898,13 @@ html:not(.dark-theme) body::before {
 </div>
 <input type="hidden" id="edit-transfer-to-selected-fund">
 
-<input type="text" id="edit-transfer-description-input" placeholder="Note (optional)" data-i18n-placeholder="modal_note_optional_placeholder" data-i18n-placeholder-en="Note (optional)" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" id="edit-transfer-description-input" placeholder="Note (optional)" data-i18n-placeholder="modal_note_optional_placeholder" data-i18n-placeholder-en="Note (optional)" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
 <p id="edit-transfer-balance-note" class="text-[10px] font-medium text-gray-400 px-1" data-i18n="modal_transfer_balance_note" data-i18n-en="Changing the amount or funds will automatically adjust both fund balances. The linked entry on the receiving fund updates automatically and can't be edited separately.">Changing the amount or funds will automatically adjust both fund balances. The linked entry on the receiving fund updates automatically and can't be edited separately.</p>
 
 <div class="flex space-x-2 pt-2">
 <button onclick="closeEditTransferModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="saveEditedTransfer()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
+<button onclick="saveEditedTransfer()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
 </div>
 </div>
 </div>
@@ -1730,7 +1914,7 @@ html:not(.dark-theme) body::before {
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[88vh] overflow-y-auto no-scrollbar">
 <div class="flex items-center justify-between">
 <h3 class="font-extrabold text-lg tracking-tight text-gray-900" id="debt-modal-title" data-i18n="debt_add_debt_title" data-i18n-en="Add Debt">Add Debt</h3>
-<button type="button" onclick="deleteDebtFromEditModal()" id="debt-modal-delete-btn" title="Delete" class="hidden w-8 h-8 rounded-full bg-[#e2443b]/10 hover:bg-[#e2443b]/20 flex items-center justify-center text-[#e2443b] transition active:scale-95 flex-shrink-0">
+<button type="button" onclick="deleteDebtFromEditModal()" id="debt-modal-delete-btn" title="Delete" class="hidden w-8 h-8 rounded-full bg-[#991b1b]/10 hover:bg-[#991b1b]/20 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95 flex-shrink-0">
 <i class="fas fa-trash-alt text-xs"></i>
 </button>
 </div>
@@ -1739,12 +1923,12 @@ html:not(.dark-theme) body::before {
 <input type="hidden" id="debt-edit-id" value="">
 
 <div class="space-y-3">
-<input type="text" id="debt-person-input" placeholder="Person's Name" data-i18n-placeholder="modal_person_name_placeholder" data-i18n-placeholder-en="Person's Name" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" id="debt-person-input" placeholder="Person's Name" data-i18n-placeholder="modal_person_name_placeholder" data-i18n-placeholder-en="Person's Name" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
-<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="debt-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="debt-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 <p id="debt-amount-locked-hint" class="hidden text-[8px] text-gray-400 font-medium -mt-1.5 px-1"><i class="fas fa-lock mr-1"></i><span></span></p>
 
-<input type="text" id="debt-note-input" placeholder="Note" data-i18n-placeholder="modal_reason_note_placeholder" data-i18n-placeholder-en="Note" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" id="debt-note-input" placeholder="Note" data-i18n-placeholder="modal_reason_note_placeholder" data-i18n-placeholder-en="Note" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_due_date_optional_label" data-i18n-en="Due Date (Optional)">Due Date (Optional)</label>
@@ -1766,7 +1950,7 @@ html:not(.dark-theme) body::before {
 </button>
 <div class="flex space-x-2 pt-2">
 <button onclick="closeAddDebtModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="saveDebtEntry()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
+<button onclick="saveDebtEntry()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
 </div>
 </div>
 </div>
@@ -1775,17 +1959,17 @@ html:not(.dark-theme) body::before {
 <div id="popup-debt-payment" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[76] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="fas fa-hand-holding-dollar text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" id="debt-payment-title">Settle Payment</h3>
 </div>
 <div class="flex items-center justify-between gap-2">
-<p class="text-xs font-medium text-gray-500"><span id="debt-payment-subtitle-name"></span> • <span id="debt-payment-subtitle-remaining" class="text-[#e2443b] font-bold">Remaining: ৳0.00</span></p>
+<p class="text-xs font-medium text-gray-500"><span id="debt-payment-subtitle-name"></span> • <span id="debt-payment-subtitle-remaining" class="text-[var(--brand-red)] font-bold">Remaining: ৳0.00</span></p>
 <button type="button" onclick="fillFullRemainingPayment()" class="text-[9px] font-bold text-white bg-green-600 px-2 py-1 rounded-full whitespace-nowrap flex-shrink-0 border-0" data-i18n="debt_pay_full_remaining_btn" data-i18n-en="Pay remaining full amount">Pay remaining full amount</button>
 </div>
 <div>
-<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="debt-payment-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="debt-payment-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 </div>
 <!-- Optional: log this payment against one of the user's own funds too
      (receivable collected -> fund balance goes up; debt paid -> fund
@@ -1796,7 +1980,7 @@ html:not(.dark-theme) body::before {
 <div id="debt-payment-fund-section" class="space-y-2 hidden">
 <label class="flex items-center justify-between gap-2 py-0.5 cursor-pointer select-none">
 <span class="text-xs font-bold text-gray-600" id="debt-payment-fund-toggle-label">Add this to a fund?</span>
-<input type="checkbox" id="debt-payment-fund-toggle" onchange="toggleDebtPaymentFundPicker()" class="w-4 h-4 accent-[#e2443b] flex-shrink-0">
+<input type="checkbox" id="debt-payment-fund-toggle" onchange="toggleDebtPaymentFundPicker()" class="w-4 h-4 accent-[var(--brand-red)] flex-shrink-0">
 </label>
 <div id="debt-payment-fund-picker" class="relative hidden">
 <button type="button" onclick="toggleAccountDropdown('debt-payment')" class="w-full bg-white/80 p-3 rounded-xl flex justify-between items-center text-xs font-bold text-gray-800 border border-gray-200">
@@ -1813,7 +1997,7 @@ html:not(.dark-theme) body::before {
 <input type="hidden" id="debt-payment-entry-id">
 <div class="flex space-x-2 pt-2">
 <button onclick="closeDebtPaymentModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="submitDebtPayment()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_confirm" data-i18n-en="Confirm">Confirm</button>
+<button onclick="submitDebtPayment()" class="w-1/2 bg-[var(--brand-red)] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_confirm" data-i18n-en="Confirm">Confirm</button>
 </div>
 </div>
 </div>
@@ -1830,11 +2014,11 @@ html:not(.dark-theme) body::before {
 
 <div class="bg-gray-100/70 rounded-2xl p-4 space-y-2">
 <div class="w-full h-2.5 bg-gray-300/60 rounded-full overflow-hidden">
-<div id="debt-history-progress-bar" class="h-full bg-[#e2443b] transition-all" style="width:0%"></div>
+<div id="debt-history-progress-bar" class="h-full bg-[var(--brand-red)] transition-all" style="width:0%"></div>
 </div>
 <div class="flex justify-between text-[11px] font-bold">
 <span id="debt-history-paid-label" class="text-green-500">Paid: ৳0.00</span>
-<span id="debt-history-remaining-label" class="text-[#e2443b]">Remaining: ৳0.00</span>
+<span id="debt-history-remaining-label" class="text-[var(--brand-red)]">Remaining: ৳0.00</span>
 </div>
 <p id="debt-history-percent-label" class="text-center text-xs font-bold">0% paid</p>
 </div>
@@ -1850,12 +2034,12 @@ html:not(.dark-theme) body::before {
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex justify-between items-center">
 <div class="flex items-center space-x-2 text-gray-900">
-<div id="edit-fund-icon-badge" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div id="edit-fund-icon-badge" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="fas fa-wallet text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" id="edit-fund-title-display">Fund Management</h3>
 </div>
-<button onclick="triggerCustomDeleteConfirm()" id="btn-delete-fund" title="Delete" class="text-[#e2443b] hover:text-red-700 w-8 h-8 rounded-full flex items-center justify-center transition">
+<button onclick="triggerCustomDeleteConfirm()" id="btn-delete-fund" title="Delete" class="text-[var(--brand-red)] hover:text-red-700 w-8 h-8 rounded-full flex items-center justify-center transition">
 <i class="fas fa-trash-alt"></i>
 </button>
 </div>
@@ -1863,7 +2047,7 @@ html:not(.dark-theme) body::before {
 <div class="space-y-3">
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_fund_name_locked_label" data-i18n-en="Fund Name">Fund Name</label>
-<input type="text" id="edit-fund-name-input" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="text" id="edit-fund-name-input" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 </div>
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_current_balance_label" data-i18n-en="Current Cash Balance (Locked) (৳)">Current Cash Balance (Locked) (৳)</label>
@@ -1879,7 +2063,7 @@ html:not(.dark-theme) body::before {
 </div>
 <div class="flex space-x-2 pt-2">
 <button onclick="closeEditFundModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="saveFundUpdates()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
+<button onclick="saveFundUpdates()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
 </div>
 </div>
 </div>
@@ -1888,7 +2072,7 @@ html:not(.dark-theme) body::before {
 <div id="popup-add-fund" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[75] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="fas fa-plus text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="modal_new_account_title" data-i18n-en="New Fund">New Fund</h3>
@@ -1896,11 +2080,11 @@ html:not(.dark-theme) body::before {
 <div class="space-y-3">
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_account_name_label" data-i18n-en="Fund Name">Fund Name</label>
-<input type="text" id="new-fund-name" placeholder="Enter Fund Name" data-i18n-placeholder="modal_fund_name_placeholder" data-i18n-placeholder-en="Enter Fund Name" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b] placeholder-gray-400">
+<input type="text" id="new-fund-name" placeholder="Enter Fund Name" data-i18n-placeholder="modal_fund_name_placeholder" data-i18n-placeholder-en="Enter Fund Name" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)] placeholder-gray-400">
 </div>
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_starting_balance_label" data-i18n-en="Starting Balance (৳)">Starting Balance (৳)</label>
-<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="new-fund-amount" placeholder="0.00" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b] placeholder-gray-400">
+<input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="new-fund-amount" placeholder="0.00" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)] placeholder-gray-400">
 </div>
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_account_type_icon_label" data-i18n-en="Fund Type & Icon">Fund Type & Icon</label>
@@ -1912,7 +2096,7 @@ html:not(.dark-theme) body::before {
 </div>
 <div class="flex space-x-2 pt-2">
 <button onclick="closeAddFundModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="addNewFund()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_create" data-i18n-en="Create">Create</button>
+<button onclick="addNewFund()" class="w-1/2 bg-[var(--brand-red)] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_create" data-i18n-en="Create">Create</button>
 </div>
 </div>
 </div>
@@ -1921,7 +2105,7 @@ html:not(.dark-theme) body::before {
 <div id="popup-avatar-picker" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[80] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="fas fa-user-circle text-sm"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="modal_choose_avatar_title" data-i18n-en="Choose Your Avatar">Choose Your Avatar</h3>
@@ -1930,7 +2114,7 @@ html:not(.dark-theme) body::before {
 <div id="avatar-picker-grid" class="grid grid-cols-4 gap-3 mt-1 overflow-y-auto pr-1 no-scrollbar"></div>
 <div class="flex space-x-2 pt-2">
 <button onclick="closeAvatarPicker()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="confirmAvatarSelect()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_select" data-i18n-en="Select">Select</button>
+<button onclick="confirmAvatarSelect()" class="w-1/2 bg-[var(--brand-red)] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_select" data-i18n-en="Select">Select</button>
 </div>
 </div>
 </div>
@@ -1938,7 +2122,7 @@ html:not(.dark-theme) body::before {
 <div id="popup-lock-type" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[80] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="fas fa-lock text-sm"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="modal_lock_type_title" data-i18n-en="Screen Lock Type">Screen Lock Type</h3>
@@ -1951,7 +2135,7 @@ html:not(.dark-theme) body::before {
 
 <div id="popup-custom-confirm" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-[200] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl text-center relative">
-<div id="confirm-modal-icon" class="w-12 h-12 mx-auto flex items-center justify-center text-3xl text-[#e2443b]">
+<div id="confirm-modal-icon" class="w-12 h-12 mx-auto flex items-center justify-center text-3xl text-[var(--brand-red)]">
 <i class="fas fa-exclamation-triangle"></i>
 </div>
 <div>
@@ -1960,14 +2144,14 @@ html:not(.dark-theme) body::before {
 </div>
 <div class="flex space-x-2 pt-2">
 <button id="confirm-modal-cancel-btn" onclick="_resolveConfirm(false)" class="w-1/2 bg-gray-200/80 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl text-xs font-bold transition">Cancel</button>
-<button id="confirm-modal-ok-btn" onclick="_resolveConfirm(true)" class="w-1/2 bg-[#e2443b] text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-red-600 transition">Yes</button>
+<button id="confirm-modal-ok-btn" onclick="_resolveConfirm(true)" class="w-1/2 bg-[var(--brand-red)] text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-red-600 transition">Yes</button>
 </div>
 </div>
 </div>
 
 <div id="popup-custom-alert" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-[200] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl text-center">
-<div id="alert-modal-icon" class="w-12 h-12 mx-auto flex items-center justify-center text-3xl text-[#e2443b]">
+<div id="alert-modal-icon" class="w-12 h-12 mx-auto flex items-center justify-center text-3xl text-[var(--brand-red)]">
 <i class="fas fa-circle-info"></i>
 </div>
 <div>
@@ -1975,7 +2159,7 @@ html:not(.dark-theme) body::before {
 <p id="alert-modal-message" class="text-xs font-medium text-gray-500 mt-1 px-2 whitespace-pre-line"></p>
 </div>
 <div class="pt-2">
-<button id="alert-modal-ok-btn" onclick="_resolveAlert()" class="w-full bg-[#e2443b] text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-red-600 transition">OK</button>
+<button id="alert-modal-ok-btn" onclick="_resolveAlert()" class="w-full bg-[var(--brand-red)] text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-red-600 transition">OK</button>
 </div>
 </div>
 </div>
@@ -1983,7 +2167,7 @@ html:not(.dark-theme) body::before {
 
 <div id="popup-delete-confirm" class="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center p-4 z-[80] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl text-center">
-<div class="w-12 h-12 mx-auto flex items-center justify-center text-3xl text-[#e2443b]">
+<div class="w-12 h-12 mx-auto flex items-center justify-center text-3xl text-[var(--brand-red)]">
 <i class="fas fa-exclamation-triangle"></i>
 </div>
 <div>
@@ -1994,7 +2178,7 @@ This will permanently delete "<span id="delete-target-fund-name" class="font-bol
 </div>
 <div class="flex space-x-2 pt-2">
 <button onclick="closeCustomDeleteConfirm()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="confirmAndExecuteDelete()" class="w-1/2 bg-[#e2443b] text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-red-600 transition" data-i18n="common_yes_delete" data-i18n-en="Yes, Delete">
+<button onclick="confirmAndExecuteDelete()" class="w-1/2 bg-[var(--brand-red)] text-white py-2.5 rounded-xl text-xs font-bold shadow-md hover:bg-red-600 transition" data-i18n="common_yes_delete" data-i18n-en="Yes, Delete">
 Yes, Delete
 </button>
 </div>
@@ -2004,7 +2188,7 @@ Yes, Delete
 <div id="popup-filter-picker" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[75] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="fas fa-filter text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" id="filter-modal-title" data-i18n="filter_select_option" data-i18n-en="Select Option">Select Option</h3>
@@ -2013,7 +2197,7 @@ Yes, Delete
 <button id="filter-modal-clear-btn" onclick="clearFilterModal()" class="hidden w-full bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="filter_clear_filter" data-i18n-en="Clear Filter">Clear Filter</button>
 <div class="flex space-x-2 pt-2">
 <button onclick="closeFilterModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="applyFilterModal()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="modal_apply_btn" data-i18n-en="Apply">Apply</button>
+<button onclick="applyFilterModal()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="modal_apply_btn" data-i18n-en="Apply">Apply</button>
 </div>
 </div>
 </div>
@@ -2021,7 +2205,7 @@ Yes, Delete
 <div id="popup-time-calendar" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[75] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="far fa-calendar-alt text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="filter_select_date" data-i18n-en="Select a Date">Select a Date</h3>
@@ -2036,14 +2220,14 @@ Yes, Delete
 </button>
 </div>
 <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400">
-<span data-i18n="cal_wd_sun" data-i18n-en="S">S</span><span data-i18n="cal_wd_mon" data-i18n-en="M">M</span><span data-i18n="cal_wd_tue" data-i18n-en="T">T</span><span data-i18n="cal_wd_wed" data-i18n-en="W">W</span><span data-i18n="cal_wd_thu" data-i18n-en="T">T</span><span class="text-[#e2443b]" data-i18n="cal_wd_fri" data-i18n-en="F">F</span><span data-i18n="cal_wd_sat" data-i18n-en="S">S</span>
+<span data-i18n="cal_wd_sun" data-i18n-en="S">S</span><span data-i18n="cal_wd_mon" data-i18n-en="M">M</span><span data-i18n="cal_wd_tue" data-i18n-en="T">T</span><span data-i18n="cal_wd_wed" data-i18n-en="W">W</span><span data-i18n="cal_wd_thu" data-i18n-en="T">T</span><span class="text-[var(--brand-red)]" data-i18n="cal_wd_fri" data-i18n-en="F">F</span><span data-i18n="cal_wd_sat" data-i18n-en="S">S</span>
 </div>
 <div id="time-calendar-grid" class="grid grid-cols-7 gap-1"></div>
 <div class="pt-2 space-y-2">
 <div id="time-calendar-clear-wrap" class="hidden">
 <button onclick="clearTimeCalendarFilter()" class="w-full bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="filter_clear_filter" data-i18n-en="Clear Filter">Clear Filter</button>
 </div>
-<button onclick="closeTimeCalendarModal()" class="w-full bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_close" data-i18n-en="Close">Close</button>
+<button onclick="closeTimeCalendarModal()" class="w-full bg-[var(--brand-red)] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_close" data-i18n-en="Close">Close</button>
 </div>
 </div>
 </div>
@@ -2051,7 +2235,7 @@ Yes, Delete
 <div id="popup-due-date-calendar" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[80] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="far fa-calendar-alt text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="filter_select_date" data-i18n-en="Select a Date">Select a Date</h3>
@@ -2066,11 +2250,11 @@ Yes, Delete
 </button>
 </div>
 <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-bold text-gray-400">
-<span data-i18n="cal_wd_sun" data-i18n-en="S">S</span><span data-i18n="cal_wd_mon" data-i18n-en="M">M</span><span data-i18n="cal_wd_tue" data-i18n-en="T">T</span><span data-i18n="cal_wd_wed" data-i18n-en="W">W</span><span data-i18n="cal_wd_thu" data-i18n-en="T">T</span><span class="text-[#e2443b]" data-i18n="cal_wd_fri" data-i18n-en="F">F</span><span data-i18n="cal_wd_sat" data-i18n-en="S">S</span>
+<span data-i18n="cal_wd_sun" data-i18n-en="S">S</span><span data-i18n="cal_wd_mon" data-i18n-en="M">M</span><span data-i18n="cal_wd_tue" data-i18n-en="T">T</span><span data-i18n="cal_wd_wed" data-i18n-en="W">W</span><span data-i18n="cal_wd_thu" data-i18n-en="T">T</span><span class="text-[var(--brand-red)]" data-i18n="cal_wd_fri" data-i18n-en="F">F</span><span data-i18n="cal_wd_sat" data-i18n-en="S">S</span>
 </div>
 <div id="due-date-calendar-grid" class="grid grid-cols-7 gap-1"></div>
 <div class="flex space-x-2 pt-2">
-<button onclick="closeDueDateCalendarModal()" class="w-full bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_close" data-i18n-en="Close">Close</button>
+<button onclick="closeDueDateCalendarModal()" class="w-full bg-[var(--brand-red)] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_close" data-i18n-en="Close">Close</button>
 </div>
 </div>
 </div>
@@ -2078,7 +2262,7 @@ Yes, Delete
 <div id="popup-date-range" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[75] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="far fa-calendar-alt text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="filter_set_period" data-i18n-en="Set Period">Set Period</h3>
@@ -2086,15 +2270,15 @@ Yes, Delete
 <div class="space-y-3">
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="filter_start_date" data-i18n-en="Start Date">Start Date</label>
-<input type="date" id="date-range-start-input" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="date" id="date-range-start-input" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 </div>
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="filter_end_date" data-i18n-en="End Date">End Date</label>
-<input type="date" id="date-range-end-input" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[#e2443b]">
+<input type="date" id="date-range-end-input" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 </div>
 <div class="flex space-x-2 pt-2">
 <button onclick="closeDateRangeModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="saveDateRange()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
+<button onclick="saveDateRange()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
 </div>
 </div>
 </div>
@@ -2103,7 +2287,7 @@ Yes, Delete
 <div id="popup-fund-history-menu" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[75] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-xl bg-gray-200/50 flex items-center justify-center text-[#e2443b]">
+<div class="w-8 h-8 rounded-xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)]">
 <i class="far fa-calendar-alt text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="fund_history_filter_title" data-i18n-en="Filter History">Filter History</h3>
@@ -2112,14 +2296,14 @@ Yes, Delete
 <button onclick="openFundHistoryMonthWheel()" class="w-full flex items-center justify-between py-3 px-4 rounded-xl bg-white/60 hover:bg-white transition shadow-sm border border-white/40">
 <span class="text-left">
 <span class="block text-xs font-bold text-gray-800" data-i18n="fund_history_select_month" data-i18n-en="Select a Month">Select a Month</span>
-<span id="fund-history-menu-month-current" class="block text-[10px] font-bold text-[#e2443b]"></span>
+<span id="fund-history-menu-month-current" class="block text-[10px] font-bold text-[var(--brand-red)]"></span>
 </span>
 <i class="fas fa-chevron-right text-[10px] text-gray-400"></i>
 </button>
 <button onclick="openFundHistoryDateCalendar()" class="w-full flex items-center justify-between py-3 px-4 rounded-xl bg-white/60 hover:bg-white transition shadow-sm border border-white/40">
 <span class="text-left">
 <span class="block text-xs font-bold text-gray-800" data-i18n="fund_history_select_date" data-i18n-en="Select a Date">Select a Date</span>
-<span id="fund-history-menu-date-current" class="block text-[10px] font-bold text-[#e2443b]"></span>
+<span id="fund-history-menu-date-current" class="block text-[10px] font-bold text-[var(--brand-red)]"></span>
 </span>
 <i class="fas fa-chevron-right text-[10px] text-gray-400"></i>
 </button>
@@ -2128,7 +2312,7 @@ Yes, Delete
 <button onclick="clearFundHistoryFilterFromMenu()" class="w-full bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="fund_history_clear_filter" data-i18n-en="Clear Filter">Clear Filter</button>
 </div>
 <div class="flex space-x-2 pt-2">
-<button onclick="closeFundHistoryMenu()" class="w-full bg-[#e2443b] hover:bg-[#c93a32] text-white py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
+<button onclick="closeFundHistoryMenu()" class="w-full bg-[var(--brand-red)] hover:bg-[var(--brand-red-hover)] text-white py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
 </div>
 </div>
 </div>
@@ -2136,7 +2320,7 @@ Yes, Delete
 <div id="popup-fund-history-month-wheel" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[80] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-xl bg-gray-200/50 flex items-center justify-center text-[#e2443b]">
+<div class="w-8 h-8 rounded-xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)]">
 <i class="far fa-calendar-alt text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="fund_history_select_month" data-i18n-en="Select a Month">Select a Month</h3>
@@ -2147,7 +2331,7 @@ Yes, Delete
 <span class="fund-year-wheel-col flex items-center justify-center text-center text-xs font-bold text-gray-400 uppercase ml-1" data-i18n="fund_history_year_label" data-i18n-en="Year">Year</span>
 </div>
 <div class="relative py-2">
-<div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-11 rounded-2xl bg-[#e2443b]/10 border border-[#e2443b]/30 pointer-events-none"></div>
+<div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-11 rounded-2xl bg-[#991b1b]/10 border border-[#991b1b]/30 pointer-events-none"></div>
 <div class="flex items-stretch justify-center">
 <div id="fund-history-month-wheel" class="time-wheel fund-month-wheel-col"></div>
 <div id="fund-history-year-wheel" class="time-wheel fund-year-wheel-col ml-1"></div>
@@ -2156,7 +2340,7 @@ Yes, Delete
 </div>
 <div class="flex space-x-2 pt-2">
 <button onclick="closeFundHistoryMonthWheel()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="confirmFundHistoryMonthWheel()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="modal_set_btn" data-i18n-en="Set">Set</button>
+<button onclick="confirmFundHistoryMonthWheel()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="modal_set_btn" data-i18n-en="Set">Set</button>
 </div>
 </div>
 </div>
@@ -2164,7 +2348,7 @@ Yes, Delete
 <div id="popup-logs-history-menu" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[75] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-xl bg-gray-200/50 flex items-center justify-center text-[#e2443b]">
+<div class="w-8 h-8 rounded-xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)]">
 <i class="far fa-calendar-alt text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="fund_history_filter_title" data-i18n-en="Filter History">Filter History</h3>
@@ -2173,14 +2357,14 @@ Yes, Delete
 <button onclick="openLogsHistoryMonthWheel()" class="w-full flex items-center justify-between py-3 px-4 rounded-xl bg-white/60 hover:bg-white transition shadow-sm border border-white/40">
 <span class="text-left">
 <span class="block text-xs font-bold text-gray-800" data-i18n="fund_history_select_month" data-i18n-en="Select a Month">Select a Month</span>
-<span id="logs-history-menu-month-current" class="block text-[10px] font-bold text-[#e2443b]"></span>
+<span id="logs-history-menu-month-current" class="block text-[10px] font-bold text-[var(--brand-red)]"></span>
 </span>
 <i class="fas fa-chevron-right text-[10px] text-gray-400"></i>
 </button>
 <button onclick="openLogsHistoryDateCalendar()" class="w-full flex items-center justify-between py-3 px-4 rounded-xl bg-white/60 hover:bg-white transition shadow-sm border border-white/40">
 <span class="text-left">
 <span class="block text-xs font-bold text-gray-800" data-i18n="fund_history_select_date" data-i18n-en="Select a Date">Select a Date</span>
-<span id="logs-history-menu-date-current" class="block text-[10px] font-bold text-[#e2443b]"></span>
+<span id="logs-history-menu-date-current" class="block text-[10px] font-bold text-[var(--brand-red)]"></span>
 </span>
 <i class="fas fa-chevron-right text-[10px] text-gray-400"></i>
 </button>
@@ -2189,7 +2373,7 @@ Yes, Delete
 <button onclick="clearLogsHistoryFilterFromMenu()" class="w-full bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="filter_clear_filter" data-i18n-en="Clear Filter">Clear Filter</button>
 </div>
 <div class="flex space-x-2 pt-2">
-<button onclick="closeLogsHistoryMenu()" class="w-full bg-[#e2443b] hover:bg-[#c93a32] text-white py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
+<button onclick="closeLogsHistoryMenu()" class="w-full bg-[var(--brand-red)] hover:bg-[var(--brand-red-hover)] text-white py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
 </div>
 </div>
 </div>
@@ -2197,7 +2381,7 @@ Yes, Delete
 <div id="popup-logs-history-month-wheel" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[80] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-xl bg-gray-200/50 flex items-center justify-center text-[#e2443b]">
+<div class="w-8 h-8 rounded-xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)]">
 <i class="far fa-calendar-alt text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="fund_history_select_month" data-i18n-en="Select a Month">Select a Month</h3>
@@ -2208,7 +2392,7 @@ Yes, Delete
 <span class="fund-year-wheel-col flex items-center justify-center text-center text-xs font-bold text-gray-400 uppercase ml-1" data-i18n="fund_history_year_label" data-i18n-en="Year">Year</span>
 </div>
 <div class="relative py-2">
-<div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-11 rounded-2xl bg-[#e2443b]/10 border border-[#e2443b]/30 pointer-events-none"></div>
+<div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-11 rounded-2xl bg-[#991b1b]/10 border border-[#991b1b]/30 pointer-events-none"></div>
 <div class="flex items-stretch justify-center">
 <div id="logs-history-month-wheel" class="time-wheel fund-month-wheel-col"></div>
 <div id="logs-history-year-wheel" class="time-wheel fund-year-wheel-col ml-1"></div>
@@ -2217,7 +2401,7 @@ Yes, Delete
 </div>
 <div class="flex space-x-2 pt-2">
 <button onclick="closeLogsHistoryMonthWheel()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="confirmLogsHistoryMonthWheel()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="modal_set_btn" data-i18n-en="Set">Set</button>
+<button onclick="confirmLogsHistoryMonthWheel()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="modal_set_btn" data-i18n-en="Set">Set</button>
 </div>
 </div>
 </div>
@@ -2225,7 +2409,7 @@ Yes, Delete
 <div id="popup-unified-date-picker" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[80] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<button onclick="switchToGridDatePicker()" title="Grid Calendar" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b] transition active:scale-95">
+<button onclick="switchToGridDatePicker()" title="Grid Calendar" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)] transition active:scale-95">
 <i class="far fa-calendar-alt text-xs"></i>
 </button>
 <h3 id="unified-date-picker-title" class="font-extrabold text-lg tracking-tight" data-i18n="filter_select_date" data-i18n-en="Select a Date">Select a Date</h3>
@@ -2237,7 +2421,7 @@ Yes, Delete
 <span class="udp-year-col flex items-center justify-center text-center text-xs font-bold text-gray-400 uppercase ml-1" data-i18n="fund_history_year_label" data-i18n-en="Year">Year</span>
 </div>
 <div class="relative py-2">
-<div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-11 rounded-2xl bg-[#e2443b]/10 border border-[#e2443b]/30 pointer-events-none"></div>
+<div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-11 rounded-2xl bg-[#991b1b]/10 border border-[#991b1b]/30 pointer-events-none"></div>
 <div class="flex items-stretch justify-center">
 <div id="unified-date-picker-day-wheel" class="time-wheel udp-day-col"></div>
 <div id="unified-date-picker-month-wheel" class="time-wheel udp-month-col ml-1"></div>
@@ -2246,8 +2430,8 @@ Yes, Delete
 </div>
 </div>
 <div class="flex space-x-2 pt-2">
-<button onclick="closeUnifiedDatePicker()" class="w-1/2 bg-white hover:bg-white/80 text-[#e2443b] modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="confirmUnifiedDatePicker()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="modal_set_btn" data-i18n-en="Set">Set</button>
+<button onclick="closeUnifiedDatePicker()" class="w-1/2 bg-white hover:bg-white/80 text-[var(--brand-red)] modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
+<button onclick="confirmUnifiedDatePicker()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="modal_set_btn" data-i18n-en="Set">Set</button>
 </div>
 </div>
 </div>
@@ -2255,7 +2439,7 @@ Yes, Delete
 <div id="popup-time-picker" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[80] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="far fa-clock text-xs"></i>
 </div>
 <h3 id="time-picker-title" class="font-extrabold text-lg tracking-tight" data-i18n="modal_select_time" data-i18n-en="Select a Time">Select a Time</h3>
@@ -2268,7 +2452,7 @@ Yes, Delete
 </div>
 <div class="flex items-stretch justify-center">
 <div class="relative py-2 flex items-stretch">
-<div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-11 rounded-2xl bg-[#e2443b]/10 border border-[#e2443b]/30 pointer-events-none"></div>
+<div class="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-11 rounded-2xl bg-[#991b1b]/10 border border-[#991b1b]/30 pointer-events-none"></div>
 <div id="time-picker-hour-wheel" class="time-wheel rtp-hour-col"></div>
 <div class="flex items-center text-lg font-extrabold text-gray-900 px-3">:</div>
 <div id="time-picker-minute-wheel" class="time-wheel rtp-minute-col"></div>
@@ -2278,7 +2462,7 @@ Yes, Delete
 </div>
 <div class="flex space-x-2 pt-2">
 <button onclick="closeTimePicker()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
-<button onclick="confirmTimePicker()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="modal_set_btn" data-i18n-en="Set">Set</button>
+<button onclick="confirmTimePicker()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="modal_set_btn" data-i18n-en="Set">Set</button>
 </div>
 </div>
 </div>
@@ -2286,15 +2470,15 @@ Yes, Delete
 <div id="popup-notifications" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[75] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[88vh] overflow-y-auto no-scrollbar">
 <div class="flex items-center space-x-2 text-gray-900">
-<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[#e2443b]">
+<div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)]">
 <i class="fas fa-bell text-xs"></i>
 </div>
 <h3 class="font-extrabold text-lg tracking-tight flex-1" data-i18n="modal_expense_reminders_title" data-i18n-en="Expense Reminders">Expense Reminders</h3>
 </div>
 
 <div id="reminders-permission-banner" class="hidden bg-red-50 border border-red-100 rounded-xl p-3 flex items-center justify-between space-x-2">
-<p class="text-[11px] font-bold text-[#e2443b] flex-1" data-i18n="modal_allow_notif_banner" data-i18n-en="Allow notifications to receive reminders.">Allow notifications to receive reminders.</p>
-<button onclick="requestReminderPermission()" class="bg-[#e2443b] text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex-shrink-0" data-i18n="common_allow" data-i18n-en="Allow">Allow</button>
+<p class="text-[11px] font-bold text-[var(--brand-red)] flex-1" data-i18n="modal_allow_notif_banner" data-i18n-en="Allow notifications to receive reminders.">Allow notifications to receive reminders.</p>
+<button onclick="requestReminderPermission()" class="bg-[var(--brand-red)] text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex-shrink-0" data-i18n="common_allow" data-i18n-en="Allow">Allow</button>
 </div>
 
 <div id="exact-alarm-banner" class="hidden bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-center justify-between space-x-2">
@@ -2306,7 +2490,7 @@ Yes, Delete
 
 <div class="flex space-x-2 pt-2">
 <button onclick="closeNotificationsPanel()" class="w-1/2 bg-gray-200/80 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_close" data-i18n-en="Close">Close</button>
-<button onclick="saveReminderSettings()" class="w-1/2 bg-[#e2443b] hover:bg-red-600 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
+<button onclick="saveReminderSettings()" class="w-1/2 bg-green-600 hover:bg-green-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition" data-i18n="common_save" data-i18n-en="Save">Save</button>
 </div>
 </div>
 </div>
@@ -2326,7 +2510,7 @@ Yes, Delete
 <div class="daymode-flip-card bg-black text-white p-6 rounded-[28px] shadow-xl space-y-5">
 <div class="flex items-center justify-between">
 <div class="flex items-center space-x-3 min-w-0">
-<div id="details-fund-icon-badge" class="w-12 h-12 rounded-full bg-[#e2443b]/20 flex items-center justify-center text-[#e2443b] text-lg flex-shrink-0">
+<div id="details-fund-icon-badge" class="w-12 h-12 rounded-full bg-[#991b1b]/20 flex items-center justify-center text-[var(--brand-red)] text-lg flex-shrink-0">
 <i class="fas fa-wallet"></i>
 </div>
 <h3 id="details-fund-name" class="text-lg font-bold truncate">Cash</h3>
@@ -2344,7 +2528,7 @@ Yes, Delete
 <div class="flex items-stretch space-x-3">
 <div class="daymode-flip-card flex-[2] bg-black rounded-2xl p-4">
 <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400" data-i18n="stats_total_spent" data-i18n-en="Total Spent">Total Spent</p>
-<h3 id="details-fund-spent" class="text-xl font-extrabold text-[#e2443b]">৳0.00</h3>
+<h3 id="details-fund-spent" class="text-xl font-extrabold text-[var(--brand-red)]">৳0.00</h3>
 </div>
 <button onclick="openTransferFundModal(currentDetailsFund)" class="daymode-flip-card flex-1 flex flex-col items-center justify-center space-y-1 bg-black text-white rounded-2xl p-4 text-xs font-bold shadow-sm">
 <i class="fas fa-right-left text-sm"></i><span data-i18n="modal_transfer_fund_title" data-i18n-en="Transfer Fund">Transfer Fund</span>
@@ -2355,7 +2539,7 @@ Yes, Delete
 <div class="flex items-center justify-between">
 <h3 class="text-lg font-bold tracking-tight text-gray-900" data-i18n="acct_transaction_history" data-i18n-en="Transaction History">Transaction History</h3>
 <div class="flex items-center space-x-2 flex-shrink-0">
-<button onclick="openFundNoteModal()" class="w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition relative flex-shrink-0">
+<button onclick="openFundNoteModal()" class="w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition relative flex-shrink-0">
 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="4" y="5" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/>
 <path d="M8 3V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -2366,11 +2550,11 @@ Yes, Delete
 <path d="M14 15L19 10L21.5 12.5L16.5 17.5H14V15Z" fill="currentColor"/>
 <path d="M19 10L20.5 8.5L23 11L21.5 12.5L19 10Z" fill="currentColor"/>
 </svg>
-<span id="fund-note-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="fund-note-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
-<button onclick="openDateCalendarIcon('fundHistory')" class="w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[#e2443b] transition relative flex-shrink-0">
+<button onclick="openDateCalendarIcon('fundHistory')" class="w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition relative flex-shrink-0">
 <i class="far fa-calendar-alt text-sm"></i>
-<span id="fund-history-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[#e2443b] animate-pulse"></span>
+<span id="fund-history-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
 </div>
 </div>
@@ -2381,18 +2565,18 @@ Yes, Delete
 
 <div id="screen-onboarding" class="fixed inset-0 z-[70] bg-gradient-to-b from-gray-50 via-gray-50 to-red-50 px-6 pt-8 pb-8 flex flex-col justify-between hidden overflow-y-auto no-scrollbar">
 <div class="absolute inset-0 pointer-events-none overflow-hidden">
-<i class="fas fa-chart-pie absolute text-[#e2443b] opacity-[0.07] text-6xl" style="top:6%; left:8%; transform:rotate(-15deg);"></i>
+<i class="fas fa-chart-pie absolute text-[var(--brand-red)] opacity-[0.07] text-6xl" style="top:6%; left:8%; transform:rotate(-15deg);"></i>
 <i class="fas fa-coins absolute text-white opacity-[0.05] text-4xl" style="top:16%; right:24%; transform:rotate(12deg);"></i>
-<i class="fas fa-wallet absolute text-[#e2443b] opacity-[0.06] text-7xl" style="top:34%; left:-4%; transform:rotate(-10deg);"></i>
+<i class="fas fa-wallet absolute text-[var(--brand-red)] opacity-[0.06] text-7xl" style="top:34%; left:-4%; transform:rotate(-10deg);"></i>
 <i class="fas fa-university absolute text-white opacity-[0.05] text-7xl" style="top:28%; right:-6%; transform:rotate(8deg);"></i>
-<i class="fas fa-percentage absolute text-[#e2443b] opacity-[0.05] text-4xl" style="top:46%; left:14%; transform:rotate(-8deg);"></i>
+<i class="fas fa-percentage absolute text-[var(--brand-red)] opacity-[0.05] text-4xl" style="top:46%; left:14%; transform:rotate(-8deg);"></i>
 <i class="fas fa-file-invoice-dollar absolute text-white opacity-[0.05] text-5xl" style="top:50%; right:12%; transform:rotate(14deg);"></i>
-<i class="fas fa-hand-holding-usd absolute text-[#e2443b] opacity-[0.05] text-5xl" style="bottom:34%; left:30%; transform:rotate(-6deg);"></i>
+<i class="fas fa-hand-holding-usd absolute text-[var(--brand-red)] opacity-[0.05] text-5xl" style="bottom:34%; left:30%; transform:rotate(-6deg);"></i>
 <i class="fas fa-receipt absolute text-white opacity-[0.06] text-5xl" style="top:62%; right:6%; transform:rotate(16deg);"></i>
 <i class="fas fa-calculator absolute text-white opacity-[0.05] text-6xl" style="bottom:8%; left:6%; transform:rotate(10deg);"></i>
-<i class="fas fa-credit-card absolute text-[#e2443b] opacity-[0.06] text-5xl" style="bottom:14%; right:-4%; transform:rotate(-14deg);"></i>
-<i class="fas fa-money-bill-wave absolute text-[#e2443b] opacity-[0.05] text-5xl" style="bottom:28%; left:-2%; transform:rotate(-6deg);"></i>
-<i class="fas fa-chart-line absolute text-[#e2443b] opacity-[0.05] text-6xl" style="bottom:-2%; right:28%; transform:rotate(-8deg);"></i>
+<i class="fas fa-credit-card absolute text-[var(--brand-red)] opacity-[0.06] text-5xl" style="bottom:14%; right:-4%; transform:rotate(-14deg);"></i>
+<i class="fas fa-money-bill-wave absolute text-[var(--brand-red)] opacity-[0.05] text-5xl" style="bottom:28%; left:-2%; transform:rotate(-6deg);"></i>
+<i class="fas fa-chart-line absolute text-[var(--brand-red)] opacity-[0.05] text-6xl" style="bottom:-2%; right:28%; transform:rotate(-8deg);"></i>
 <i class="fas fa-landmark absolute text-white opacity-[0.04] text-4xl" style="bottom:2%; left:40%; transform:rotate(6deg);"></i>
 
 </div>
@@ -2410,40 +2594,40 @@ Yes, Delete
 <div class="w-9 h-9 rounded-full bg-gray-300/70 flex items-center justify-center text-gray-500 flex-shrink-0">
 <i class="fas fa-user text-sm"></i>
 </div>
-<input type="text" id="onboard-name-input" placeholder="What is your name?" data-i18n-placeholder="onboard_name_placeholder" data-i18n-placeholder-en="What is your name?" class="flex-1 bg-transparent border-b border-gray-300 pb-1.5 text-base font-medium text-gray-700 focus:outline-none focus:border-[#e2443b] placeholder-gray-400">
+<input type="text" id="onboard-name-input" placeholder="What is your name?" data-i18n-placeholder="onboard_name_placeholder" data-i18n-placeholder-en="What is your name?" class="flex-1 bg-transparent border-b border-gray-300 pb-1.5 text-base font-medium text-gray-700 focus:outline-none focus:border-[var(--brand-red)] placeholder-gray-400">
 </div>
 </div>
 </div>
 
-<button onclick="completeOnboarding()" class="relative z-10 w-full bg-[#e2443b] hover:bg-red-600 text-white font-bold py-4 rounded-2xl text-base flex items-center justify-center space-x-2 shadow-lg transition mt-8">
+<button onclick="completeOnboarding()" class="relative z-10 w-full bg-[var(--brand-red)] hover:bg-red-600 text-white font-bold py-4 rounded-2xl text-base flex items-center justify-center space-x-2 shadow-lg transition mt-8">
 <i class="fas fa-check-circle"></i> <span data-i18n="onboard_get_started" data-i18n-en="Get Started">Get Started</span>
 </button>
 </div>
 
 <div id="screen-biometric-lock" class="fixed inset-0 z-[80] bg-gradient-to-b from-gray-50 via-gray-50 to-red-50 px-6 flex flex-col items-center justify-center hidden text-center overflow-hidden">
 <div class="absolute inset-0 pointer-events-none overflow-hidden">
-<i class="fas fa-chart-pie absolute text-[#e2443b] opacity-[0.07] text-6xl" style="top:6%; left:8%; transform:rotate(-15deg);"></i>
+<i class="fas fa-chart-pie absolute text-[var(--brand-red)] opacity-[0.07] text-6xl" style="top:6%; left:8%; transform:rotate(-15deg);"></i>
 <i class="fas fa-coins absolute text-white opacity-[0.05] text-4xl" style="top:16%; right:24%; transform:rotate(12deg);"></i>
-<i class="fas fa-wallet absolute text-[#e2443b] opacity-[0.06] text-7xl" style="top:34%; left:-4%; transform:rotate(-10deg);"></i>
+<i class="fas fa-wallet absolute text-[var(--brand-red)] opacity-[0.06] text-7xl" style="top:34%; left:-4%; transform:rotate(-10deg);"></i>
 <i class="fas fa-university absolute text-white opacity-[0.05] text-7xl" style="top:28%; right:-6%; transform:rotate(8deg);"></i>
-<i class="fas fa-percentage absolute text-[#e2443b] opacity-[0.05] text-4xl" style="top:46%; left:14%; transform:rotate(-8deg);"></i>
+<i class="fas fa-percentage absolute text-[var(--brand-red)] opacity-[0.05] text-4xl" style="top:46%; left:14%; transform:rotate(-8deg);"></i>
 <i class="fas fa-file-invoice-dollar absolute text-white opacity-[0.05] text-5xl" style="top:50%; right:12%; transform:rotate(14deg);"></i>
-<i class="fas fa-hand-holding-usd absolute text-[#e2443b] opacity-[0.05] text-5xl" style="bottom:34%; left:30%; transform:rotate(-6deg);"></i>
+<i class="fas fa-hand-holding-usd absolute text-[var(--brand-red)] opacity-[0.05] text-5xl" style="bottom:34%; left:30%; transform:rotate(-6deg);"></i>
 <i class="fas fa-receipt absolute text-white opacity-[0.06] text-5xl" style="top:62%; right:6%; transform:rotate(16deg);"></i>
 <i class="fas fa-calculator absolute text-white opacity-[0.05] text-6xl" style="bottom:8%; left:6%; transform:rotate(10deg);"></i>
-<i class="fas fa-credit-card absolute text-[#e2443b] opacity-[0.06] text-5xl" style="bottom:14%; right:-4%; transform:rotate(-14deg);"></i>
-<i class="fas fa-money-bill-wave absolute text-[#e2443b] opacity-[0.05] text-5xl" style="bottom:28%; left:-2%; transform:rotate(-6deg);"></i>
-<i class="fas fa-chart-line absolute text-[#e2443b] opacity-[0.05] text-6xl" style="bottom:-2%; right:28%; transform:rotate(-8deg);"></i>
+<i class="fas fa-credit-card absolute text-[var(--brand-red)] opacity-[0.06] text-5xl" style="bottom:14%; right:-4%; transform:rotate(-14deg);"></i>
+<i class="fas fa-money-bill-wave absolute text-[var(--brand-red)] opacity-[0.05] text-5xl" style="bottom:28%; left:-2%; transform:rotate(-6deg);"></i>
+<i class="fas fa-chart-line absolute text-[var(--brand-red)] opacity-[0.05] text-6xl" style="bottom:-2%; right:28%; transform:rotate(-8deg);"></i>
 <i class="fas fa-landmark absolute text-white opacity-[0.04] text-4xl" style="bottom:2%; left:40%; transform:rotate(6deg);"></i>
 
 </div>
 <div class="relative z-10 flex flex-col items-center">
-<div class="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center text-[#e2443b] text-3xl mb-6">
+<div class="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center text-[var(--brand-red)] text-3xl mb-6">
 <i class="fas fa-fingerprint"></i>
 </div>
 <h2 class="text-xl font-bold text-white" data-i18n="lock_title" data-i18n-en="Tracker is Locked">Tracker is Locked</h2>
 <p class="text-sm font-medium text-gray-400 mt-1.5 mb-8" data-i18n="biometric_verify_continue_desc" data-i18n-en="Verify your identity to continue">Verify your identity to continue</p>
-<button onclick="verifyBiometricUnlock()" class="bg-[#e2443b] hover:bg-red-600 text-white font-bold py-3.5 px-8 rounded-2xl text-sm flex items-center justify-center space-x-2 shadow-lg transition">
+<button onclick="verifyBiometricUnlock()" class="bg-[var(--brand-red)] hover:bg-red-600 text-white font-bold py-3.5 px-8 rounded-2xl text-sm flex items-center justify-center space-x-2 shadow-lg transition">
 <i class="fas fa-fingerprint"></i> <span data-i18n="biometric_unlock_btn" data-i18n-en="Unlock">Unlock</span>
 </button>
 <p id="biometric-lock-error" class="text-[11px] text-red-400 font-medium mt-4 hidden" data-i18n="biometric_verify_failed" data-i18n-en="Verification failed. Try again.">Verification failed. Try again.</p>
@@ -2452,18 +2636,18 @@ Yes, Delete
 
 <div id="screen-pin-pad" class="fixed inset-0 z-[90] bg-gradient-to-b from-gray-50 via-gray-50 to-red-50 px-6 pt-14 pb-8 flex flex-col items-center hidden text-center overflow-hidden">
 <div class="absolute inset-0 pointer-events-none overflow-hidden">
-<i class="fas fa-chart-pie absolute text-[#e2443b] opacity-[0.07] text-6xl" style="top:16%; left:18%; transform:rotate(-15deg);"></i>
+<i class="fas fa-chart-pie absolute text-[var(--brand-red)] opacity-[0.07] text-6xl" style="top:16%; left:18%; transform:rotate(-15deg);"></i>
 <i class="fas fa-coins absolute text-white opacity-[0.05] text-4xl" style="top:16%; right:24%; transform:rotate(12deg);"></i>
-<i class="fas fa-wallet absolute text-[#e2443b] opacity-[0.06] text-7xl" style="top:34%; left:-4%; transform:rotate(-10deg);"></i>
+<i class="fas fa-wallet absolute text-[var(--brand-red)] opacity-[0.06] text-7xl" style="top:34%; left:-4%; transform:rotate(-10deg);"></i>
 <i class="fas fa-university absolute text-white opacity-[0.05] text-7xl" style="top:28%; right:-6%; transform:rotate(8deg);"></i>
-<i class="fas fa-percentage absolute text-[#e2443b] opacity-[0.05] text-4xl" style="top:46%; left:14%; transform:rotate(-8deg);"></i>
+<i class="fas fa-percentage absolute text-[var(--brand-red)] opacity-[0.05] text-4xl" style="top:46%; left:14%; transform:rotate(-8deg);"></i>
 <i class="fas fa-file-invoice-dollar absolute text-white opacity-[0.05] text-5xl" style="top:50%; right:12%; transform:rotate(14deg);"></i>
-<i class="fas fa-hand-holding-usd absolute text-[#e2443b] opacity-[0.05] text-5xl" style="bottom:34%; left:30%; transform:rotate(-6deg);"></i>
+<i class="fas fa-hand-holding-usd absolute text-[var(--brand-red)] opacity-[0.05] text-5xl" style="bottom:34%; left:30%; transform:rotate(-6deg);"></i>
 <i class="fas fa-receipt absolute text-white opacity-[0.06] text-5xl" style="top:62%; right:6%; transform:rotate(16deg);"></i>
 <i class="fas fa-calculator absolute text-white opacity-[0.05] text-6xl" style="bottom:8%; left:6%; transform:rotate(10deg);"></i>
-<i class="fas fa-credit-card absolute text-[#e2443b] opacity-[0.06] text-5xl" style="bottom:14%; right:-4%; transform:rotate(-14deg);"></i>
-<i class="fas fa-money-bill-wave absolute text-[#e2443b] opacity-[0.05] text-5xl" style="bottom:28%; left:-2%; transform:rotate(-6deg);"></i>
-<i class="fas fa-chart-line absolute text-[#e2443b] opacity-[0.05] text-6xl" style="bottom:-2%; right:28%; transform:rotate(-8deg);"></i>
+<i class="fas fa-credit-card absolute text-[var(--brand-red)] opacity-[0.06] text-5xl" style="bottom:14%; right:-4%; transform:rotate(-14deg);"></i>
+<i class="fas fa-money-bill-wave absolute text-[var(--brand-red)] opacity-[0.05] text-5xl" style="bottom:28%; left:-2%; transform:rotate(-6deg);"></i>
+<i class="fas fa-chart-line absolute text-[var(--brand-red)] opacity-[0.05] text-6xl" style="bottom:-2%; right:28%; transform:rotate(-8deg);"></i>
 <i class="fas fa-landmark absolute text-white opacity-[0.04] text-4xl" style="bottom:2%; left:40%; transform:rotate(6deg);"></i>
 
 </div>
@@ -2471,7 +2655,7 @@ Yes, Delete
 <i class="fas fa-arrow-left"></i>
 </button>
 <div class="relative z-10 flex flex-col items-center justify-center flex-1 w-full max-w-xs">
-<div class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-[#e2443b] text-2xl mb-5">
+<div class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-[var(--brand-red)] text-2xl mb-5">
 <i class="fas fa-lock"></i>
 </div>
 <h2 id="pin-pad-title" class="text-lg font-bold text-white">Set a 4-digit PIN</h2>
@@ -2497,18 +2681,18 @@ Yes, Delete
 
 <div id="screen-pattern-pad" class="fixed inset-0 z-[90] bg-gradient-to-b from-gray-50 via-gray-50 to-red-50 px-6 pt-14 pb-8 flex flex-col items-center hidden text-center overflow-hidden">
 <div class="absolute inset-0 pointer-events-none overflow-hidden">
-<i class="fas fa-chart-pie absolute text-[#e2443b] opacity-[0.07] text-6xl" style="top:16%; left:18%; transform:rotate(-15deg);"></i>
+<i class="fas fa-chart-pie absolute text-[var(--brand-red)] opacity-[0.07] text-6xl" style="top:16%; left:18%; transform:rotate(-15deg);"></i>
 <i class="fas fa-coins absolute text-white opacity-[0.05] text-4xl" style="top:16%; right:24%; transform:rotate(12deg);"></i>
-<i class="fas fa-wallet absolute text-[#e2443b] opacity-[0.06] text-7xl" style="top:34%; left:-4%; transform:rotate(-10deg);"></i>
+<i class="fas fa-wallet absolute text-[var(--brand-red)] opacity-[0.06] text-7xl" style="top:34%; left:-4%; transform:rotate(-10deg);"></i>
 <i class="fas fa-university absolute text-white opacity-[0.05] text-7xl" style="top:28%; right:-6%; transform:rotate(8deg);"></i>
-<i class="fas fa-percentage absolute text-[#e2443b] opacity-[0.05] text-4xl" style="top:46%; left:14%; transform:rotate(-8deg);"></i>
+<i class="fas fa-percentage absolute text-[var(--brand-red)] opacity-[0.05] text-4xl" style="top:46%; left:14%; transform:rotate(-8deg);"></i>
 <i class="fas fa-file-invoice-dollar absolute text-white opacity-[0.05] text-5xl" style="top:50%; right:12%; transform:rotate(14deg);"></i>
-<i class="fas fa-hand-holding-usd absolute text-[#e2443b] opacity-[0.05] text-5xl" style="bottom:34%; left:30%; transform:rotate(-6deg);"></i>
+<i class="fas fa-hand-holding-usd absolute text-[var(--brand-red)] opacity-[0.05] text-5xl" style="bottom:34%; left:30%; transform:rotate(-6deg);"></i>
 <i class="fas fa-receipt absolute text-white opacity-[0.06] text-5xl" style="top:62%; right:6%; transform:rotate(16deg);"></i>
 <i class="fas fa-calculator absolute text-white opacity-[0.05] text-6xl" style="bottom:8%; left:6%; transform:rotate(10deg);"></i>
-<i class="fas fa-credit-card absolute text-[#e2443b] opacity-[0.06] text-5xl" style="bottom:14%; right:-4%; transform:rotate(-14deg);"></i>
-<i class="fas fa-money-bill-wave absolute text-[#e2443b] opacity-[0.05] text-5xl" style="bottom:28%; left:-2%; transform:rotate(-6deg);"></i>
-<i class="fas fa-chart-line absolute text-[#e2443b] opacity-[0.05] text-6xl" style="bottom:-2%; right:28%; transform:rotate(-8deg);"></i>
+<i class="fas fa-credit-card absolute text-[var(--brand-red)] opacity-[0.06] text-5xl" style="bottom:14%; right:-4%; transform:rotate(-14deg);"></i>
+<i class="fas fa-money-bill-wave absolute text-[var(--brand-red)] opacity-[0.05] text-5xl" style="bottom:28%; left:-2%; transform:rotate(-6deg);"></i>
+<i class="fas fa-chart-line absolute text-[var(--brand-red)] opacity-[0.05] text-6xl" style="bottom:-2%; right:28%; transform:rotate(-8deg);"></i>
 <i class="fas fa-landmark absolute text-white opacity-[0.04] text-4xl" style="bottom:2%; left:40%; transform:rotate(6deg);"></i>
 
 </div>
@@ -2516,15 +2700,15 @@ Yes, Delete
 <i class="fas fa-arrow-left"></i>
 </button>
 <div class="relative z-10 flex flex-col items-center flex-1 justify-center w-full max-w-xs">
-<div class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-[#e2443b] text-2xl mb-5">
+<div class="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center text-[var(--brand-red)] text-2xl mb-5">
 <i class="fas fa-draw-polygon"></i>
 </div>
 <h2 id="pattern-pad-title" class="text-lg font-bold text-white">Draw a pattern</h2>
 <p id="pattern-pad-subtitle" class="text-xs font-medium text-gray-400 mt-1.5 px-4">Connect at least 4 dots. You'll need this to unlock the app.</p>
 <p id="pattern-pad-error" class="text-[11px] text-red-400 font-bold mt-2 h-4"></p>
 <svg id="pattern-svg" viewBox="0 0 300 300" class="w-64 h-64 mt-3" style="touch-action:none;">
-<g id="pattern-lines-g" stroke="#e2443b" stroke-width="8" stroke-linecap="round" fill="none"></g>
-<line id="pattern-live-line" x1="0" y1="0" x2="0" y2="0" stroke="#e2443b" stroke-width="8" stroke-linecap="round" class="hidden"></line>
+<g id="pattern-lines-g" stroke="var(--brand-red)" stroke-width="8" stroke-linecap="round" fill="none"></g>
+<line id="pattern-live-line" x1="0" y1="0" x2="0" y2="0" stroke="var(--brand-red)" stroke-width="8" stroke-linecap="round" class="hidden"></line>
 <g id="pattern-dots-g"></g>
 </svg>
 </div>
@@ -3387,8 +3571,8 @@ if (appState.lockPatternHash === undefined) appState.lockPatternHash = null;
 
 /* ---------- Account / Fund Type Presets (icon + color identity) ---------- */
 const FUND_TYPES = [
-  { key: 'cash',        label: 'Cash Wallet',      icon: 'fa-wallet',                 color: '#16a34a' },
-  { key: 'bank',        label: 'Bank',             icon: 'fa-building-columns',       color: '#b91c1c' },
+  { key: 'cash',        label: 'Cash Wallet',      icon: 'fa-wallet',                 color: 'var(--brand-green)' },
+  { key: 'bank',        label: 'Bank',             icon: 'fa-building-columns',       color: '#0891b2' },
   { key: 'mobile',      label: 'Mobile Banking',   icon: 'fa-mobile-screen-button',   color: '#db2777' },
   { key: 'credit',      label: 'Credit Card',      icon: 'fa-credit-card',            color: '#2563eb' },
   { key: 'saving',      label: 'Mutual Fund',      icon: 'fa-chart-pie',              color: '#9333ea' },
@@ -3397,10 +3581,10 @@ const FUND_TYPES = [
   { key: 'fdr',         label: 'Fixed Deposit',    icon: 'fa-lock',                   color: '#ea580c' },
   { key: 'investment',  label: 'Investment',       icon: 'fa-chart-line',             color: '#ca8a04' },
   { key: 'meal',        label: 'Meal Wallet',      icon: 'fa-utensils',               color: '#0d9488' },
-  { key: 'insurance',   label: 'Insurance',        icon: 'fa-shield-heart',           color: '#f43f5e' },
-  { key: 'loan',        label: 'Loan',             icon: 'fa-file-contract',          color: '#dc2626' },
+  { key: 'insurance',   label: 'Insurance',        icon: 'fa-shield-heart',           color: '#65a30d' },
+  { key: 'loan',        label: 'Loan',             icon: 'fa-file-contract',          color: '#9f1239' },
   { key: 'pf',          label: 'Provident Fund',   icon: 'fa-briefcase',              color: '#4338ca' },
-  { key: 'business',    label: 'Business',         icon: 'fa-store',                  color: '#065f46' },
+  { key: 'business',    label: 'Business',         icon: 'fa-store',                  color: 'var(--brand-green)' },
   { key: 'emergency',   label: 'Emergency Fund',   icon: 'fa-life-ring',              color: '#b45309' },
   { key: 'family',      label: 'Family Fund',      icon: 'fa-people-roof',            color: '#c026d3' }
 ];
@@ -3463,17 +3647,17 @@ const AVATAR_OPTIONS = [
   { key: 'robot',     icon: 'fa-robot',         color: '#0d9488', label: 'Robot' },
   { key: 'ghost',     icon: 'fa-ghost',         color: '#7c3aed', label: 'Ghost' },
   { key: 'cat',       icon: 'fa-cat',           color: '#ea580c', label: 'Cat' },
-  { key: 'dragon',    icon: 'fa-dragon',        color: '#16a34a', label: 'Dragon' },
+  { key: 'dragon',    icon: 'fa-dragon',        color: 'var(--brand-green)', label: 'Dragon' },
   { key: 'dress',     icon: 'fa-person-dress',  color: '#db2777', label: 'Elegant' },
   { key: 'crown',     icon: 'fa-crown',         color: '#ca8a04', label: 'Royal' },
   { key: 'gem',       icon: 'fa-gem',           color: '#ec4899', label: 'Gem' },
   { key: 'spa',       icon: 'fa-spa',           color: '#f472b6', label: 'Blossom' },
   { key: 'heart',     icon: 'fa-heart',         color: '#e11d48', label: 'Sweetheart' },
   { key: 'glasses',   icon: 'fa-glasses',       color: '#b45309', label: 'Wise' },
-  { key: 'book',      icon: 'fa-book',          color: '#166534', label: 'Scholar' },
+  { key: 'book',      icon: 'fa-book',          color: 'var(--brand-green)', label: 'Scholar' },
   { key: 'tea',       icon: 'fa-mug-hot',       color: '#78350f', label: 'Cozy' },
   { key: 'chess',     icon: 'fa-chess-king',    color: '#64748b', label: 'Veteran' },
-  { key: 'simple',    icon: 'fa-user',          color: '#dc2626', label: 'Simple' }
+  { key: 'simple',    icon: 'fa-user',          color: '#71717a', label: 'Simple' }
 ];
 
 function getAvatarOption(key) {
@@ -3568,7 +3752,7 @@ function renderFundTypeGrid(containerId, selectedKey, handlerName) {
 }
 
 /* ---------- Custom Colour Picker (independent of account type) ---------- */
-const FUND_COLORS = ['#16a34a', '#0d9488', '#0ea5e9', '#2563eb', '#7c3aed', '#9333ea', '#db2777', '#e2443b', '#dc2626', '#ea580c', '#ca8a04', '#65a30d', '#d946ef', '#52525b'];
+const FUND_COLORS = ['var(--brand-green)', '#0d9488', '#0ea5e9', '#2563eb', '#7c3aed', '#9333ea', '#db2777', 'var(--brand-red)', '#0891b2', '#ea580c', '#ca8a04', '#65a30d', '#d946ef', '#52525b'];
 
 function renderColorGrid(containerId, selectedColor, handlerName) {
   const el = document.getElementById(containerId);
@@ -3879,7 +4063,7 @@ function styleModalIcon(wrapperEl, iconName) {
   if (POSITIVE_MODAL_ICONS.includes(iconName)) {
     wrapperEl.className = 'w-14 h-14 rounded-full bg-green-500 text-white mx-auto flex items-center justify-center text-2xl shadow-sm';
   } else {
-    wrapperEl.className = 'w-12 h-12 mx-auto flex items-center justify-center text-3xl text-[#e2443b]';
+    wrapperEl.className = 'w-12 h-12 mx-auto flex items-center justify-center text-3xl text-[var(--brand-red)]';
   }
 }
 
@@ -4401,8 +4585,8 @@ const TIME_WHEEL_ITEM_INACTIVE = 'time-wheel-item text-sm font-bold text-gray-30
 // a glance while scrolling. A hardcoded hex (not a Tailwind gray/red
 // utility) so it renders identically in light and dark theme, matching
 // how the accent red is used elsewhere in the app.
-const TIME_WHEEL_ITEM_ACTIVE_TX = 'time-wheel-item text-lg font-extrabold text-[#e2443b] scale-105';
-const TIME_WHEEL_ITEM_INACTIVE_TX = 'time-wheel-item text-sm font-bold text-[#e2443b]/70';
+const TIME_WHEEL_ITEM_ACTIVE_TX = 'time-wheel-item text-lg font-extrabold text-[var(--brand-red)] scale-105';
+const TIME_WHEEL_ITEM_INACTIVE_TX = 'time-wheel-item text-sm font-bold text-[#991b1b]/70';
 
 function buildTimeWheelHTML(items) {
   // A blank spacer row above and below (same height as one item) so the
@@ -5653,12 +5837,12 @@ function renderLockTypeOptions() {
     const sel = t.key === (appState.lockType || 'none');
     return `<button type="button" onclick="handleLockTypeChoice('${t.key}')"
       class="w-full flex items-center justify-between p-3.5 rounded-2xl border-2 transition"
-      style="border-color:${sel ? '#e2443b' : 'transparent'}; background:${sel ? 'rgba(226,68,59,0.1)' : 'rgba(0,0,0,0.03)'};">
+      style="border-color:${sel ? 'var(--brand-red)' : 'transparent'}; background:${sel ? 'rgba(var(--brand-red-rgb),0.1)' : 'rgba(0,0,0,0.03)'};">
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[#e2443b] text-sm shadow-sm"><i class="fas ${t.icon}"></i></div>
+        <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center text-[var(--brand-red)] text-sm shadow-sm"><i class="fas ${t.icon}"></i></div>
         <span class="text-sm font-bold text-gray-800">${tr(LOCK_TYPE_LABEL_KEYS[t.key], t.label)}</span>
       </div>
-      ${sel ? '<i class="fas fa-check text-[#e2443b]"></i>' : ''}
+      ${sel ? '<i class="fas fa-check text-[var(--brand-red)]"></i>' : ''}
     </button>`;
   }).join('');
 }
@@ -5849,7 +6033,7 @@ function renderPinPadDots(errorState) {
     // of the shake, regardless of buffer length - same red a correctly
     // filled dot already uses, just held on all 4 as the error cue.
     const showRed = filled || errorState;
-    wrap.innerHTML += `<span class="w-3.5 h-3.5 rounded-full ${showRed ? 'bg-[#e2443b]' : ''} border-2 border-[#e2443b]/40 transition ${errorState ? 'pin-dot-error' : ''}" style="${showRed ? '' : 'background:transparent;'}"></span>`;
+    wrap.innerHTML += `<span class="w-3.5 h-3.5 rounded-full ${showRed ? 'bg-[var(--brand-red)]' : ''} border-2 border-[#991b1b]/40 transition ${errorState ? 'pin-dot-error' : ''}" style="${showRed ? '' : 'background:transparent;'}"></span>`;
   }
 }
 
@@ -6072,7 +6256,7 @@ function redrawPattern(livePt) {
   if (dotsG) {
     dotsG.querySelectorAll('circle').forEach(c => {
       const idx = parseInt(c.getAttribute('data-idx'));
-      c.setAttribute('fill', patternBuffer.includes(idx) ? '#e2443b' : 'rgba(0,0,0,0.45)');
+      c.setAttribute('fill', patternBuffer.includes(idx) ? 'var(--brand-red)' : 'rgba(0,0,0,0.45)');
     });
   }
 }
@@ -6894,7 +7078,7 @@ function generateTxCardBody(t, actionsHtml, query) {
   const isTransferIn = t.type === 'transfer_in';
   const isAddMoney = t.type === 'add_money';
   const isIncoming = isTransferIn || isAddMoney;
-  const amountColor = isIncoming ? 'text-green-600' : 'text-[#e2443b]';
+  const amountColor = isIncoming ? 'text-green-600' : 'text-[var(--brand-red)]';
   const amountSign = isIncoming ? '+' : '-';
   const amountText = fmtMoney(t.amount);
 
@@ -6958,7 +7142,7 @@ function generateTxCardBody(t, actionsHtml, query) {
 function generateDetailsTxMarkup(t) {
   const isTransferIn = t.type === 'transfer_in';
   const isAddMoney = t.type === 'add_money';
-  const amountColor = (isTransferIn || isAddMoney) ? 'text-green-600' : 'text-[#e2443b]';
+  const amountColor = (isTransferIn || isAddMoney) ? 'text-green-600' : 'text-[var(--brand-red)]';
 
   // Only the original (transfer_out) entry is editable/deletable - its
   // mirror on the receiving account just displays and stays in sync.
@@ -7372,7 +7556,7 @@ function switchTab(screenId) {
 
 function switchStatsSubtab(name) {
   statsSubtab = name;
-  const activeCls = "py-2.5 rounded-xl text-xs font-bold bg-[#e2443b] text-white shadow-sm";
+  const activeCls = "py-2.5 rounded-xl text-xs font-bold bg-[var(--brand-red)] text-white shadow-sm";
   const inactiveCls = "py-2.5 rounded-xl text-xs font-bold text-gray-500";
 
   document.getElementById('stats-subtab-btn-spending').className = (name === 'spending') ? activeCls : inactiveCls;
@@ -7409,7 +7593,7 @@ function switchLogsSubtab(name) {
     document.getElementById(`logs-subtab-${s}`).classList.toggle('hidden', s !== name);
     const btn = document.getElementById(`logs-subtab-btn-${s}`);
     btn.className = (s === name)
-      ? "py-2 rounded-xl text-[11px] font-bold bg-[#e2443b] text-white shadow-sm"
+      ? "py-2 rounded-xl text-[11px] font-bold bg-[var(--brand-red)] text-white shadow-sm"
       : "py-2 rounded-xl text-[11px] font-bold text-gray-600";
   });
 
@@ -7524,7 +7708,7 @@ function updateDebtSortButtonsUI(category, instant) {
 }
 
 function updateDebtFilterButtonsUI(category) {
-  const pendingActiveCls = "flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-[#e2443b] text-white shadow-sm flex items-center justify-center gap-0.5";
+  const pendingActiveCls = "flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-[var(--brand-red)] text-white shadow-sm flex items-center justify-center gap-0.5";
   const settledActiveCls = "flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-green-500 text-white shadow-sm flex items-center justify-center gap-0.5";
   const inactiveCls = "flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-white text-gray-600 border border-gray-200 flex items-center justify-center gap-0.5";
   const activeClsFor = { pending: pendingActiveCls, settled: settledActiveCls };
@@ -7544,7 +7728,7 @@ function updateDebtFilterButtonsUI(category) {
   if (settledIcon) {
     settledIcon.className = (debtStatusFilters[category] === 'settled')
       ? 'fas fa-handshake text-white flex-shrink-0'
-      : 'fas fa-handshake text-[#e2443b] flex-shrink-0';
+      : 'fas fa-handshake text-[var(--brand-red)] flex-shrink-0';
   }
 
   // Same idea for the Pending chip's clock icon: white while Pending is
@@ -7554,7 +7738,7 @@ function updateDebtFilterButtonsUI(category) {
   if (pendingIcon) {
     pendingIcon.className = (debtStatusFilters[category] === 'pending')
       ? 'far fa-clock text-white flex-shrink-0'
-      : 'far fa-clock text-[#e2443b] flex-shrink-0';
+      : 'far fa-clock text-[var(--brand-red)] flex-shrink-0';
   }
 
   // The bulk "Clear History" trash icon (clearAllDebtsHistory /
@@ -7750,7 +7934,7 @@ function renderDebtsList() {
   // Debts tab highlights matched person-name letters in red, matching the
   // "you owe" red used everywhere else on this tab (borrowed icon, due
   // badges, etc.).
-  renderDebtEntriesInto('debts-list', entries, query, '#e2443b');
+  renderDebtEntriesInto('debts-list', entries, query, 'var(--brand-red)');
 }
 
 function renderReceivablesList() {
@@ -7772,7 +7956,7 @@ function renderReceivablesList() {
   // Receivables tab highlights matched person-name letters in green,
   // matching the "owed to you" green used everywhere else on this tab
   // (lent icon, incoming amounts, etc.).
-  renderDebtEntriesInto('receivables-list', entries, query, '#16a34a');
+  renderDebtEntriesInto('receivables-list', entries, query, 'var(--brand-green)');
 }
 
 function renderDebtEntriesInto(containerId, entries, query, highlightColor) {
@@ -7906,7 +8090,7 @@ function generateDebtCardMarkup(d, query, highlightColor) {
   // already there - no extra input needed, just show it alongside the date.
   const dateLabel = `${fmtDate(d.createdDate, { month: 'short', day: '2-digit', year: 'numeric' })} ${fmtTime(d.createdDate)}`;
   const iconClass = isReceivable ? 'fa-arrow-down' : 'fa-arrow-up';
-  const iconBg = isReceivable ? 'bg-green-100 text-green-600' : 'bg-red-100 text-[#e2443b]';
+  const iconBg = isReceivable ? 'bg-emerald-100 text-[var(--brand-green)]' : 'bg-rose-100 text-[var(--brand-red)]';
   const verb = isReceivable ? tr('debt_lent', 'Lent') : tr('debt_borrowed', 'Borrowed');
   const noteText = d.note ? (noteIsMatch ? highlightMatch(d.note, query, highlightColor) : escapeHtml(d.note)) : '';
   const detailLine = d.fund
@@ -7980,7 +8164,7 @@ function generateDebtCardMarkup(d, query, highlightColor) {
           <p class="text-sm font-bold text-gray-900 flex items-center gap-1">
             <span class="truncate">${personIsMatch ? highlightMatch(d.person, query, highlightColor) : escapeHtml(d.person)}</span>
           </p>
-          <p class="text-[8px] text-gray-400 font-medium flex items-center gap-1.5">${verb}: ${dateLabel}${!d.settled ? `<span class="w-2 h-2 rounded-full animate-pulse flex-shrink-0" style="background:${isReceivable ? '#22c55e' : '#e2443b'}"></span>` : ''}</p>
+          <p class="text-[8px] text-gray-400 font-medium flex items-center gap-1.5">${verb}: ${dateLabel}${!d.settled ? `<span class="w-2 h-2 rounded-full animate-pulse flex-shrink-0" style="background:${isReceivable ? 'var(--brand-green)' : 'var(--brand-red)'}"></span>` : ''}</p>
           ${dueLine}
         </div>
       </div>
@@ -7994,7 +8178,7 @@ function generateDebtCardMarkup(d, query, highlightColor) {
     ${progressBlock}
     <div class="${buttonRowCls}">
       ${!d.settled ? `<div class="flex items-center space-x-3">
-        <button onclick="event.stopPropagation(); editDebtEntry(${d.id})" title="Edit" class="text-gray-400 hover:text-[#e2443b] transition p-1">
+        <button onclick="event.stopPropagation(); editDebtEntry(${d.id})" title="Edit" class="text-gray-400 hover:text-[var(--brand-red)] transition p-1">
           <i class="fas fa-pen text-sm"></i>
         </button>
         <button onclick="event.stopPropagation(); toggleDebtKeyPerson(${d.id})" title="${tr('logs_sort_key_person', 'Key Person')}" class="key-person-star-btn flex-shrink-0 text-base leading-none ${d.isKey ? 'text-yellow-500' : 'text-gray-300'} transition active:scale-90 p-1">
@@ -8002,8 +8186,8 @@ function generateDebtCardMarkup(d, query, highlightColor) {
         </button>
       </div>` : (d.isKey ? `<span class="flex-shrink-0 text-base leading-none text-yellow-500" title="${tr('logs_sort_key_person', 'Key Person')}"><i class="fas fa-star"></i></span>` : '<span></span>')}
       <div class="flex items-center space-x-3">
-        ${!d.settled ? `<button onclick="event.stopPropagation(); openDebtPaymentModal(${d.id})" class="text-xs font-bold text-white ${isReceivable ? 'bg-green-600 hover:bg-green-700' : 'bg-[#e2443b] hover:bg-[#c93a32]'} rounded-full px-4 py-1 transition">${isReceivable ? tr('debt_receive_partially', 'Receive Partially') : tr('debt_pay_partially', 'Pay Partially')}</button>` : ''}
-        ${d.settled ? `<button onclick="event.stopPropagation(); deleteDebtEntry(${d.id})" class="text-gray-400 hover:text-[#e2443b] transition p-1">
+        ${!d.settled ? `<button onclick="event.stopPropagation(); openDebtPaymentModal(${d.id})" class="text-xs font-bold text-white ${isReceivable ? 'bg-green-600 hover:bg-green-700' : 'bg-[var(--brand-red)] hover:bg-[var(--brand-red-hover)]'} rounded-full px-4 py-1 transition">${isReceivable ? tr('debt_receive_partially', 'Receive Partially') : tr('debt_pay_partially', 'Pay Partially')}</button>` : ''}
+        ${d.settled ? `<button onclick="event.stopPropagation(); deleteDebtEntry(${d.id})" class="text-gray-400 hover:text-[var(--brand-red)] transition p-1">
           <i class="fas fa-trash-alt text-sm"></i>
         </button>` : ''}
       </div>
@@ -8103,11 +8287,11 @@ function renderDueDateCalendarGrid() {
 
     let cls = 'bg-white/60 hover:bg-white text-gray-700';
     if (isPast) cls = 'text-gray-300 cursor-not-allowed';
-    else if (isSelected) cls = 'bg-[#e2443b] text-white shadow-sm';
+    else if (isSelected) cls = 'bg-[var(--brand-red)] text-white shadow-sm';
     // Today gets its own red-tinted background (not just red text) so it
     // stands out from a plain Friday, which only gets red text below.
-    else if (isToday) cls = 'bg-[#e2443b]/[0.16] hover:bg-[#e2443b]/[0.24] text-[#e2443b]';
-    else if (isFriday) cls = 'bg-white/60 hover:bg-white text-[#e2443b]';
+    else if (isToday) cls = 'bg-[#991b1b]/[0.16] hover:bg-[#991b1b]/[0.24] text-[var(--brand-red)]';
+    else if (isFriday) cls = 'bg-white/60 hover:bg-white text-[var(--brand-red)]';
 
     const isoDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     html += `<button ${isPast ? 'disabled' : `onclick="selectDueDate('${isoDate}')"`} class="relative aspect-square rounded-xl text-xs font-bold flex items-center justify-center transition active:scale-95 ${cls}">
@@ -8696,7 +8880,7 @@ function buildCategoryChipHtml(name, idPrefix, clickHandlerName, highlightLen) {
   let labelHtml, i18nAttrs;
   if (highlightLen > 0) {
     const matchLen = Math.min(highlightLen, display.length);
-    labelHtml = `<span class="text-[#e2443b]">${escapeHtml(display.slice(0, matchLen))}</span>${escapeHtml(display.slice(matchLen))}`;
+    labelHtml = `<span class="text-[var(--brand-red)]">${escapeHtml(display.slice(0, matchLen))}</span>${escapeHtml(display.slice(matchLen))}`;
     i18nAttrs = '';
   } else {
     labelHtml = escapeHtml(display);
@@ -8773,8 +8957,8 @@ function highlightQuickCategory(name, scrollTo = true) {
   if (scrollTo) btn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   const icon = btn.querySelector('.qc-icon-circle');
   const label = btn.querySelector('.qc-icon-label');
-  if (icon) icon.className = "qc-icon-circle w-12 h-12 rounded-full bg-[#e2443b] flex items-center justify-center text-white shadow-sm";
-  if (label) label.className = "qc-icon-label text-[10px] font-bold text-[#e2443b]";
+  if (icon) icon.className = "qc-icon-circle w-12 h-12 rounded-full bg-[var(--brand-red)] flex items-center justify-center text-white shadow-sm";
+  if (label) label.className = "qc-icon-label text-[10px] font-bold text-[var(--brand-red)]";
 }
 
 function selectQuickCategory(name) {
@@ -8892,12 +9076,12 @@ function renderAccountDropdownList(context) {
     const iconEl = isSelected
       ? `<div class="rounded-md flex items-center justify-center flex-shrink-0" style="width:${iconSize};height:${iconSize};background:${meta.color}">${fundIconHTML(meta, iconTextSize + ' text-white')}</div>`
       : `<div class="flex items-center justify-center flex-shrink-0" style="width:${iconSize};height:${iconSize}">${fundIconHTML(meta, iconInactiveTextSize + ' text-gray-400')}</div>`;
-    return `<button type="button" onclick="pickAccountDropdown('${context}','${safeFund}')" class="w-full flex items-center justify-between ${rowPad} rounded-xl transition ${isSelected ? 'bg-[#e2443b]/10' : 'bg-gray-200/70'}">
+    return `<button type="button" onclick="pickAccountDropdown('${context}','${safeFund}')" class="w-full flex items-center justify-between ${rowPad} rounded-xl transition ${isSelected ? 'bg-[#991b1b]/10' : 'bg-gray-200/70'}">
       <div class="flex items-center space-x-2 min-w-0">
         ${iconEl}
-        <span class="${nameTextSize} font-bold truncate ${isSelected ? 'text-[#e2443b]' : 'text-gray-800'}">${escapeHtml(fundDisplayName(fund))}</span>
+        <span class="${nameTextSize} font-bold truncate ${isSelected ? 'text-[var(--brand-red)]' : 'text-gray-800'}">${escapeHtml(fundDisplayName(fund))}</span>
       </div>
-      ${isSelected ? `<i class="fas fa-check text-[#e2443b] ${checkTextSize} flex-shrink-0"></i>` : ''}
+      ${isSelected ? `<i class="fas fa-check text-[var(--brand-red)] ${checkTextSize} flex-shrink-0"></i>` : ''}
     </button>`;
   }).join('');
 
@@ -9680,8 +9864,8 @@ function highlightEditTxQuickCategory(name, scrollTo = true) {
   if (scrollTo) btn.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   const icon = btn.querySelector('.qc-icon-circle');
   const label = btn.querySelector('.qc-icon-label');
-  if (icon) icon.className = "qc-icon-circle w-12 h-12 rounded-full bg-[#e2443b] flex items-center justify-center text-white shadow-sm";
-  if (label) label.className = "qc-icon-label text-[10px] font-bold text-[#e2443b]";
+  if (icon) icon.className = "qc-icon-circle w-12 h-12 rounded-full bg-[var(--brand-red)] flex items-center justify-center text-white shadow-sm";
+  if (label) label.className = "qc-icon-label text-[10px] font-bold text-[var(--brand-red)]";
 }
 
 function selectEditTxQuickCategory(name) {
@@ -10001,7 +10185,7 @@ let pendingFilterLabel = null;  // only used by 'main', for the filter pill's la
 
 function filterOptionBtnClass(value) {
   const optionBtnClass = "w-full text-center py-3 rounded-xl bg-white/60 hover:bg-white text-xs font-bold shadow-sm border border-white/40";
-  const activeOptionBtnClass = "w-full text-center py-3 rounded-xl bg-[#e2443b] text-white text-xs font-bold shadow-sm";
+  const activeOptionBtnClass = "w-full text-center py-3 rounded-xl bg-[var(--brand-red)] text-white text-xs font-bold shadow-sm";
   return value === pendingFilterValue ? activeOptionBtnClass : optionBtnClass;
 }
 
@@ -10551,16 +10735,16 @@ function renderTimeCalendarGrid() {
     const isFriday = cellDate.getDay() === 5;
     // Today's box gets the same red-tinted background the app already
     // uses elsewhere for its "this matches" red highlight (see
-    // .logs-tx-card-full-match) - rgba(226,68,59,0.16) - instead of the
+    // .logs-tx-card-full-match) - rgba(var(--brand-red-rgb),0.16) - instead of the
     // plain white/60 other non-selected cells use.
-    if (isSelected) cls = 'bg-[#e2443b] text-white shadow-sm';
-    else if (isToday) cls = 'bg-[#e2443b]/[0.16] hover:bg-[#e2443b]/[0.24] text-[#e2443b]';
-    else if (isFriday) cls = 'bg-white/60 hover:bg-white text-[#e2443b]';
+    if (isSelected) cls = 'bg-[var(--brand-red)] text-white shadow-sm';
+    else if (isToday) cls = 'bg-[#991b1b]/[0.16] hover:bg-[#991b1b]/[0.24] text-[var(--brand-red)]';
+    else if (isFriday) cls = 'bg-white/60 hover:bg-white text-[var(--brand-red)]';
 
     const isoDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     html += `<button onclick="selectCalendarDate('${isoDate}')" class="relative aspect-square rounded-xl text-xs font-bold flex items-center justify-center transition active:scale-95 ${cls}">
       ${localizeDigits(d)}
-      ${hasSpend && !isSelected ? '<span class="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-[#e2443b] animate-pulse"></span>' : ''}
+      ${hasSpend && !isSelected ? '<span class="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-[var(--brand-red)] animate-pulse"></span>' : ''}
     </button>`;
   }
   grid.innerHTML = html;
@@ -11300,12 +11484,12 @@ function renderAnalyticsList() {
   let html = `
   <div class="bg-gray-200/50 rounded-3xl p-5 space-y-4">
     <div class="flex items-center space-x-2 -mt-2">
-      <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-chart-simple text-[#e2443b] text-xs"></i></div>
+      <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-chart-simple text-[var(--brand-red)] text-xs"></i></div>
       <h3 class="text-sm font-bold text-gray-900">${tr('stats_overview', 'Overview')}</h3>
     </div>
     <div class="grid grid-cols-3 divide-x divide-gray-300/60 text-center">
       <div>
-        <p class="text-xl font-extrabold text-[#e2443b]">৳${fmtMoney(Math.round(totalSpent), 0)}</p>
+        <p class="text-xl font-extrabold text-[var(--brand-red)]">৳${fmtMoney(Math.round(totalSpent), 0)}</p>
         <p class="text-[10px] text-gray-500 font-bold mt-0.5">${tr('stats_total_spent', 'Total Spent')}</p>
       </div>
       <div>
@@ -11321,21 +11505,21 @@ function renderAnalyticsList() {
 
   <div class="bg-gray-200/50 rounded-3xl p-5 space-y-3">
     <div class="flex items-center space-x-2 -mt-2">
-      <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-arrow-trend-up text-[#e2443b] text-xs"></i></div>
+      <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-arrow-trend-up text-[var(--brand-red)] text-xs"></i></div>
       <h3 class="text-sm font-bold text-gray-900">${tr('stats_top_category', 'Top Spending Category')}</h3>
     </div>
     <div class="flex items-center justify-between bg-white/70 rounded-2xl p-3">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center"><i class="fas ${getCategoryFAIcon(topCategory.label)} text-[#e2443b]"></i></div>
+        <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center"><i class="fas ${getCategoryFAIcon(topCategory.label)} text-[var(--brand-red)]"></i></div>
         <div>
-          <p class="text-sm font-bold text-[#e2443b]">${escapeHtml(topCategory.label)}</p>
-          <p class="text-[10px] text-[#e2443b]/70 font-bold">${trf('stats_pct_of_total', `${topPct.toFixed(1)}% of total spending`, { pct: localizeDigits(topPct.toFixed(1)) })}</p>
+          <p class="text-sm font-bold text-[var(--brand-red)]">${escapeHtml(topCategory.label)}</p>
+          <p class="text-[10px] text-[#991b1b]/70 font-bold">${trf('stats_pct_of_total', `${topPct.toFixed(1)}% of total spending`, { pct: localizeDigits(topPct.toFixed(1)) })}</p>
         </div>
       </div>
-      <p class="text-base font-extrabold text-[#e2443b]">৳${fmtMoney(Math.round(topCategory.total), 0)}</p>
+      <p class="text-base font-extrabold text-[var(--brand-red)]">৳${fmtMoney(Math.round(topCategory.total), 0)}</p>
     </div>
     <div class="w-full h-2 bg-gray-300/60 rounded-full overflow-hidden">
-      <div class="h-full bg-[#e2443b] rounded-full" style="width:${topPct}%"></div>
+      <div class="h-full bg-[var(--brand-red)] rounded-full" style="width:${topPct}%"></div>
     </div>
   </div>
 
@@ -11351,7 +11535,7 @@ function renderAnalyticsList() {
   html += `
   <div class="bg-gray-200/50 rounded-3xl p-4 space-y-3">
     <div class="flex items-center space-x-2 -mt-2">
-      <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-lightbulb text-[#e2443b] text-xs"></i></div>
+      <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-lightbulb text-[var(--brand-red)] text-xs"></i></div>
       <h3 class="text-sm font-bold text-gray-900">${tr('stats_insights_title', 'Spending Insights')}</h3>
     </div>
     <div class="space-y-2">
@@ -11412,7 +11596,7 @@ function renderCategoryBarChart(groups) {
   }
   const ctx = canvas.getContext('2d');
   const top = groups.slice(0, 6);
-  const colors = ['#e2443b', '#111827', '#9ca3af', '#d1d5db', '#e5e7eb', '#f3f4f6'];
+  const colors = ['#b91c1c', '#111827', '#9ca3af', '#d1d5db', '#e5e7eb', '#f3f4f6'];
 
   if (categoryChartInstance) categoryChartInstance.destroy();
   categoryChartInstance = new Chart(ctx, {
@@ -11468,15 +11652,15 @@ function renderLiabilityAnalytics() {
   container.innerHTML = `
   <div class="bg-gray-200/50 rounded-3xl p-5 space-y-4">
     <div class="flex items-center space-x-2 -mt-2">
-      <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-arrow-trend-${net >= 0 ? 'up' : 'down'} ${net >= 0 ? 'text-green-600' : 'text-[#e2443b]'} text-xs"></i></div>
+      <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-arrow-trend-${net >= 0 ? 'up' : 'down'} ${net >= 0 ? 'text-green-600' : 'text-[var(--brand-red)]'} text-xs"></i></div>
       <h3 class="text-sm font-bold text-gray-900">${tr('stats_net_position', 'Net Position')}</h3>
     </div>
-    <p class="text-2xl font-extrabold -mt-2 ${net >= 0 ? 'text-green-600' : 'text-[#e2443b]'}">${net >= 0 ? '+' : '-'}৳${fmtMoney(Math.round(Math.abs(net)), 0)}</p>
+    <p class="text-2xl font-extrabold -mt-2 ${net >= 0 ? 'text-green-600' : 'text-[var(--brand-red)]'}">${net >= 0 ? '+' : '-'}৳${fmtMoney(Math.round(Math.abs(net)), 0)}</p>
     <p class="text-[9px] text-gray-500 font-medium -mt-3">${net > 0 ? tr('stats_net_positive', 'Others owe you more than you owe.') : net < 0 ? tr('stats_net_negative', 'You owe more than others owe you.') : tr('stats_net_zero', 'You are settled up.')}</p>
     <div class="border-t border-gray-300/50 pt-2 -mt-2 flex">
       <div class="flex-1">
         <p class="text-[10px] text-gray-400 font-bold uppercase">${tr('home_you_owe', 'You Owe')}</p>
-        <p class="text-base font-extrabold text-[#e2443b]">৳${fmtMoney(Math.round(totalOwe), 0)}</p>
+        <p class="text-base font-extrabold text-[var(--brand-red)]">৳${fmtMoney(Math.round(totalOwe), 0)}</p>
       </div>
       <div class="w-px bg-gray-300/60 mx-3"></div>
       <div class="flex-1 text-right">
@@ -11488,7 +11672,7 @@ function renderLiabilityAnalytics() {
 
   <div class="bg-gray-200/50 rounded-3xl p-5 space-y-4">
     <div class="flex items-center space-x-2">
-      <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-circle-check text-[#e2443b] text-xs"></i></div>
+      <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-circle-check text-[var(--brand-red)] text-xs"></i></div>
       <h3 class="text-sm font-bold text-gray-900">${tr('stats_settlement_progress', 'Settlement Progress')}</h3>
     </div>
     <div class="space-y-1.5 -mt-2">
@@ -11497,7 +11681,7 @@ function renderLiabilityAnalytics() {
         <span>${trf('stats_cleared_fraction', `${debtsSettledCount}/${allDebts.length} cleared (${debtsRepaidPct.toFixed(0)}%)`, { settled: localizeDigits(debtsSettledCount), total: localizeDigits(allDebts.length), pct: localizeDigits(debtsRepaidPct.toFixed(0)) })}</span>
       </div>
       <div class="w-full h-2 bg-gray-300/60 rounded-full overflow-hidden">
-        <div class="h-full bg-[#e2443b] rounded-full" style="width:${debtsRepaidPct}%"></div>
+        <div class="h-full bg-[var(--brand-red)] rounded-full" style="width:${debtsRepaidPct}%"></div>
       </div>
     </div>
     <div class="space-y-1.5">
@@ -11513,13 +11697,13 @@ function renderLiabilityAnalytics() {
 
   <div class="bg-gray-200/50 rounded-3xl p-5 space-y-4" style="margin-bottom: 2rem">
     <div class="flex items-center space-x-2 -mt-2">
-      <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-people-arrows text-[#e2443b] text-xs"></i></div>
+      <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-people-arrows text-[var(--brand-red)] text-xs"></i></div>
       <h3 class="text-sm font-bold text-gray-900">${tr('stats_top_partners', 'Top Partners Breakdown')}</h3>
     </div>
     <div class="mt-1">
       <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">${tr('stats_top_people_owe', 'Top People You Owe')}</p>
       ${topOwe.length === 0 ? `<p class="text-[10px] text-gray-400 font-medium opacity-60">${tr('stats_no_pending_debts', 'No pending debts.')}</p>` :
-        `<div id="top-owe-list" class="flex flex-col gap-0.5 -mt-0.5 overflow-y-auto no-scrollbar">${topOwe.map(([person, amt]) => `<div class="flex justify-between items-center py-0.5"><span class="text-[10px] font-bold text-gray-900">${escapeHtml(person)}</span><span class="text-[10px] font-black text-[#e2443b]">৳${fmtMoney(Math.round(amt), 0)}</span></div>`).join('')}</div>`}
+        `<div id="top-owe-list" class="flex flex-col gap-0.5 -mt-0.5 overflow-y-auto no-scrollbar">${topOwe.map(([person, amt]) => `<div class="flex justify-between items-center py-0.5"><span class="text-[10px] font-bold text-gray-900">${escapeHtml(person)}</span><span class="text-[10px] font-black text-[var(--brand-red)]">৳${fmtMoney(Math.round(amt), 0)}</span></div>`).join('')}</div>`}
     </div>
     <div class="border-t border-gray-300/50 pt-2 -mt-1">
       <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">${tr('stats_top_people_owed', 'Top People Who Owe You')}</p>
@@ -11587,7 +11771,7 @@ function highlightMatch(text, query, color) {
   // only the matching logic ignores it, never the on-screen text.
   const lowerText = normalizeHyphenForSearch(safeText).toLowerCase();
   const lowerQuery = normalizeHyphenForSearch(query).toLowerCase();
-  const highlightColor = color || '#e2443b';
+  const highlightColor = color || 'var(--brand-red)';
   const idx = lowerText.indexOf(lowerQuery);
   if (idx === -1) return escapeHtml(safeText);
   return (
@@ -11609,7 +11793,7 @@ function highlightMatchAmount(text, query, color) {
   const safeText = text || '';
   const digitsOnlyQuery = (query || '').replace(/,/g, '');
   if (!digitsOnlyQuery) return escapeHtml(safeText);
-  const highlightColor = color || '#e2443b';
+  const highlightColor = color || 'var(--brand-red)';
 
   // Comma-stripped copy of safeText, plus a map from each of its
   // positions back to the matching index in the ORIGINAL (comma-included)
@@ -11663,8 +11847,8 @@ function transferBadgeLine(t) {
   if (t.type !== 'transfer_out' && t.type !== 'transfer_in') return '';
   const fromFund = t.type === 'transfer_out' ? t.fund : t.linkedFund;
   const toFund = t.type === 'transfer_out' ? t.linkedFund : t.fund;
-  const fromSpan = `<span style="color:#e2443b" class="truncate">${escapeHtml(fundDisplayName(fromFund))}</span>`;
-  const toSpan = `<span style="color:#16a34a" class="truncate">${escapeHtml(fundDisplayName(toFund))}</span>`;
+  const fromSpan = `<span style="color:var(--brand-red)" class="truncate">${escapeHtml(fundDisplayName(fromFund))}</span>`;
+  const toSpan = `<span style="color:var(--brand-green)" class="truncate">${escapeHtml(fundDisplayName(toFund))}</span>`;
   const inner = t.type === 'transfer_in'
     ? `${toSpan}<i class="fas fa-arrow-left text-[8px] text-gray-400 flex-shrink-0"></i>${fromSpan}`
     : `${fromSpan}<i class="fas fa-arrow-right text-[8px] text-gray-400 flex-shrink-0"></i>${toSpan}`;
@@ -11687,8 +11871,8 @@ function transferInlineBadge(t) {
   if (t.type !== 'transfer_out' && t.type !== 'transfer_in') return '';
   const fromFund = t.type === 'transfer_out' ? t.fund : t.linkedFund;
   const toFund = t.type === 'transfer_out' ? t.linkedFund : t.fund;
-  const fromSpan = `<span style="color:#e2443b" class="whitespace-nowrap">${escapeHtml(fundDisplayName(fromFund))}</span>`;
-  const toSpan = `<span style="color:#16a34a" class="whitespace-nowrap">${escapeHtml(fundDisplayName(toFund))}</span>`;
+  const fromSpan = `<span style="color:var(--brand-red)" class="whitespace-nowrap">${escapeHtml(fundDisplayName(fromFund))}</span>`;
+  const toSpan = `<span style="color:var(--brand-green)" class="whitespace-nowrap">${escapeHtml(fundDisplayName(toFund))}</span>`;
   const inner = t.type === 'transfer_in'
     ? `${toSpan}<i class="fas fa-arrow-left text-[5px] text-gray-400 flex-shrink-0"></i>${fromSpan}`
     : `${fromSpan}<i class="fas fa-arrow-right text-[5px] text-gray-400 flex-shrink-0"></i>${toSpan}`;
@@ -11727,7 +11911,7 @@ function addMoneyBadgeLine(t, query, isMatch) {
 function generateLogsTxMarkup(t, query) {
   const isTransferIn = t.type === 'transfer_in';
   const isAddMoney = t.type === 'add_money';
-  const amountColor = (isTransferIn || isAddMoney) ? 'text-green-600' : 'text-[#e2443b]';
+  const amountColor = (isTransferIn || isAddMoney) ? 'text-green-600' : 'text-[var(--brand-red)]';
   // The auto-created mirror entry on the receiving side of a transfer can't
   // be edited on its own - only the original (transfer_out) entry can, and
   // editing it keeps both sides in sync. An "Add Money" entry has its own
@@ -12216,8 +12400,8 @@ function updateChart() {
   const weekBtn = document.getElementById('home-range-week');
   const monthBtn = document.getElementById('home-range-month');
   if (weekBtn && monthBtn) {
-    weekBtn.className = `text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${homeChartRange === 'week' ? 'bg-[#e2443b] text-white' : 'text-zinc-400'}`;
-    monthBtn.className = `text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${homeChartRange === 'month' ? 'bg-[#e2443b] text-white' : 'text-zinc-400'}`;
+    weekBtn.className = `text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${homeChartRange === 'week' ? 'bg-[var(--brand-red)] text-white' : 'text-zinc-400'}`;
+    monthBtn.className = `text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${homeChartRange === 'month' ? 'bg-[var(--brand-red)] text-white' : 'text-zinc-400'}`;
   }
 
   const groups = groupByCategory(rangeFiltered);
