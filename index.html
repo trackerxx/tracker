@@ -692,11 +692,9 @@ html.dark-theme #screen-logs .hover\:bg-gray-300\/70:hover {
    the tint shows again on top of the unified panel color. */
 html.dark-theme #screen-logs .logs-tx-card-full-match {
   background-color: rgba(var(--brand-red-rgb),0.16) !important;
-  border-color: var(--brand-red) !important;
 }
 html.dark-theme #screen-logs .debt-card-full-match-green {
   background-color: rgba(var(--brand-green-rgb),0.16) !important;
-  border-color: var(--brand-green) !important;
 }
 /* .logs-tx-card is a unique class name, not reused for anything else,
    and is shared by both the Logs transaction list AND the Fund
@@ -787,7 +785,6 @@ html.dark-theme button[onclick="closeNotificationsPanel()"]:hover {
    person-name full-match (see generateDebtCardMarkup) - same red tint,
    same "you owe" meaning. */
 .logs-tx-card-full-match {
-  border-color: var(--brand-red) !important;
   background-color: rgba(var(--brand-red-rgb),0.08) !important;
 }
 
@@ -812,7 +809,6 @@ html.dark-theme .logs-tx-card-full-match {
    but the Receivables tab's own green (money owed to you) instead of
    red - see generateDebtCardMarkup. */
 .debt-card-full-match-green {
-  border-color: var(--brand-green) !important;
   background-color: rgba(var(--brand-green-rgb),0.08) !important;
 }
 html.dark-theme .debt-card-full-match-green {
@@ -1268,7 +1264,7 @@ button:not(#screen-pin-pad *):focus-visible,
 <p class="text-xs text-gray-500 font-medium pt-1"><span id="target-spent" class="text-[var(--brand-red)] font-bold text-[12px]">৳0.00</span> <span data-i18n="home_spent_from_fund" data-i18n-en="spent from this fund">spent from this fund</span></p>
 </div>
 
-<button id="home-update-btn" onclick="switchTab('logs')" class="w-full flex items-center bg-gray-200/60 hover:bg-gray-300/60 transition rounded-full pl-1.5 pr-4 py-1.5 space-x-3 text-left">
+<button id="home-update-btn" onclick="goToHomeUpdateTransaction()" class="w-full flex items-center bg-gray-200/60 hover:bg-gray-300/60 transition rounded-full pl-1.5 pr-4 py-1.5 space-x-3 text-left">
 <span class="daymode-flip-card flex items-center space-x-1.5 bg-black text-white text-[9px] font-bold uppercase tracking-wider px-3 py-2 rounded-full flex-shrink-0">
 <span id="home-update-dot" class="w-1 h-1 rounded-full bg-[var(--brand-red)]"></span>
 <span data-i18n="home_update" data-i18n-en="Update">Update</span>
@@ -4236,6 +4232,14 @@ let currentDetailsFund = null;
 // stale filter from a previous fund.
 let fundHistoryFilter = { mode: null, value: null };
 let logsSubtab = 'transactions';
+// Tracks which transaction card (if any) is currently showing the
+// Home-Update jump highlight (see goToHomeUpdateTransaction /
+// highlightLogsTransactionCard). Unlike the search "full match" tint,
+// this highlight has no auto fade-out timer - it's meant to stay put
+// for as long as the user is actually looking at the Transactions list,
+// and only gets cleared explicitly once they navigate away (see
+// clearHomeUpdateTxHighlight, called from switchTab/switchLogsSubtab).
+let homeJumpTxHighlightId = null;
 let debtStatusFilters = { debts: 'pending', receivables: 'pending' };
 // Sort override, now two independent selections per status tab instead of
 // one mutually-exclusive value: priority ('default' | 'due' | 'keyperson',
@@ -4291,6 +4295,12 @@ let statsSubtab = 'spending';
 let categoryChartInstance = null;
 let updateSliderIndex = 0;
 let updateSliderTimer = null;
+// The exact list of "today, active fund" transactions currently cycling
+// through the Home update slider (see renderHomeUpdateSlider) - kept in
+// sync here so goToHomeUpdateTransaction() can look up whichever entry is
+// on screen the moment it's tapped (recent[updateSliderIndex]) without
+// having to recompute/re-filter that same list itself.
+let homeUpdateSlideList = [];
 
 // One-time Android keyboard "warm-up". On a fresh app launch, the very
 // first time ANY text input gets focused, Android's WebView has to stand
@@ -7272,7 +7282,7 @@ function generateTxCardBody(t, actionsHtml, query) {
   );
   const cardExtraCls = isFullMatch ? ' logs-tx-card-full-match' : '';
 
-  return `<div class="logs-tx-card flex justify-between items-center p-3 bg-white rounded-xl border border-gray-100 shadow-sm transition-colors duration-300 ease-out${cardExtraCls}">
+  return `<div class="logs-tx-card flex justify-between items-center p-3 bg-white rounded-xl shadow-sm transition-colors duration-300 ease-out${cardExtraCls}" data-tx-id="${t.id}">
     <div class="flex items-center space-x-2.5 min-w-0 flex-1">
       <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-base flex-shrink-0"><i class="fas ${icon} text-gray-500 text-sm"${iconFlipStyle}></i></div>
       <div class="min-w-0 flex-1">
@@ -7642,6 +7652,12 @@ function resetDebtCategoryFilters(category) {
 }
 
 function switchTab(screenId) {
+  // Leaving Logs entirely (e.g. back to Home/Stats/Profile) counts as
+  // "walking away" from the Transactions list, so any Home-Update jump
+  // highlight still showing there should be cleared - see
+  // clearHomeUpdateTxHighlight.
+  if (screenId !== 'logs') clearHomeUpdateTxHighlight();
+
   // NOTE: Filters used to reset here every time the user left the
   // Transactions/Debts/Receivables subtab (switching to another bottom-nav
   // tab). Per updated behavior, filters should stay exactly as the user
@@ -7735,6 +7751,11 @@ function openStatsDebtsShortcut() {
 /* ---------- Logs Screen Subtabs (Transactions / Debts / Receivables) ---------- */
 
 function switchLogsSubtab(name) {
+  // Switching away from Transactions to Debts/Receivables also counts as
+  // leaving the Transactions list, so clear any still-showing Home-Update
+  // jump highlight - see clearHomeUpdateTxHighlight.
+  if (name !== 'transactions') clearHomeUpdateTxHighlight();
+
   // NOTE: Switching between the Transactions/Debts/Receivables subtabs
   // used to reset whichever one was being left back to its defaults. Per
   // updated behavior, each subtab's filters now stay exactly as left for
@@ -10108,6 +10129,7 @@ function renderHomeUpdateSlider() {
   const recent = appState.transactions
     .filter(t => t.fund === appState.activeFund && new Date(t.date).toDateString() === now.toDateString())
     .slice(0, 5);
+  homeUpdateSlideList = recent;
   if (updateSliderTimer) { clearInterval(updateSliderTimer); updateSliderTimer = null; }
 
   // Blinking dot removed entirely - the dot stays static now; only the
@@ -10150,6 +10172,91 @@ function showUpdateSlide(recent) {
     textEl.innerText = msg;
     textEl.style.opacity = 1;
   }, 200);
+}
+
+// Tapping the Home "Update" slider jumps straight to that exact
+// transaction's card in History (Logs > Transactions) instead of just
+// opening the Logs screen on whatever it last showed. Whichever entry is
+// currently on screen in the slider (recent[updateSliderIndex], kept in
+// sync as homeUpdateSlideList by renderHomeUpdateSlider) is the one we
+// jump to - if for some reason it's gone (deleted between slides, or the
+// list was empty), fall back to just opening Logs like before.
+function goToHomeUpdateTransaction() {
+  const tx = homeUpdateSlideList[updateSliderIndex];
+  if (!tx) { switchTab('logs'); return; }
+
+  ensureLogsTransactionVisible(tx);
+  // Set the target subtab BEFORE switchTab('logs') so its own internal
+  // switchLogsSubtab(logsSubtab) call already lands on Transactions,
+  // instead of rendering whichever subtab was last open and then
+  // immediately re-rendering Transactions on top of it.
+  logsSubtab = 'transactions';
+  switchTab('logs');
+  highlightLogsTransactionCard(tx.id);
+}
+
+// Clears/relaxes whatever Logs search text or time filter would otherwise
+// hide the target transaction, so it's guaranteed to actually be in the
+// list once we render it - same idea as clearSearchInput() but without
+// focusing the field (this is a programmatic jump, not the user tapping
+// the search box's own clear button, so popping the keyboard here would
+// be unexpected). Only touches the time filter when the transaction
+// genuinely wouldn't be visible under it (e.g. a custom date/month picked
+// earlier in the session) - Today/Week/Month all already include "today"
+// (every home-update entry is always from today), so those are left as
+// the user set them.
+function ensureLogsTransactionVisible(tx) {
+  const searchInput = document.getElementById('logs-search-input');
+  if (searchInput && searchInput.value !== '') {
+    searchInput.value = '';
+    updateSearchClearBtn(searchInput);
+  }
+
+  if (!appState.filters) appState.filters = { sort: 'newest', time: 'month', price: 'all' };
+  const timeVal = appState.filters.time;
+  const now = new Date();
+  const txDate = new Date(tx.date);
+
+  let stillVisible = true;
+  if (timeVal === 'custom' && appState.filters.customDate) {
+    stillVisible = new Date(appState.filters.customDate).toDateString() === txDate.toDateString();
+  } else if (timeVal === 'custommonth' && appState.filters.customMonth) {
+    const key = `${txDate.getFullYear()}-${String(txDate.getMonth() + 1).padStart(2, '0')}`;
+    stillVisible = key === appState.filters.customMonth;
+  }
+  // 'today' / 'week' / 'month' (and any unrecognized value) always
+  // include today already, so nothing to relax there.
+
+  if (!stillVisible) appState.filters.time = 'today';
+}
+
+// Scrolls the given transaction's card into view within the Logs list and
+// gives it the same "full match" red tint the search filter already uses
+// for an exact match (.logs-tx-card-full-match - see generateTxCardBody),
+// so a jump-to from Home reads as the same kind of highlight the user
+// already recognizes from search, not a brand-new visual language.
+// Deliberately has no auto fade-out timer - it stays on the card for as
+// long as the user is actually looking at the Transactions list, and is
+// only cleared once they navigate away (see clearHomeUpdateTxHighlight).
+function highlightLogsTransactionCard(txId) {
+  const card = document.querySelector(`#logs-tx-list [data-tx-id="${txId}"]`);
+  if (!card) return;
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  card.classList.add('logs-tx-card-full-match');
+  homeJumpTxHighlightId = txId;
+}
+
+// Clears the Home-Update jump highlight the moment the user actually
+// leaves the Transactions subtab - either by switching to
+// Debts/Receivables within Logs, or by switching to a different
+// bottom-nav tab entirely (see the calls in switchLogsSubtab/switchTab).
+// No fade needed here: the screen being switched away from is hidden
+// immediately anyway, so there's nothing to visually animate.
+function clearHomeUpdateTxHighlight() {
+  if (homeJumpTxHighlightId == null) return;
+  const card = document.querySelector(`#logs-tx-list [data-tx-id="${homeJumpTxHighlightId}"]`);
+  if (card) card.classList.remove('logs-tx-card-full-match');
+  homeJumpTxHighlightId = null;
 }
 
 function renderHomeDebtsOverview() {
@@ -11540,8 +11647,8 @@ function groupByCategory(transactions) {
 
 function getCategoryFAIcon(label) {
   const c = (label || '').toLowerCase();
-  if (c.includes('transfer')) return 'fa-right-left';
-  if (c.includes('add money')) return 'fa-circle-dollar-to-slot';
+  if (c.includes('transfer') || c.includes('ট্রান্সফার')) return 'fa-right-left';
+  if (c.includes('add money') || c.includes('টাকা যোগ')) return 'fa-circle-dollar-to-slot';
   if (c.includes('debt collect') || c.includes('পাওনা আদায়')) return 'fa-hand-holding-dollar';
   if (c.includes('debt repay') || c.includes('ধার পরিশোধ')) return 'fa-hand-holding-dollar';
   if (c.includes('grocery') || c.includes('মুদি')) return 'fa-cart-shopping';
