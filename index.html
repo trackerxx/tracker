@@ -1142,6 +1142,22 @@ html:not(.dark-theme) body::before {
 .bg-red-50, .bg-red-100, .bg-red-600 { background-color: var(--brand-red) !important; }
 .border-red-100 { border-color: var(--brand-red) !important; }
 .to-red-50 { --tw-gradient-to: rgba(var(--brand-red-rgb),0.12) !important; }
+/* The Welcome/Lock/PIN/Pattern screens are full-screen OPAQUE overlays
+   that must fully hide whatever is behind them (Home content, bottom
+   nav, etc). They reuse the .to-red-50 class for their gradient's last
+   stop, but the low-alpha override right above this (meant only for the
+   subtle body::before glow) turns that stop into a mostly-transparent
+   red - letting the page underneath bleed through the bottom/middle of
+   these screens in day mode. Dark mode already has its own opaque
+   override for this (html.dark-theme .to-red-50 further up); give day
+   mode the same treatment here, scoped to just these 4 screens so the
+   body glow elsewhere is untouched. */
+html:not(.dark-theme) #screen-onboarding,
+html:not(.dark-theme) #screen-biometric-lock,
+html:not(.dark-theme) #screen-pin-pad,
+html:not(.dark-theme) #screen-pattern-pad {
+  --tw-gradient-to: #fef2f2 !important;
+}
 /* Same red-600 -> --brand-red-hover darkening as before, exact same tone -
    just scoped to real mouse-hover devices, and mirrored on :active for
    touch. On touch, CSS :hover can trigger on tap and linger (looks like a
