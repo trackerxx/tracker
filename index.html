@@ -5875,16 +5875,16 @@ function toggleLightMode(isLight) {
   // The native status bar call is basically instant, but this page's
   // huge per-theme stylesheet means the browser's own style recalc +
   // repaint for the class toggle takes a beat longer - so firing the
-  // status bar update in the same tick made it visibly change color
-  // before the app's own background caught up. Waiting two animation
-  // frames here (style recalc, then the actual paint committing) lines
-  // the status bar change up with the moment the app visibly finishes
-  // switching, instead of leading it.
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      safeRun(applyStatusBarForTheme);
-    });
-  });
+  // status bar update too early made it visibly change color before
+  // the app's own background caught up. A double requestAnimationFrame
+  // (2 frames, ~32ms) wasn't enough buffer on real devices, so this
+  // uses a tuned setTimeout instead to give the repaint more room to
+  // actually finish before the status bar follows it. Adjust the 120ms
+  // value up/down after testing on the actual build if the two still
+  // look out of sync.
+  setTimeout(() => {
+    safeRun(applyStatusBarForTheme);
+  }, 120);
 }
 
 function updateUsername(val) {
