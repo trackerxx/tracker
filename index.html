@@ -1093,6 +1093,14 @@ html:not(.dark-theme) .glass-card {
    while everything else scrolls over it - same look, no per-frame cost. */
 body {
   background-color: #0b0b0d;
+  /* Deliberately short and only on background-color: this isn't a visual
+     effect, it exists purely so JS can listen for 'transitionend' on this
+     property and know EXACTLY when the browser has finished painting the
+     new theme's background - see toggleLightMode() below, which uses that
+     event (instead of a guessed setTimeout/rAF delay) to fire the native
+     status bar update at the same real moment, regardless of how fast or
+     slow repaint happens to be on a given device. */
+  transition: background-color 120ms linear;
 }
 body::before {
   content: "";
@@ -5858,16 +5866,35 @@ function autoSizeUsernameInput() {
   input.style.width = Math.max(width + 4, 8) + 'px';
 }
 
-// How long (ms) to wait after toggling the theme class before firing the
-// native status bar update. 32ms (2 animation frames) was too short - the
-// status bar changed before the app's own background finished repainting.
-// 120ms was too long - the status bar visibly lagged behind after the app
-// bg had already changed. The right value sits somewhere between the two
-// and is device-dependent, so tune it here: if the status bar still leads
-// the app bg, INCREASE this number; if it now lags behind the app bg,
-// DECREASE it. Move by ~10-15ms each test and re-test on the real build
-// until both change on the same visible frame.
-const STATUS_BAR_SYNC_DELAY_MS = 60;
+// Fires the native status bar update at the exact moment body's
+// background-color transition (see the `body { transition: ... }` rule
+// in the CSS above) actually finishes painting - not after a guessed
+// number of milliseconds. This self-adjusts to whatever speed the
+// current device happens to repaint at, so the status bar and the
+// app's own background always land on the same visible frame instead
+// of a fixed delay that's right on one device/build and wrong on
+// another.
+function syncStatusBarToBodyRepaint() {
+  let fired = false;
+  const fire = () => {
+    if (fired) return;
+    fired = true;
+    document.body.removeEventListener('transitionend', onEnd);
+    safeRun(applyStatusBarForTheme);
+  };
+  const onEnd = (e) => {
+    if (e.target === document.body && e.propertyName === 'background-color') {
+      fire();
+    }
+  };
+  document.body.addEventListener('transitionend', onEnd);
+  // Safety net only - if the transition event is ever missed (WebView
+  // quirk, tab backgrounded mid-transition, etc.) this guarantees the
+  // status bar still updates instead of getting stuck on the old
+  // theme. Comfortably longer than the 120ms transition itself, so it
+  // should never normally be the one that fires.
+  setTimeout(fire, 400);
+}
 
 /* ---------- Theme (Dark/Light Mode) ---------- */
 
@@ -5883,12 +5910,7 @@ function toggleLightMode(isLight) {
   // current theme (see updateChart), so it needs a manual redraw here -
   // it doesn't otherwise re-render just because the theme class changed.
   safeRun(updateChart);
-  // See STATUS_BAR_SYNC_DELAY_MS above for how to tune this number -
-  // it's the single knob that controls how in-sync the status bar and
-  // the app's own background look on toggle.
-  setTimeout(() => {
-    safeRun(applyStatusBarForTheme);
-  }, STATUS_BAR_SYNC_DELAY_MS);
+  syncStatusBarToBodyRepaint();
 }
 
 function updateUsername(val) {
