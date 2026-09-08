@@ -1427,25 +1427,25 @@ html:not(.dark-theme) body::before {
 <div class="custom-nav-bar flex items-center justify-between flex-grow h-14 shadow-2xl mr-3">
 
 <div id="wrap-home" class="flex-1 flex justify-center items-center">
-<button onclick="switchTab('home')" id="nav-home" class="nav-pill-active flex items-center space-x-2 transition duration-200">
+<button onclick="switchTab('home')" id="nav-home" class="nav-pill-active flex items-center space-x-2">
 <i class="fas fa-home text-base"></i><span id="txt-home" class="text-xs" data-i18n="nav_home" data-i18n-en="Home">Home</span>
 </button>
 </div>
 
 <div id="wrap-logs" class="flex-1 flex justify-center items-center">
-<button onclick="switchTab('logs')" id="nav-logs" class="nav-pill-inactive flex items-center space-x-2 transition duration-200">
+<button onclick="switchTab('logs')" id="nav-logs" class="nav-pill-inactive flex items-center space-x-2">
 <i class="fas fa-list text-base"></i><span id="txt-logs" class="text-xs hidden" data-i18n="nav_logs" data-i18n-en="Logs">Logs</span>
 </button>
 </div>
 
 <div id="wrap-stats" class="flex-1 flex justify-center items-center">
-<button onclick="switchTab('stats')" id="nav-stats" class="nav-pill-inactive flex items-center space-x-2 transition duration-200">
+<button onclick="switchTab('stats')" id="nav-stats" class="nav-pill-inactive flex items-center space-x-2">
 <i class="fas fa-chart-bar text-base"></i><span id="txt-stats" class="text-xs hidden" data-i18n="nav_stats" data-i18n-en="Stats">Stats</span>
 </button>
 </div>
 
 <div id="wrap-profile" class="flex-1 flex justify-center items-center">
-<button onclick="switchTab('profile')" id="nav-profile" class="nav-pill-inactive flex items-center space-x-2 transition duration-200">
+<button onclick="switchTab('profile')" id="nav-profile" class="nav-pill-inactive flex items-center space-x-2">
 <i class="fas fa-user text-base"></i><span id="txt-profile" class="text-xs hidden" data-i18n="nav_profile" data-i18n-en="Profile">Profile</span>
 </button>
 </div>
@@ -7331,10 +7331,10 @@ function switchTab(screenId) {
     const txt = document.getElementById(`txt-${s}`);
 
     if (s === screenId) {
-      btn.className = "nav-pill-active flex items-center space-x-2 transition duration-200";
+      btn.className = "nav-pill-active flex items-center space-x-2";
       if (txt) txt.classList.remove('hidden');
     } else {
-      btn.className = "nav-pill-inactive flex items-center space-x-2 transition duration-200";
+      btn.className = "nav-pill-inactive flex items-center space-x-2";
       if (txt) txt.classList.add('hidden');
     }
   });
