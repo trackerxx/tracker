@@ -7658,6 +7658,23 @@ function switchTab(screenId) {
   // clearHomeUpdateTxHighlight.
   if (screenId !== 'logs') clearHomeUpdateTxHighlight();
 
+  // If the Home screen's funds-switcher panel is left expanded (arrow
+  // toggled open) while the user navigates away to another bottom-nav
+  // tab - e.g. tapping "Update" right below it, or any nav-bar icon -
+  // its bottomNavHideReasons.fundsPanel flag would otherwise stay stuck
+  // true forever: only toggleFundsPanel()'s own collapse branch ever
+  // clears it, and that never runs if the user left Home some other way.
+  // The bottom nav bar would then stay invisible on every other screen
+  // for the rest of the session. Auto-collapsing the panel here (reusing
+  // the same toggle used by its own close button) closes it AND restores
+  // the bar in one call.
+  if (screenId !== 'home') {
+    const fundsPanel = document.getElementById('funds-expansion-panel');
+    if (fundsPanel && fundsPanel.style.display === 'block') {
+      toggleFundsPanel();
+    }
+  }
+
   // NOTE: Filters used to reset here every time the user left the
   // Transactions/Debts/Receivables subtab (switching to another bottom-nav
   // tab). Per updated behavior, filters should stay exactly as the user
