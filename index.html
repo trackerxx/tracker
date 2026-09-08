@@ -964,7 +964,27 @@ html.dark-theme .border-gray-200\/80 { border-color: rgba(255,255,255,0.13) !imp
 html.dark-theme .border-gray-300 { border-color: rgba(255,255,255,0.16) !important; }
 html.dark-theme .border-gray-300\/50 { border-color: rgba(255,255,255,0.1) !important; }
 html.dark-theme .divide-gray-300\/60 > * + * { border-color: rgba(255,255,255,0.12) !important; }
+/* Overview card's 3-column stat divider (Total Spent / Daily Avg /
+   Transactions) - explicit border-right on the first two cells instead
+   of Tailwind's divide-x sibling selector, so both dividers always
+   resolve to the exact same color rule (no ambiguity from divide-x's
+   ~ sibling matching). */
+.overview-stats-divider > div:not(:last-child) { border-right: 1px solid rgba(107,114,128,0.45); }
+html.dark-theme .overview-stats-divider > div:not(:last-child) { border-right-color: rgba(255,255,255,0.24) !important; }
 html.dark-theme .hover\:border-gray-400:hover { border-color: rgba(255,255,255,0.3) !important; }
+
+/* Darker, more visible dividers for the Stats > Spending and Stats >
+   Debts & Receivables (Liability Analytics) sections - used in place
+   of the lighter default border-gray-300/50 / bg-gray-300/60, which
+   read as nearly invisible on both themes. */
+.stats-section-divider { border-color: rgba(107,114,128,0.45) !important; }
+html.dark-theme .stats-section-divider { border-color: rgba(255,255,255,0.24) !important; }
+.stats-vertical-divider { background-color: rgba(107,114,128,0.45) !important; }
+html.dark-theme .stats-vertical-divider { background-color: rgba(255,255,255,0.24) !important; }
+/* Debts/Receivables card list (Logs tab) - settled card's note/detail
+   line separator, and its own dark-theme variant above (border-gray-200/70). */
+.debt-card-divider { border-color: rgba(107,114,128,0.4) !important; }
+html.dark-theme .debt-card-divider { border-color: rgba(255,255,255,0.22) !important; }
 
 html.dark-theme .border-white\/30 { border-color: rgba(255,255,255,0.08) !important; }
 html.dark-theme .border-white\/60 { border-color: rgba(255,255,255,0.12) !important; }
@@ -1258,7 +1278,7 @@ button:not(#screen-pin-pad *):focus-visible,
 <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center">
 <span data-i18n="home_remaining_balance" data-i18n-en="Remaining Balance">Remaining Balance</span> <span id="active-fund-icon" class="w-4 h-4 rounded-full inline-flex items-center justify-center ml-1.5 mr-1" style="font-size:8px;"></span><span id="active-fund-label" class="text-[var(--brand-red)] font-extrabold">Monthly Cash</span>
 </p>
-<h2 id="home-balance" class="text-4xl font-extrabold tracking-tight block w-full">৳0.00</h2>
+<h2 id="home-balance" class="text-3xl font-extrabold tracking-tight block w-full">৳0.00</h2>
 </div>
 <button onclick="toggleFundsPanel()" class="w-8 h-8 rounded-full bg-gray-200/80 flex items-center justify-center text-gray-600 transition duration-200 flex-shrink-0" id="funds-toggle-btn" style="min-width: 32px; min-height: 32px;">
 <svg id="arrow-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" style="transition: transform 0.2s ease;">
@@ -1709,7 +1729,7 @@ button:not(#screen-pin-pad *):focus-visible,
 
 <input type="text" id="modal-description-input" placeholder="Note" data-i18n-placeholder="modal_description_placeholder" data-i18n-placeholder-en="Note" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
-<input type="text" id="modal-category-input" oninput="handleCategoryTyped()" placeholder="Enter Category" data-i18n-placeholder="modal_enter_category_placeholder" data-i18n-placeholder-en="Enter Category" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
+<input type="text" id="modal-category-input" oninput="stripLeadingDigitsInput(this); handleCategoryTyped()" placeholder="Enter Category" data-i18n-placeholder="modal_enter_category_placeholder" data-i18n-placeholder-en="Enter Category" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
 <div class="space-y-2">
 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest" data-i18n="modal_select_category" data-i18n-en="Select Category">Select Category</p>
@@ -1758,7 +1778,7 @@ button:not(#screen-pin-pad *):focus-visible,
 
 <input type="text" id="edit-tx-description-input" placeholder="Note" data-i18n-placeholder="modal_description_placeholder" data-i18n-placeholder-en="Note" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
-<input type="text" id="edit-tx-category-input" oninput="handleEditTxCategoryTyped()" placeholder="Enter Category" data-i18n-placeholder="modal_enter_category_placeholder" data-i18n-placeholder-en="Enter Category" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
+<input type="text" id="edit-tx-category-input" oninput="stripLeadingDigitsInput(this); handleEditTxCategoryTyped()" placeholder="Enter Category" data-i18n-placeholder="modal_enter_category_placeholder" data-i18n-placeholder-en="Enter Category" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
 <div class="space-y-2">
 <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider" data-i18n="modal_select_category" data-i18n-en="Select Category">Select Category</p>
@@ -1981,7 +2001,7 @@ button:not(#screen-pin-pad *):focus-visible,
 <input type="hidden" id="debt-edit-id" value="">
 
 <div class="space-y-3">
-<input type="text" id="debt-person-input" placeholder="Person's Name" data-i18n-placeholder="modal_person_name_placeholder" data-i18n-placeholder-en="Person's Name" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
+<input type="text" id="debt-person-input" oninput="stripLeadingDigitsInput(this)" placeholder="Person's Name" data-i18n-placeholder="modal_person_name_placeholder" data-i18n-placeholder-en="Person's Name" autocomplete="off" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 
 <input type="text" inputmode="decimal" oninput="onAmountInput(this)" id="debt-amount-input" placeholder="Amount (৳)" data-i18n-placeholder="modal_amount_placeholder" data-i18n-placeholder-en="Amount (৳)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 <p id="debt-amount-locked-hint" class="hidden text-[8px] text-gray-400 font-medium -mt-1.5 px-1"><i class="fas fa-lock mr-1"></i><span></span></p>
@@ -2105,7 +2125,7 @@ button:not(#screen-pin-pad *):focus-visible,
 <div class="space-y-3">
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_fund_name_locked_label" data-i18n-en="Fund Name">Fund Name</label>
-<input type="text" id="edit-fund-name-input" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
+<input type="text" id="edit-fund-name-input" oninput="stripLeadingDigitsInput(this)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
 </div>
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_current_balance_label" data-i18n-en="Current Cash Balance (Locked) (৳)">Current Cash Balance (Locked) (৳)</label>
@@ -2138,7 +2158,7 @@ button:not(#screen-pin-pad *):focus-visible,
 <div class="space-y-3">
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_account_name_label" data-i18n-en="Fund Name">Fund Name</label>
-<input type="text" id="new-fund-name" placeholder="Enter Fund Name" data-i18n-placeholder="modal_fund_name_placeholder" data-i18n-placeholder-en="Enter Fund Name" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)] placeholder-gray-400">
+<input type="text" id="new-fund-name" oninput="stripLeadingDigitsInput(this)" placeholder="Enter Fund Name" data-i18n-placeholder="modal_fund_name_placeholder" data-i18n-placeholder-en="Enter Fund Name" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)] placeholder-gray-400">
 </div>
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_starting_balance_label" data-i18n-en="Starting Balance (৳)">Starting Balance (৳)</label>
@@ -2743,10 +2763,10 @@ Yes, Delete
 <i class="fas fa-coins absolute text-white opacity-[0.05] text-4xl" style="top:16%; right:24%; transform:rotate(12deg);"></i>
 <i class="fas fa-wallet absolute text-[var(--brand-red)] opacity-[0.06] text-7xl" style="top:34%; left:-4%; transform:rotate(-10deg);"></i>
 <i class="fas fa-university absolute text-white opacity-[0.05] text-7xl" style="top:28%; right:-6%; transform:rotate(8deg);"></i>
-<i class="fas fa-percentage absolute text-[var(--brand-red)] opacity-[0.05] text-4xl" style="top:46%; left:14%; transform:rotate(-8deg);"></i>
-<i class="fas fa-file-invoice-dollar absolute text-white opacity-[0.05] text-5xl" style="top:50%; right:12%; transform:rotate(14deg);"></i>
-<i class="fas fa-hand-holding-usd absolute text-[var(--brand-red)] opacity-[0.05] text-5xl" style="bottom:34%; left:30%; transform:rotate(-6deg);"></i>
-<i class="fas fa-receipt absolute text-white opacity-[0.06] text-5xl" style="top:62%; right:6%; transform:rotate(16deg);"></i>
+<i class="fas fa-percentage absolute text-[var(--brand-red)] opacity-[0.05] text-4xl" style="top:46%; left:4%; transform:rotate(-8deg);"></i>
+<i class="fas fa-file-invoice-dollar absolute text-white opacity-[0.05] text-5xl" style="bottom:9%; right:32%; transform:rotate(14deg);"></i>
+<i class="fas fa-hand-holding-usd absolute text-[var(--brand-red)] opacity-[0.05] text-5xl" style="top:6%; left:44%; transform:rotate(-6deg);"></i>
+<i class="fas fa-receipt absolute text-white opacity-[0.06] text-5xl" style="top:62%; right:2%; transform:rotate(16deg);"></i>
 <i class="fas fa-calculator absolute text-white opacity-[0.05] text-6xl" style="bottom:8%; left:6%; transform:rotate(10deg);"></i>
 <i class="fas fa-credit-card absolute text-[var(--brand-red)] opacity-[0.06] text-5xl" style="bottom:14%; right:-4%; transform:rotate(-14deg);"></i>
 <i class="fas fa-money-bill-wave absolute text-[var(--brand-red)] opacity-[0.05] text-5xl" style="bottom:28%; left:-2%; transform:rotate(-6deg);"></i>
@@ -3008,6 +3028,7 @@ const I18N = {
     modal_add_transaction_title: 'লেনদেন যোগ করুন',
     modal_edit_transaction_title: 'লেনদেন সম্পাদনা করুন',
     modal_amount_placeholder: 'পরিমাণ (৳)',
+    modal_no_category_match: 'কোনো মিলযুক্ত ক্যাটাগরি নেই',
     modal_description_placeholder: 'চিরকুট',
     modal_enter_category_placeholder: 'ক্যাটাগরি লিখুন',
     modal_select_category: 'ক্যাটাগরি নির্বাচন করুন',
@@ -3110,8 +3131,8 @@ const I18N = {
     debt_payment_received_title: 'পরিশোধ গ্রহণ করুন',
     debt_payment_made_title: 'পরিশোধ করুন',
     debt_pay_full_remaining_btn: 'পুরো বাকি টাকা পরিশোধ করুন',
-    debt_payment_fund_toggle_receivable: 'এই টাকা কোনো Fund-এ যোগ করবেন?',
-    debt_payment_fund_toggle_debt: 'এই টাকা কোনো Fund থেকে পরিশোধ করবেন?',
+    debt_payment_fund_toggle_receivable: 'এই টাকা কোনো ফান্ডে যোগ করবেন?',
+    debt_payment_fund_toggle_debt: 'এই টাকা কোনো ফান্ড থেকে পরিশোধ করবেন?',
     common_confirm: 'নিশ্চিত করুন',
     debt_remaining_amt: 'বাকি: ৳{amt}',
 
@@ -3677,6 +3698,20 @@ function fundIconHTML(t, extraClasses) {
       <path d="M12 3a1 1 0 0 1 1 1v.1A7 7 0 0 1 19 11v4l1.5 2.25A1 1 0 0 1 19.65 19H4.35a1 1 0 0 1-.85-1.75L5 15v-4a7 7 0 0 1 6-6.9V4a1 1 0 0 1 1-1Z" fill="currentColor"/>
       <rect x="8.5" y="19.2" width="7" height="1.8" rx="0.9" fill="currentColor"/>
       <path d="M11 8.3h2v2.5h2.4v2H13v2.4h-2v-2.4H8.6v-2H11V8.3Z" fill="white"/>
+    </svg>`;
+  }
+  // "Other" (the catch-all fallback, always last in the grid) gets a
+  // 2x2 grid of mixed shapes - circle / square / rounded-square / circle -
+  // instead of a plain ellipsis, matching the reference "misc shapes"
+  // icon requested for this slot. Solid currentColor fill (no separate
+  // outline color) keeps it consistent with every other fund-type glyph,
+  // which are single-tone and tint to the fund's own theme color/dark mode.
+  if (t.key === 'other') {
+    return `<svg viewBox="0 0 24 24" style="width:1em;height:1em" class="${cls}" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="5.5" cy="5.5" r="4.5" fill="currentColor"/>
+      <rect x="13" y="1" width="9" height="9" rx="1" fill="currentColor"/>
+      <rect x="1" y="13" width="9" height="9" rx="3" fill="currentColor"/>
+      <circle cx="17.5" cy="17.5" r="4.5" fill="currentColor"/>
     </svg>`;
   }
   return `<i class="fas ${t.icon} ${cls}"></i>`;
@@ -7052,10 +7087,28 @@ function renderFundsList() {
   // actually visible again, when real heights exist.
   if (container.offsetParent !== null) {
     fitListToVisibleCount(container, FUNDS_VISIBLE_COUNT, undefined, true);
+    // Scroll straight to whichever page contains the currently ACTIVE
+    // fund, instead of always landing back on page one - so expanding
+    // this panel (see toggleFundsPanel) takes the user directly to the
+    // fund they've actually got selected, even if it's further down the
+    // list. Queued via requestAnimationFrame right after the call above
+    // so it runs on the same upcoming frame, right after
+    // fitListToVisibleCount's own deferred measurement has set the
+    // container's real clamped height/overflow - a scroll offset has no
+    // visible effect until that's in place.
+    requestAnimationFrame(() => {
+      const activeIdx = fundNames.indexOf(appState.activeFund);
+      const groupStart = activeIdx > 0 ? Math.floor(activeIdx / FUNDS_VISIBLE_COUNT) * FUNDS_VISIBLE_COUNT : 0;
+      const target = container.children[groupStart];
+      container.scrollTop = target ? target.offsetTop : 0;
+    });
+  } else {
+    // Panel isn't visible right now (e.g. a fund switch triggered this
+    // while the panel sits collapsed) - nothing to scroll to yet; just
+    // reset so it's sitting at the top, ready for the active-fund logic
+    // above the next time it's actually expanded.
+    container.scrollTop = 0;
   }
-  // Reset scroll position whenever the list is re-rendered (e.g. after
-  // switching funds or adding a new account).
-  container.scrollTop = 0;
 }
 
 function shiftActiveAssetDirectly(fundName) {
@@ -7336,13 +7389,12 @@ async function openFundHistoryDateCalendar() {
 // description text is an exact match for what's typed, the whole card
 // gets a red tint via .logs-tx-card-full-match instead of just the text.
 function generateTxCardBody(t, actionsHtml, query) {
-  const icon = getCategoryIcon(t.category);
   // "Receivable Collected" (money coming IN from someone who owed you) and
   // "Debt Repayment" (money going OUT to someone you owed) share the same
   // fa-hand-holding-dollar icon - mirrored horizontally for the collected
   // case so the hand visually "receives" from the opposite side instead
   // of "giving", distinguishing the two at a glance.
-  const iconFlipStyle = (t.category === 'Debt Collection') ? ' style="transform: scaleX(-1);"' : '';
+  const categoryIconHtml = categoryIconHTML(t.category, 'text-gray-500 text-sm', (t.category === 'Debt Collection') ? 'transform: scaleX(-1)' : '');
   const categoryLabel = translatedCategoryLabel(t.category);
   const dateLabel = fmtDate(t.date, { day: '2-digit', month: 'short' });
   const timeLabel = fmtTime(t.date);
@@ -7355,6 +7407,15 @@ function generateTxCardBody(t, actionsHtml, query) {
   const amountColor = isIncoming ? 'text-green-600' : 'text-[var(--brand-red)]';
   const amountSign = isIncoming ? '+' : '-';
   const amountText = fmtMoney(t.amount);
+  // "Money Added" and "Receivable Collected" (category 'Debt Collection',
+  // also type 'add_money') both show the fund the money went into, inline
+  // next to the category name (right side, above the amount - same slot as
+  // the Fund Transfer badge), in green.
+  const addMoneyInline = addMoneyInlineBadge(t);
+  // "Debt Repayment" entries (money paid back OUT of one of the user's own
+  // funds) get the same treatment but in red, since money is leaving that
+  // fund - mirrors addMoneyInline above.
+  const debtRepayInline = debtRepaymentInlineBadge(t);
 
   // Which field(s) the currently typed search text is actually scoped to,
   // via the magnifying-glass filter picker (openSearchFilterModal /
@@ -7374,7 +7435,47 @@ function generateTxCardBody(t, actionsHtml, query) {
   const categoryIsMatch = hasQuery && checkCategory && normalizeHyphenForSearch(categoryLabel).toLowerCase().startsWith(query);
   const descriptionIsMatch = hasQuery && checkDescription && normalizeHyphenForSearch(descText).toLowerCase().startsWith(query);
 
-  const descLine = addMoneyBadgeLine(t, query, descriptionIsMatch) || (descText ? `<p class="text-[9px] text-gray-500 font-medium truncate max-w-[150px]">${descriptionIsMatch ? highlightMatch(descText, query) : escapeHtml(descText)}</p>` : '');
+  // ---------- Left-side stacking under the category name ----------
+  // Layout (top to bottom, under the category name): the user's own typed
+  // note first (if any), then the colored badge (Fund Transfer's from/to,
+  // Money Added/Receivable Collected/Debt Repayment's fund or note text)
+  // right under it. A "Receivable Collected"/"Debt Repayment" entry
+  // (t.fromDebtPayment) shows its note INSIDE the colored badge itself
+  // (see addMoneyInline/debtRepayInline), so it never also gets a plain
+  // note line here. Whichever piece (note, badge) is missing simply isn't
+  // rendered, but if NEITHER is present, the one open slot right under the
+  // category is still filled with the badge/note (per the same rule) -
+  // i.e. whichever single piece exists always sits directly under the
+  // category, never pushed down leaving a gap. Exactly two rows are always
+  // reserved here (blank/invisible if unused) so every card keeps the same
+  // fixed height as before, now that the date/time line has moved to the
+  // right column (see below).
+  const realNote = t.fromDebtPayment ? '' : (t.description || '');
+  const hasNote = !!realNote;
+  const badgeInner = `${transferInline}${addMoneyInline}${debtRepayInline}`;
+  const hasBadge = !!badgeInner;
+  const blankRow = `<p class="text-[9px] font-medium invisible">&nbsp;</p>`;
+  const noteRow = hasNote ? `<p class="text-[9px] text-gray-500 font-medium truncate max-w-[150px]">${descriptionIsMatch ? highlightMatch(realNote, query) : escapeHtml(realNote)}</p>` : '';
+  const badgeRow = hasBadge ? `<p class="text-[9px] font-bold truncate max-w-[150px]">${badgeInner}</p>` : '';
+  let leftRow2, leftRow3;
+  if (hasNote && hasBadge) {
+    // Both present: note on top, badge directly under it - badge (the
+    // last line) naturally lines up with the amount/date column on the
+    // right, same as before.
+    leftRow2 = noteRow;
+    leftRow3 = badgeRow;
+  } else if (hasNote || hasBadge) {
+    // Only ONE of note/badge exists: push it down into row3 (instead of
+    // row2) so it sits on the SAME line as the amount on the right side,
+    // keeping row2 blank above it. Previously a lone note/badge sat in
+    // row2 (right under the category) while row3 stayed blank - visually
+    // stranding it away from the amount it's supposed to line up with.
+    leftRow2 = blankRow;
+    leftRow3 = hasNote ? noteRow : badgeRow;
+  } else {
+    leftRow2 = blankRow;
+    leftRow3 = blankRow;
+  }
 
   const categoryHtml = categoryIsMatch ? highlightMatch(categoryLabel, query) : escapeHtml(categoryLabel);
   // Transactions' amount is already colored green/red for income/expense
@@ -7392,21 +7493,21 @@ function generateTxCardBody(t, actionsHtml, query) {
   );
   const cardExtraCls = isFullMatch ? ' logs-tx-card-full-match' : '';
 
-  return `<div class="logs-tx-card flex justify-between items-center p-3 bg-white rounded-xl shadow-sm transition-colors duration-300 ease-out${cardExtraCls}" data-tx-id="${t.id}">
+  return `<div class="logs-tx-card flex justify-between items-start p-3 bg-white rounded-xl shadow-sm transition-colors duration-300 ease-out${cardExtraCls}" data-tx-id="${t.id}">
     <div class="flex items-center space-x-2.5 min-w-0 flex-1">
-      <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-base flex-shrink-0"><i class="fas ${icon} text-gray-500 text-sm"${iconFlipStyle}></i></div>
+      <div class="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-base flex-shrink-0">${categoryIconHtml}</div>
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-1.5 min-w-0">
           <p class="text-xs font-bold text-gray-800 truncate min-w-0">${categoryHtml}</p>
-          ${transferInline}
         </div>
-        ${descLine}
-        <p class="text-[10px] text-gray-400 font-medium">${dateLabel} • ${timeLabel}</p>
+        ${leftRow2}
+        ${leftRow3}
       </div>
     </div>
     <div class="flex flex-col items-end flex-shrink-0 pl-2">
+      <p class="text-[9px] text-gray-400 font-medium mb-1 mr-1.5">${dateLabel} • ${timeLabel}</p>
       <div class="flex items-center space-x-1">
-        <span class="text-xs font-black ${amountColor} mr-1">${amountSign}৳${amountHtml}</span>
+        <span class="text-[11px] font-black ${amountColor} mr-1">${amountSign}৳${amountHtml}</span>
         ${actionsHtml}
       </div>
     </div>
@@ -8445,8 +8546,8 @@ function generateDebtCardMarkup(d, query, highlightColor) {
   const paddingCls = d.settled ? 'p-5 pb-6 space-y-2.5' : 'p-4 pb-4 space-y-1.5';
   const buttonRowCls = d.settled ? 'flex justify-between items-center pt-2 mt-auto' : 'flex justify-between items-center pt-1 mt-auto';
   const detailLineCls = d.settled
-    ? 'text-xs text-gray-500 font-medium border-t border-gray-200/70 pt-2'
-    : 'text-xs text-gray-500 font-medium border-t border-gray-200/70 pt-1 truncate';
+    ? 'text-xs text-gray-500 font-medium border-t debt-card-divider pt-2'
+    : 'text-xs text-gray-500 font-medium border-t debt-card-divider pt-1 truncate';
   // Debts/Receivables amounts are always shown in their tab's own color
   // (red for what you owe, green for what's owed to you - see
   // highlightColor, passed in per-tab by the caller) rather than the
@@ -9190,7 +9291,7 @@ function buildCategoryChipHtml(name, idPrefix, clickHandlerName, highlightLen) {
   }
   return `<button type="button" onclick="${clickHandlerName}('${safeName}')" id="${idPrefix}${slug}" class="flex flex-col items-center space-y-1.5 min-w-0">
 <div class="qc-icon-circle w-10 h-10 rounded-full bg-gray-200/70 flex items-center justify-center text-gray-500">
-<i class="fas ${getCategoryFAIcon(name)} text-xs"></i>
+${categoryIconHTML(name, 'text-xs')}
 </div>
 <span class="qc-icon-label ${labelSizeCls} font-bold text-gray-700 w-full truncate text-center"${i18nAttrs}>${labelHtml}</span>
 </button>`;
@@ -10290,10 +10391,10 @@ function showUpdateSlide(recent) {
   const t = recent[updateSliderIndex];
   const categoryLabel = translatedCategoryLabel(t.category);
   let msg;
-  if (t.type === 'transfer_out') msg = trf('home_latest_transferred_to', `Latest: ৳${fmtMoney(t.amount, 0)} transferred to ${fundDisplayName(t.linkedFund)}`, { amt: fmtMoney(t.amount, 0), fund: fundDisplayName(t.linkedFund) });
-  else if (t.type === 'transfer_in') msg = trf('home_latest_received_from', `Latest: ৳${fmtMoney(t.amount, 0)} received from ${fundDisplayName(t.linkedFund)}`, { amt: fmtMoney(t.amount, 0), fund: fundDisplayName(t.linkedFund) });
-  else if (t.type === 'add_money') msg = trf('home_latest_added', `Latest: ৳${fmtMoney(t.amount, 0)} added to fund`, { amt: fmtMoney(t.amount, 0) });
-  else msg = trf('home_latest_spent_on', `Latest: ৳${fmtMoney(t.amount, 0)} spent on ${categoryLabel}`, { amt: fmtMoney(t.amount, 0), cat: categoryLabel });
+  if (t.type === 'transfer_out') msg = trf('home_latest_transferred_to', `Latest: ৳${fmtMoney(t.amount)} transferred to ${fundDisplayName(t.linkedFund)}`, { amt: fmtMoney(t.amount), fund: fundDisplayName(t.linkedFund) });
+  else if (t.type === 'transfer_in') msg = trf('home_latest_received_from', `Latest: ৳${fmtMoney(t.amount)} received from ${fundDisplayName(t.linkedFund)}`, { amt: fmtMoney(t.amount), fund: fundDisplayName(t.linkedFund) });
+  else if (t.type === 'add_money') msg = trf('home_latest_added', `Latest: ৳${fmtMoney(t.amount)} added to fund`, { amt: fmtMoney(t.amount) });
+  else msg = trf('home_latest_spent_on', `Latest: ৳${fmtMoney(t.amount)} spent on ${categoryLabel}`, { amt: fmtMoney(t.amount), cat: categoryLabel });
   textEl.style.opacity = 0;
   setTimeout(() => {
     textEl.innerText = msg;
@@ -11805,6 +11906,32 @@ function getCategoryFAIcon(label) {
   return 'fa-circle-plus';
 }
 
+// Category counterpart to fundIconHTML() above - renders the SAME
+// four-shape "Other" glyph (circle/square/rounded-square/circle) used for
+// the Other FUND type whenever a TRANSACTION's category resolves to Other,
+// so the two "Other" concepts look identical wherever either appears
+// (quick-category picker chip, transaction card avatar, Stats' Top
+// Category, Home's category breakdown). Resolves via resolveCanonicalCategory
+// so this matches "Other" in either language, and an empty/blank category
+// (which already displays as "Other" - see translatedCategoryLabel) gets
+// the same icon too. Every other category keeps its existing FontAwesome
+// glyph via getCategoryFAIcon, unchanged.
+function categoryIconHTML(rawCategory, extraClasses, extraStyle) {
+  const cls = extraClasses || '';
+  const canonical = resolveCanonicalCategory(rawCategory) || ((!rawCategory || !rawCategory.trim()) ? 'Other' : null);
+  if (canonical === 'Other') {
+    const styleAttr = `width:1em;height:1em${extraStyle ? ';' + extraStyle : ''}`;
+    return `<svg viewBox="0 0 24 24" style="${styleAttr}" class="${cls}" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="5.5" cy="5.5" r="4.5" fill="currentColor"/>
+      <rect x="13" y="1" width="9" height="9" rx="1" fill="currentColor"/>
+      <rect x="1" y="13" width="9" height="9" rx="3" fill="currentColor"/>
+      <circle cx="17.5" cy="17.5" r="4.5" fill="currentColor"/>
+    </svg>`;
+  }
+  const styleAttr = extraStyle ? ` style="${extraStyle}"` : '';
+  return `<i class="fas ${getCategoryFAIcon(rawCategory)} ${cls}"${styleAttr}></i>`;
+}
+
 /* ---------- Stats: Spending Analytics month scope ----------
    Spending Analytics no longer has its own separate month picker - it
    simply mirrors whatever Time filter is currently active on the
@@ -11875,17 +12002,17 @@ function renderAnalyticsList() {
       <div class="w-7 h-7 rounded-full bg-white flex items-center justify-center shadow-sm"><i class="fas fa-chart-simple text-[var(--brand-red)] text-xs"></i></div>
       <h3 class="text-sm font-bold text-gray-900">${tr('stats_overview', 'Overview')}</h3>
     </div>
-    <div class="grid grid-cols-3 divide-x divide-gray-300/60 text-center">
+    <div class="grid grid-cols-3 overview-stats-divider text-center">
       <div>
-        <p class="text-xl font-extrabold text-[var(--brand-red)]">৳${fmtMoney(Math.round(totalSpent), 0)}</p>
+        <p class="text-sm font-extrabold text-[var(--brand-red)]">৳${fmtMoney(Math.round(totalSpent), 0)}</p>
         <p class="text-[10px] text-gray-500 font-bold mt-0.5">${tr('stats_total_spent', 'Total Spent')}</p>
       </div>
       <div>
-        <p class="text-xl font-extrabold text-gray-900">৳${fmtMoney(Math.round(dailyAvg), 0)}</p>
+        <p class="text-sm font-extrabold text-gray-900">৳${fmtMoney(Math.round(dailyAvg), 0)}</p>
         <p class="text-[10px] text-gray-500 font-bold mt-0.5">${tr('stats_daily_avg', 'Daily Avg')}</p>
       </div>
       <div>
-        <p class="text-xl font-extrabold text-gray-900">${localizeDigits(txCount)}</p>
+        <p class="text-sm font-extrabold text-gray-900">${localizeDigits(txCount)}</p>
         <p class="text-[10px] text-gray-500 font-bold mt-0.5">${tr('logs_transactions', 'Transactions')}</p>
       </div>
     </div>
@@ -11898,7 +12025,7 @@ function renderAnalyticsList() {
     </div>
     <div class="flex items-center justify-between bg-white/70 rounded-2xl p-3">
       <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center"><i class="fas ${getCategoryFAIcon(topCategory.label)} text-[var(--brand-red)]"></i></div>
+        <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center">${categoryIconHTML(topCategory.label, 'text-[var(--brand-red)]')}</div>
         <div>
           <p class="text-sm font-bold text-[var(--brand-red)]">${escapeHtml(topCategory.label)}</p>
           <p class="text-[10px] text-[#991b1b]/70 font-bold">${trf('stats_pct_of_total', `${topPct.toFixed(1)}% of total spending`, { pct: localizeDigits(topPct.toFixed(1)) })}</p>
@@ -11932,7 +12059,7 @@ function renderAnalyticsList() {
           <div class="w-8 h-8 rounded-xl bg-white flex items-center justify-center"><i class="fas fa-receipt text-gray-500 text-xs"></i></div>
           <div>
             <p class="text-xs font-bold text-gray-900">${tr('stats_biggest_expense', 'Biggest Expense')}</p>
-            <p class="text-[9px] text-gray-400 font-bold">${escapeHtml(biggest.description || biggestLabel)} (${escapeHtml(biggestLabel)})</p>
+            <p class="text-[9px] text-gray-400 font-bold">${biggest.description ? `${escapeHtml(biggest.description)} (${escapeHtml(biggestLabel)})` : escapeHtml(biggestLabel)}</p>
           </div>
         </div>
         <span class="text-xs font-black text-gray-900">৳${fmtMoney(Math.round(biggest.amount), 0)}</span>
@@ -12045,12 +12172,12 @@ function renderLiabilityAnalytics() {
     </div>
     <p class="text-2xl font-extrabold -mt-2 ${net >= 0 ? 'text-green-600' : 'text-[var(--brand-red)]'}">${net >= 0 ? '+' : '-'}৳${fmtMoney(Math.round(Math.abs(net)), 0)}</p>
     <p class="text-[9px] text-gray-500 font-medium -mt-3">${net > 0 ? tr('stats_net_positive', 'Others owe you more than you owe.') : net < 0 ? tr('stats_net_negative', 'You owe more than others owe you.') : tr('stats_net_zero', 'You are settled up.')}</p>
-    <div class="border-t border-gray-300/50 pt-2 -mt-2 flex">
+    <div class="border-t stats-section-divider pt-2 -mt-2 flex">
       <div class="flex-1">
         <p class="text-[10px] text-gray-400 font-bold uppercase">${tr('home_you_owe', 'You Owe')}</p>
         <p class="text-base font-extrabold text-[var(--brand-red)]">৳${fmtMoney(Math.round(totalOwe), 0)}</p>
       </div>
-      <div class="w-px bg-gray-300/60 mx-3"></div>
+      <div class="w-px stats-vertical-divider mx-3"></div>
       <div class="flex-1 text-right">
         <p class="text-[10px] text-gray-400 font-bold uppercase">${tr('home_you_are_owed', 'You Are Owed')}</p>
         <p class="text-base font-extrabold text-green-600">৳${fmtMoney(Math.round(totalOwed), 0)}</p>
@@ -12093,7 +12220,7 @@ function renderLiabilityAnalytics() {
       ${topOwe.length === 0 ? `<p class="text-[10px] text-gray-400 font-medium opacity-60">${tr('stats_no_pending_debts', 'No pending debts.')}</p>` :
         `<div id="top-owe-list" class="flex flex-col gap-0.5 -mt-0.5 overflow-y-auto no-scrollbar">${topOwe.map(([person, amt]) => `<div class="flex justify-between items-center py-0.5"><span class="text-[10px] font-bold text-gray-900">${escapeHtml(person)}</span><span class="text-[10px] font-black text-[var(--brand-red)]">৳${fmtMoney(Math.round(amt), 0)}</span></div>`).join('')}</div>`}
     </div>
-    <div class="border-t border-gray-300/50 pt-2 -mt-1">
+    <div class="border-t stats-section-divider pt-2 -mt-1">
       <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">${tr('stats_top_people_owed', 'Top People Who Owe You')}</p>
       ${topOwed.length === 0 ? `<p class="text-[10px] text-gray-400 font-medium opacity-60">${tr('stats_no_pending_receivables', 'No pending receivables.')}</p>` :
         `<div id="top-owed-list" class="flex flex-col gap-0.5 -mt-0.5 overflow-y-auto no-scrollbar">${topOwed.map(([person, amt]) => `<div class="flex justify-between items-center py-0.5"><span class="text-[10px] font-bold text-gray-900">${escapeHtml(person)}</span><span class="text-[10px] font-black text-green-600">৳${fmtMoney(Math.round(amt), 0)}</span></div>`).join('')}</div>`}
@@ -12264,7 +12391,7 @@ function transferInlineBadge(t) {
   const inner = t.type === 'transfer_in'
     ? `${toSpan}<i class="fas fa-arrow-left text-[5px] text-gray-400 flex-shrink-0"></i>${fromSpan}`
     : `${fromSpan}<i class="fas fa-arrow-right text-[5px] text-gray-400 flex-shrink-0"></i>${toSpan}`;
-  return `<span class="inline-flex items-center gap-0.5 text-[7.5px] font-bold flex-shrink-0 min-w-0">${inner}</span>`;
+  return `<span class="inline-flex items-center gap-0.5 text-[7px] font-bold flex-shrink-0 min-w-0">${inner}</span>`;
 }
 
 // Same badge treatment as a Fund Transfer entry (small icon + colored line
@@ -12293,6 +12420,35 @@ function addMoneyBadgeLine(t, query, isMatch) {
   const label = getTxNoteText(t);
   const inner = isMatch ? highlightMatch(label, query) : escapeHtml(label);
   return `<p class="text-[9px] text-gray-500 font-medium truncate max-w-[150px]">${inner}</p>`;
+}
+
+// Compact inline badge shown right next to a "Money Added" entry's category
+// name (same slot/style as transferInlineBadge's Fund Transfer badge above),
+// naming the fund the money was added to in green - replaces the old plain
+// gray "Added to <fund>" text that used to sit on its own line below the
+// category.
+function addMoneyInlineBadge(t) {
+  if (t.type !== 'add_money') return '';
+  // A "Receivable Collected" entry (fromDebtPayment - i.e. money settled
+  // from a Debts/Receivables record) shows its own note here instead of
+  // the fund name, since who paid (t.description, e.g. "Received from X")
+  // is more useful than which fund it landed in. A genuine "Add Money"
+  // entry (not fromDebtPayment) still shows the fund it was added to.
+  const label = t.fromDebtPayment ? (t.description || fundDisplayName(t.fund)) : fundDisplayName(t.fund);
+  const span = `<span style="color:var(--brand-green)" class="whitespace-nowrap">${escapeHtml(label)}</span>`;
+  return `<span class="inline-flex items-center gap-0.5 text-[7px] font-bold flex-shrink-0 min-w-0">${span}</span>`;
+}
+
+// Same badge as addMoneyInlineBadge above, but for a "Debt Repayment" entry
+// (money paid back out of one of the user's own funds when settling a
+// debt - see submitDebtPayment) - shows its own note (t.description, e.g.
+// "Paid back to X") instead of the fund name, colored red since the money
+// is leaving that fund.
+function debtRepaymentInlineBadge(t) {
+  if (t.category !== 'Debt Repayment' || !t.fund) return '';
+  const label = t.description || fundDisplayName(t.fund);
+  const span = `<span style="color:var(--brand-red)" class="whitespace-nowrap">${escapeHtml(label)}</span>`;
+  return `<span class="inline-flex items-center gap-0.5 text-[7px] font-bold flex-shrink-0 min-w-0">${span}</span>`;
 }
 
 
@@ -12446,6 +12602,23 @@ function formatAmountTyping(raw) {
   // In Bangla mode, show what the user is typing in Bangla numerals -
   // matches how every already-saved amount is displayed via fmtMoney().
   return localizeDigits(formatted);
+}
+// Prevents free-text name fields (Person's Name, Category, Fund Name)
+// from ever STARTING with a digit - a name typed as "৬২৮২৮" or "123abc"
+// has its leading digit run stripped the instant it's typed, so a digit
+// can never even appear as the first character. Digits are still fine
+// anywhere AFTER a letter/character has been entered (e.g. "Room 2"),
+// since only a leading run of digits (ASCII 0-9 or Bangla ০-৯) is
+// stripped, not digits elsewhere in the string.
+function stripLeadingDigitsInput(el) {
+  if (!el) return;
+  const cursorFromEnd = el.value.length - el.selectionEnd;
+  const stripped = el.value.replace(/^[0-9০-৯]+/, '');
+  if (stripped !== el.value) {
+    el.value = stripped;
+    const pos = Math.max(0, el.value.length - cursorFromEnd);
+    el.setSelectionRange(pos, pos);
+  }
 }
 function onAmountInput(el) {
   const cursorFromEnd = el.value.length - el.selectionEnd;
@@ -12855,11 +13028,11 @@ function updateChart() {
   // of the old horizontal swipe/dots pagination.
   listEl.innerHTML = groups.map(g => {
     const pct = totalSpent > 0 ? Math.round((g.total / totalSpent) * 100) : 0;
-    const icon = getCategoryFAIcon(g.label);
+    const iconHtml = categoryIconHTML(g.label, 'text-zinc-300 text-xs');
     return `<div class="flex items-center justify-between flex-shrink-0">
       <div class="flex items-center space-x-2.5">
         <div class="w-8 h-8 rounded-xl bg-zinc-800 flex items-center justify-center flex-shrink-0">
-          <i class="fas ${icon} text-zinc-300 text-xs"></i>
+          ${iconHtml}
         </div>
         <span class="text-[9px] font-medium text-zinc-200 truncate max-w-[110px]">${escapeHtml(g.label)}</span>
       </div>
