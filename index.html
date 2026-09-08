@@ -294,11 +294,10 @@ font-weight: 700;
 display: flex;
 align-items: center;
 justify-content: center;
-transition: background 0.15s ease, transform 0.1s ease;
+transition: background 0.35s ease, transform 0.1s ease;
 }
 .pin-key:active {
 background: rgba(var(--brand-red-rgb),0.55);
-transform: scale(0.95);
 }
 .glass-card {
 background: rgba(255, 255, 255, 0.7);
@@ -531,9 +530,7 @@ animation: bellWobble 2.2s linear infinite;
 -webkit-tap-highlight-color: transparent;
 transition: background-color 0.15s ease;
 }
-#home-notif-bell-btn:active {
-background-color: rgba(34, 197, 94, 0.35) !important;
-}
+
 /* Wrong PIN / wrong pattern feedback: a quick horizontal shake, timed to
    match the ~450ms window the JS holds the red error state open for
    (pinPadPress/processPatternEntry) before resetting the dots/lines back
@@ -595,6 +592,7 @@ height: 24px;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform, color;
+  -webkit-tap-highlight-color: rgba(37, 99, 235, 0.25) !important;
 }
 .slider {
 position: absolute;
@@ -1157,7 +1155,6 @@ html:not(.dark-theme) body::before {
 @media (hover: hover) and (pointer: fine) {
   .hover\:bg-red-600:hover { background-color: var(--brand-red-hover) !important; }
 }
-.hover\:bg-red-600:active { background-color: var(--brand-red-hover) !important; }
 /* The unlock button specifically should never darken on press - it just
    stays var(--brand-red) at all times, tap or no tap, and the popup opens
    either automatically or on click without any color change happening
@@ -1179,7 +1176,29 @@ html:not(.dark-theme) body::before {
 @media (hover: hover) and (pointer: fine) {
   .hover\:bg-green-600:hover, .hover\:bg-green-700:hover { background-color: var(--brand-green-btn-hover) !important; }
 }
-.hover\:bg-green-600:active, .hover\:bg-green-700:active { background-color: var(--brand-green-btn-hover) !important; }
+
+/* ---------- Tap-highlight: transparent everywhere except the PIN pad ----------
+   The browser/WebView's default tap highlight (flat gray overlay, or any
+   color tint) is removed on every element so taps show no highlight at
+   all. The security PIN pad (#screen-pin-pad and everything inside it,
+   e.g. the number keys) is excluded and keeps its existing tap-highlight
+   behavior untouched. */
+*:not(#screen-pin-pad):not(#screen-pin-pad *) {
+  -webkit-tap-highlight-color: transparent;
+}
+/* Buttons also get a default browser/WebView focus outline or background
+   box on tap (separate from -webkit-tap-highlight-color) - e.g. the
+   bottom-nav Stats icon showing a gray box after being tapped. Remove
+   that default focus styling everywhere except the PIN pad, which keeps
+   its own existing behavior untouched. */
+button:not(#screen-pin-pad *):focus,
+button:not(#screen-pin-pad *):focus-visible,
+[role="button"]:not(#screen-pin-pad *):focus,
+[role="button"]:not(#screen-pin-pad *):focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 </style>
 </head>
 <body class="font-sans antialiased text-gray-900 pb-32">
@@ -1325,15 +1344,15 @@ html:not(.dark-theme) body::before {
 <div class="relative flex-1">
 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
 <input type="text" id="logs-search-input" oninput="onSearchInput(this, 'transactions', renderLogsList)" placeholder="Search by Category..." data-i18n-placeholder="logs_search_by_category" data-i18n-placeholder-en="Search by Category..." class="w-full pl-10 pr-9 py-3 bg-gray-200/50 rounded-2xl text-xs font-bold focus:outline-none placeholder-gray-400">
-<button type="button" onclick="clearSearchInput('logs-search-input', renderLogsList)" id="logs-search-input-clear-btn" title="Clear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-200 transition active:scale-90">
+<button type="button" onclick="clearSearchInput('logs-search-input', renderLogsList)" id="logs-search-input-clear-btn" title="Clear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-200 transition">
 <i class="fas fa-xmark text-[10px]"></i>
 </button>
 </div>
-<button onclick="openSearchFilterModal('transactions')" title="Search Filter" class="relative flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
+<button onclick="openSearchFilterModal('transactions')" title="Search Filter" class="relative flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)] transition">
 <i class="fas fa-search"></i>
 <span id="logs-searchfield-filter-dot" class="hidden absolute top-2 right-2 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
-<button onclick="openSectionNoteModal('transactions')" title="Note" class="relative flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
+<button onclick="openSectionNoteModal('transactions')" title="Note" class="relative flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)] transition">
 <svg viewBox="0 0 24 24" class="w-[18px] h-[18px]" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="4" y="5" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/>
 <path d="M8 3V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -1349,29 +1368,29 @@ html:not(.dark-theme) body::before {
 </div>
 
 <div class="grid grid-cols-3 gap-1.5">
-<button onclick="openFilterModal('sort')" class="bg-white border border-gray-200/80 rounded-xl px-2 py-2.5 flex justify-center items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition active:scale-95">
+<button onclick="openFilterModal('sort')" class="bg-white border border-gray-200/80 rounded-xl px-2 py-2.5 flex justify-center items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition">
 <span class="flex items-center min-w-0"><i class="fas fa-sort-amount-down text-red-500 mr-1.5 flex-shrink-0"></i><span id="label-sort" data-i18n="logs_newest" data-i18n-en="Newest">Newest</span><span id="logs-sort-filter-dot" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] ml-1 animate-pulse"></span></span>
 <i class="fas fa-caret-down text-gray-400 text-[10px] flex-shrink-0"></i>
 </button>
 
-<button onclick="openFilterModal('time')" class="bg-white border border-gray-200/80 rounded-xl px-2 py-2.5 flex justify-center items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition active:scale-95">
+<button onclick="openFilterModal('time')" class="bg-white border border-gray-200/80 rounded-xl px-2 py-2.5 flex justify-center items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition">
 <span class="flex items-center min-w-0"><i class="far fa-calendar-alt text-red-500 mr-1.5 flex-shrink-0"></i><span id="label-time" data-i18n="logs_this_month" data-i18n-en="Month">Month</span><span id="logs-time-filter-dot" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] ml-1 animate-pulse"></span></span>
 <i class="fas fa-caret-down text-gray-400 text-[10px] flex-shrink-0"></i>
 </button>
 
-<button onclick="openFilterModal('price')" class="bg-white border border-gray-200/80 rounded-xl pl-4 pr-2 py-2.5 flex justify-between items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition active:scale-95">
+<button onclick="openFilterModal('price')" class="bg-white border border-gray-200/80 rounded-xl pl-4 pr-2 py-2.5 flex justify-between items-center gap-1 text-[9px] font-bold text-gray-700 text-left transition">
 <span class="flex items-center min-w-0"><i class="fas fa-money-bill-wave text-red-500 mr-1.5 flex-shrink-0"></i><span id="label-price" data-i18n="logs_all_prices" data-i18n-en="All Amounts">All Amounts</span><span id="logs-price-filter-dot" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] ml-1 animate-pulse"></span></span>
 <i class="fas fa-caret-down text-gray-400 text-[10px] flex-shrink-0"></i>
 </button>
 </div>
 
 <div class="flex items-center justify-between">
-<button onclick="openDateCalendarIcon('transactions')" title="Pick a specific date" class="w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95 relative">
+<button onclick="openDateCalendarIcon('transactions')" title="Pick a specific date" class="w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[var(--brand-red)] transition relative">
 <i class="far fa-calendar-alt"></i>
 <span id="logs-history-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
 <div class="flex items-center space-x-2 flex-shrink-0">
-<button onclick="clearAllTransactionsHistory()" title="Clear History" class="w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
+<button onclick="clearAllTransactionsHistory()" title="Clear History" class="w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[var(--brand-red)] transition">
 <i class="fas fa-trash-alt text-sm"></i>
 </button>
 </div>
@@ -1383,7 +1402,7 @@ html:not(.dark-theme) body::before {
 <!-- Debts Subtab ("I Owe") -->
 <div id="logs-subtab-debts" class="space-y-4 hidden">
 <div class="daymode-flip-card bg-black text-white p-5 rounded-[24px] shadow-lg space-y-1 relative">
-<button onclick="openDateCalendarIcon('debts')" id="debts-date-filter-btn" title="Filter History" class="absolute top-4 right-4 flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
+<button onclick="openDateCalendarIcon('debts')" id="debts-date-filter-btn" title="Filter History" class="absolute top-4 right-4 flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)] transition">
 <i class="far fa-calendar-alt"></i>
 <span id="debts-date-filter-dot" class="hidden absolute top-2.5 right-2.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
@@ -1395,15 +1414,15 @@ html:not(.dark-theme) body::before {
 <div class="relative flex-1">
 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
 <input type="text" id="debts-search-input" oninput="onSearchInput(this, 'debts', renderDebtsList)" placeholder="Search by Person Name..." data-i18n-placeholder="logs_search_by_person" data-i18n-placeholder-en="Search by Person Name..." class="w-full pl-10 pr-9 py-3 bg-gray-200/50 rounded-2xl text-xs font-bold focus:outline-none placeholder-gray-400">
-<button type="button" onclick="clearSearchInput('debts-search-input', renderDebtsList)" id="debts-search-input-clear-btn" title="Clear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-200 transition active:scale-90">
+<button type="button" onclick="clearSearchInput('debts-search-input', renderDebtsList)" id="debts-search-input-clear-btn" title="Clear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-200 transition">
 <i class="fas fa-xmark text-[10px]"></i>
 </button>
 </div>
-<button onclick="openSearchFilterModal('debts')" title="Search Filter" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
+<button onclick="openSearchFilterModal('debts')" title="Search Filter" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)] transition">
 <i class="fas fa-search text-sm"></i>
 <span id="debts-searchfield-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
-<button onclick="openSectionNoteModal('debts')" title="Note" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
+<button onclick="openSectionNoteModal('debts')" title="Note" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)] transition">
 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="4" y="5" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/>
 <path d="M8 3V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -1422,16 +1441,16 @@ html:not(.dark-theme) body::before {
 <div class="flex items-center gap-1.5 flex-1 min-w-0">
 <button onclick="setDebtStatusFilter('debts','pending')" id="debts-filter-btn-pending" class="flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-[var(--brand-red)] text-white shadow-sm flex items-center justify-center gap-0.5"><i id="debts-pending-icon" class="far fa-clock text-white flex-shrink-0"></i><span data-i18n="logs_pending" data-i18n-en="Pending">Pending</span></button>
 <button onclick="setDebtStatusFilter('debts','settled')" id="debts-filter-btn-settled" class="flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-white text-gray-600 border border-gray-200 flex items-center justify-center gap-0.5"><i id="debts-settled-icon" class="fas fa-handshake text-[var(--brand-red)] flex-shrink-0"></i><span data-i18n="logs_settled" data-i18n-en="Settled">Settled</span></button>
-<button onclick="openPriorityPickerModal('debts')" id="debts-sort-btn-due" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition active:scale-95 focus:outline-none"><i class="fas fa-flag text-red-500 flex-shrink-0"></i><span class="whitespace-nowrap flex-shrink-0" data-i18n="logs_sort_due_soon" data-i18n-en="Priority">Priority</span><span id="debts-sort-dot-due" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
-<button onclick="openDebtAmountPickerModal('debts')" id="debts-sort-btn-amount" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition active:scale-95 focus:outline-none"><i class="fas fa-money-bill-wave text-red-500 flex-shrink-0"></i><span id="debts-sort-label-amount" class="whitespace-nowrap flex-shrink-0" data-i18n="logs_all_prices" data-i18n-en="All Amounts">All Amounts</span><span id="debts-sort-dot-amount" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
+<button onclick="openPriorityPickerModal('debts')" id="debts-sort-btn-due" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition focus:outline-none"><i class="fas fa-flag text-red-500 flex-shrink-0"></i><span class="whitespace-nowrap flex-shrink-0" data-i18n="logs_sort_due_soon" data-i18n-en="Priority">Priority</span><span id="debts-sort-dot-due" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
+<button onclick="openDebtAmountPickerModal('debts')" id="debts-sort-btn-amount" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition focus:outline-none"><i class="fas fa-money-bill-wave text-red-500 flex-shrink-0"></i><span id="debts-sort-label-amount" class="whitespace-nowrap flex-shrink-0" data-i18n="logs_all_prices" data-i18n-en="All Amounts">All Amounts</span><span id="debts-sort-dot-amount" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
 </div>
 <div class="hidden items-center gap-2 flex-shrink-0">
-<button onclick="openDebtFilterModal('debts')" id="debts-time-filter-btn" class="flex items-center space-x-1.5 bg-gray-200/80 hover:bg-gray-300/80 rounded-full pl-3 pr-2.5 py-2 transition active:scale-95 flex-shrink-0">
+<button onclick="openDebtFilterModal('debts')" id="debts-time-filter-btn" class="flex items-center space-x-1.5 bg-gray-200/80 hover:bg-gray-300/80 rounded-full pl-3 pr-2.5 py-2 transition flex-shrink-0">
 <i class="far fa-calendar-alt text-[var(--brand-red)] text-xs"></i>
 <span id="debts-time-filter-label" class="text-[9px] font-bold text-gray-700 whitespace-nowrap" data-i18n="logs_this_month" data-i18n-en="Month">Month</span>
 <i class="fas fa-caret-down text-gray-400 text-[10px]"></i>
 </button>
-<button onclick="clearAllDebtsHistory()" id="debts-clear-btn" title="Clear History" class="hidden flex-shrink-0 w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
+<button onclick="clearAllDebtsHistory()" id="debts-clear-btn" title="Clear History" class="hidden flex-shrink-0 w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[var(--brand-red)] transition">
 <i class="fas fa-trash-alt text-sm"></i>
 </button>
 </div>
@@ -1444,7 +1463,7 @@ html:not(.dark-theme) body::before {
 <!-- Receivables Subtab ("Owed to Me") -->
 <div id="logs-subtab-receivables" class="space-y-4 hidden">
 <div class="daymode-flip-card bg-black text-white p-5 rounded-[24px] shadow-lg space-y-1 relative">
-<button onclick="openDateCalendarIcon('receivables')" id="receivables-date-filter-btn" title="Filter History" class="absolute top-4 right-4 flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
+<button onclick="openDateCalendarIcon('receivables')" id="receivables-date-filter-btn" title="Filter History" class="absolute top-4 right-4 flex-shrink-0 w-11 h-11 rounded-2xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)] transition">
 <i class="far fa-calendar-alt"></i>
 <span id="receivables-date-filter-dot" class="hidden absolute top-2.5 right-2.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
@@ -1456,15 +1475,15 @@ html:not(.dark-theme) body::before {
 <div class="relative flex-1">
 <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
 <input type="text" id="receivables-search-input" oninput="onSearchInput(this, 'receivables', renderReceivablesList)" placeholder="Search by Person Name..." data-i18n-placeholder="logs_search_by_person" data-i18n-placeholder-en="Search by Person Name..." class="w-full pl-10 pr-9 py-3 bg-gray-200/50 rounded-2xl text-xs font-bold focus:outline-none placeholder-gray-400">
-<button type="button" onclick="clearSearchInput('receivables-search-input', renderReceivablesList)" id="receivables-search-input-clear-btn" title="Clear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-200 transition active:scale-90">
+<button type="button" onclick="clearSearchInput('receivables-search-input', renderReceivablesList)" id="receivables-search-input-clear-btn" title="Clear" class="hidden absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-200 transition">
 <i class="fas fa-xmark text-[10px]"></i>
 </button>
 </div>
-<button onclick="openSearchFilterModal('receivables')" title="Search Filter" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
+<button onclick="openSearchFilterModal('receivables')" title="Search Filter" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)] transition">
 <i class="fas fa-search text-sm"></i>
 <span id="receivables-searchfield-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
-<button onclick="openSectionNoteModal('receivables')" title="Note" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
+<button onclick="openSectionNoteModal('receivables')" title="Note" class="relative flex-shrink-0 w-9 h-9 rounded-2xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)] transition">
 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="4" y="5" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/>
 <path d="M8 3V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -1483,16 +1502,16 @@ html:not(.dark-theme) body::before {
 <div class="flex items-center gap-1.5 flex-1 min-w-0">
 <button onclick="setDebtStatusFilter('receivables','pending')" id="receivables-filter-btn-pending" class="flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-[var(--brand-red)] text-white shadow-sm flex items-center justify-center gap-0.5"><i id="receivables-pending-icon" class="far fa-clock text-white flex-shrink-0"></i><span data-i18n="logs_pending" data-i18n-en="Pending">Pending</span></button>
 <button onclick="setDebtStatusFilter('receivables','settled')" id="receivables-filter-btn-settled" class="flex-1 min-w-0 h-8 px-1 py-2 rounded-xl text-[9px] font-bold bg-white text-gray-600 border border-gray-200 flex items-center justify-center gap-0.5"><i id="receivables-settled-icon" class="fas fa-handshake text-[var(--brand-red)] flex-shrink-0"></i><span data-i18n="logs_settled" data-i18n-en="Settled">Settled</span></button>
-<button onclick="openPriorityPickerModal('receivables')" id="receivables-sort-btn-due" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition active:scale-95 focus:outline-none"><i class="fas fa-flag text-red-500 flex-shrink-0"></i><span class="whitespace-nowrap flex-shrink-0" data-i18n="logs_sort_due_soon" data-i18n-en="Priority">Priority</span><span id="receivables-sort-dot-due" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
-<button onclick="openDebtAmountPickerModal('receivables')" id="receivables-sort-btn-amount" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition active:scale-95 focus:outline-none"><i class="fas fa-money-bill-wave text-red-500 flex-shrink-0"></i><span id="receivables-sort-label-amount" class="whitespace-nowrap flex-shrink-0" data-i18n="logs_all_prices" data-i18n-en="All Amounts">All Amounts</span><span id="receivables-sort-dot-amount" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
+<button onclick="openPriorityPickerModal('receivables')" id="receivables-sort-btn-due" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition focus:outline-none"><i class="fas fa-flag text-red-500 flex-shrink-0"></i><span class="whitespace-nowrap flex-shrink-0" data-i18n="logs_sort_due_soon" data-i18n-en="Priority">Priority</span><span id="receivables-sort-dot-due" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
+<button onclick="openDebtAmountPickerModal('receivables')" id="receivables-sort-btn-amount" class="flex-1 min-w-0 h-8 bg-white border border-gray-200/80 rounded-xl px-1 py-2 flex items-center justify-center gap-0.5 text-[7px] font-bold text-gray-700 transition focus:outline-none"><i class="fas fa-money-bill-wave text-red-500 flex-shrink-0"></i><span id="receivables-sort-label-amount" class="whitespace-nowrap flex-shrink-0" data-i18n="logs_all_prices" data-i18n-en="All Amounts">All Amounts</span><span id="receivables-sort-dot-amount" class="hidden flex-shrink-0 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span><i class="fas fa-caret-down text-gray-400 text-[9px] flex-shrink-0"></i></button>
 </div>
 <div class="hidden items-center gap-2 flex-shrink-0">
-<button onclick="openDebtFilterModal('receivables')" id="receivables-time-filter-btn" class="flex items-center space-x-1.5 bg-gray-200/80 hover:bg-gray-300/80 rounded-full pl-3 pr-2.5 py-2 transition active:scale-95 flex-shrink-0">
+<button onclick="openDebtFilterModal('receivables')" id="receivables-time-filter-btn" class="flex items-center space-x-1.5 bg-gray-200/80 hover:bg-gray-300/80 rounded-full pl-3 pr-2.5 py-2 transition flex-shrink-0">
 <i class="far fa-calendar-alt text-[var(--brand-red)] text-xs"></i>
 <span id="receivables-time-filter-label" class="text-[9px] font-bold text-gray-700 whitespace-nowrap" data-i18n="logs_this_month" data-i18n-en="Month">Month</span>
 <i class="fas fa-caret-down text-gray-400 text-[10px]"></i>
 </button>
-<button onclick="clearAllReceivablesHistory()" id="receivables-clear-btn" title="Clear History" class="hidden flex-shrink-0 w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95">
+<button onclick="clearAllReceivablesHistory()" id="receivables-clear-btn" title="Clear History" class="hidden flex-shrink-0 w-9 h-9 rounded-full bg-gray-200/70 hover:bg-gray-300/70 flex items-center justify-center text-[var(--brand-red)] transition">
 <i class="fas fa-trash-alt text-sm"></i>
 </button>
 </div>
@@ -1539,7 +1558,7 @@ html:not(.dark-theme) body::before {
 <i class="fas fa-chart-line absolute text-[var(--brand-red)] opacity-[0.18] text-lg" style="bottom:8%; right:-1%; transform:rotate(-10deg);"></i>
 <i class="fas fa-wallet absolute text-[var(--brand-red)] opacity-[0.16] text-lg" style="top:8%; right:-2%; transform:rotate(-14deg);"></i>
 </div>
-<button onclick="openAvatarPicker()" id="profile-avatar-btn" class="w-14 h-14 rounded-full relative z-10 flex items-center justify-center overflow-hidden flex-shrink-0 transition-transform active:scale-95 bg-gray-100">
+<button onclick="openAvatarPicker()" id="profile-avatar-btn" class="w-14 h-14 rounded-full relative z-10 flex items-center justify-center overflow-hidden flex-shrink-0 transition-transform bg-gray-100">
 <i id="profile-avatar-icon" class="fas fa-user text-xl"></i>
 </button>
 <div class="space-y-1 relative z-10">
@@ -1583,7 +1602,7 @@ html:not(.dark-theme) body::before {
 </label>
 </div>
 
-<button onclick="openLockTypeChooser()" class="w-full bg-gray-200/60 p-4 rounded-[24px] flex justify-between items-center text-left transition-transform active:scale-[0.99]">
+<button onclick="openLockTypeChooser()" class="w-full bg-gray-200/60 p-4 rounded-[24px] flex justify-between items-center text-left transition-transform">
 <div class="flex items-center space-x-3">
 <div id="lock-type-row-icon" class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-[var(--brand-red)] text-lg">
 <i class="fas fa-lock-open"></i>
@@ -1654,7 +1673,7 @@ html:not(.dark-theme) body::before {
 </div>
 </div>
 
-<button id="nav-add-btn" onclick="handleGlobalAddButton()" class="w-14 h-14 min-w-[56px] rounded-full bg-black hover:bg-gray-900 text-white flex items-center justify-center shadow-xl font-bold text-2xl transition-all duration-300 ease-in-out transform active:scale-95">
+<button id="nav-add-btn" onclick="handleGlobalAddButton()" class="w-14 h-14 min-w-[56px] rounded-full bg-black hover:bg-gray-900 text-white flex items-center justify-center shadow-xl font-bold text-2xl transition-all duration-300 ease-in-out transform">
 +
 </button>
 </div>
@@ -1933,7 +1952,7 @@ html:not(.dark-theme) body::before {
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[88vh] overflow-y-auto no-scrollbar">
 <div class="flex items-center justify-between">
 <h3 class="font-extrabold text-lg tracking-tight text-gray-900" id="debt-modal-title" data-i18n="debt_add_debt_title" data-i18n-en="Add Debt">Add Debt</h3>
-<button type="button" onclick="deleteDebtFromEditModal()" id="debt-modal-delete-btn" title="Delete" class="hidden w-8 h-8 rounded-full bg-[#991b1b]/10 hover:bg-[#991b1b]/20 flex items-center justify-center text-[var(--brand-red)] transition active:scale-95 flex-shrink-0">
+<button type="button" onclick="deleteDebtFromEditModal()" id="debt-modal-delete-btn" title="Delete" class="hidden w-8 h-8 rounded-full bg-[#991b1b]/10 hover:bg-[#991b1b]/20 flex items-center justify-center text-[var(--brand-red)] transition flex-shrink-0">
 <i class="fas fa-trash-alt text-xs"></i>
 </button>
 </div>
@@ -1964,7 +1983,7 @@ html:not(.dark-theme) body::before {
 <p class="text-[9px] text-gray-400 font-medium px-1 mt-1" data-i18n="modal_debt_reminder_note" data-i18n-en="You'll get a notification naming this person every day from the due date until it's settled.">You'll get a notification naming this person every day from the due date until it's settled.</p>
 </div>
 
-<button type="button" onclick="clearDebtDueDate()" id="debt-clear-due-btn" class="hidden w-full text-gray-600 py-2 rounded-xl text-xs font-bold transition active:scale-[0.98] border border-gray-300 bg-gray-200/50 hover:bg-gray-200">
+<button type="button" onclick="clearDebtDueDate()" id="debt-clear-due-btn" class="hidden w-full text-gray-600 py-2 rounded-xl text-xs font-bold transition border border-gray-300 bg-gray-200/50 hover:bg-gray-200">
 <i class="fas fa-calendar-xmark mr-1.5"></i><span data-i18n="modal_clear_due_date_btn" data-i18n-en="Clear Due">Clear Due</span>
 </button>
 <div class="flex space-x-2 pt-2">
@@ -2076,9 +2095,9 @@ html:not(.dark-theme) body::before {
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_account_type_icon_label" data-i18n-en="Fund Type & Icon">Fund Type & Icon</label>
 <div id="edit-fund-type-grid" class="grid grid-cols-4 gap-2 overflow-y-auto no-scrollbar pr-0.5"></div>
 </div>
-<div class="pt-2">
-<label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_colour_label" data-i18n-en="Colour">Colour</label>
-<div id="edit-fund-color-grid" class="flex flex-wrap gap-2"></div>
+<div class="pt-1">
+<label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2" data-i18n="modal_colour_label" data-i18n-en="Colour">Colour</label>
+<div id="edit-fund-color-grid" class="grid grid-cols-7 gap-2.5 overflow-y-auto no-scrollbar pr-0.5 pt-2"></div>
 </div>
 <div class="flex space-x-2 pt-2">
 <button onclick="closeEditFundModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
@@ -2109,9 +2128,9 @@ html:not(.dark-theme) body::before {
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_account_type_icon_label" data-i18n-en="Fund Type & Icon">Fund Type & Icon</label>
 <div id="new-fund-type-grid" class="grid grid-cols-4 gap-2 overflow-y-auto no-scrollbar pr-0.5"></div>
 </div>
-<div class="pt-2">
-<label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_colour_label" data-i18n-en="Colour">Colour</label>
-<div id="new-fund-color-grid" class="flex flex-wrap gap-2"></div>
+<div class="pt-1">
+<label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-2" data-i18n="modal_colour_label" data-i18n-en="Colour">Colour</label>
+<div id="new-fund-color-grid" class="grid grid-cols-7 gap-2.5 overflow-y-auto no-scrollbar pr-0.5 pt-2"></div>
 </div>
 <div class="flex space-x-2 pt-2">
 <button onclick="closeAddFundModal()" class="w-1/2 bg-white hover:bg-white/80 text-gray-700 modal-secondary-btn py-2.5 rounded-xl text-xs font-bold transition" data-i18n="common_cancel" data-i18n-en="Cancel">Cancel</button>
@@ -2230,11 +2249,11 @@ Yes, Delete
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="filter_select_date" data-i18n-en="Select a Date">Select a Date</h3>
 </div>
 <div class="flex items-center justify-between">
-<button id="time-calendar-prev-btn" onclick="navigateTimeCalendar(-1)" class="w-8 h-8 rounded-full bg-white/60 hover:bg-white flex items-center justify-center transition active:scale-95">
+<button id="time-calendar-prev-btn" onclick="navigateTimeCalendar(-1)" class="w-8 h-8 rounded-full bg-white/60 hover:bg-white flex items-center justify-center transition">
 <i class="fas fa-chevron-left text-xs text-gray-600"></i>
 </button>
-<span id="time-calendar-month-label" onclick="switchToWheelDatePicker()" title="Wheel Date Picker" class="text-sm font-extrabold text-gray-900 cursor-pointer active:scale-95 transition"></span>
-<button onclick="navigateTimeCalendar(1)" class="w-8 h-8 rounded-full bg-white/60 hover:bg-white flex items-center justify-center transition active:scale-95">
+<span id="time-calendar-month-label" onclick="switchToWheelDatePicker()" title="Wheel Date Picker" class="text-sm font-extrabold text-gray-900 cursor-pointer transition"></span>
+<button onclick="navigateTimeCalendar(1)" class="w-8 h-8 rounded-full bg-white/60 hover:bg-white flex items-center justify-center transition">
 <i class="fas fa-chevron-right text-xs text-gray-600"></i>
 </button>
 </div>
@@ -2260,11 +2279,11 @@ Yes, Delete
 <h3 class="font-extrabold text-lg tracking-tight" data-i18n="filter_select_date" data-i18n-en="Select a Date">Select a Date</h3>
 </div>
 <div class="flex items-center justify-between">
-<button onclick="navigateDueDateCalendar(-1)" class="w-8 h-8 rounded-full bg-white/60 hover:bg-white flex items-center justify-center transition active:scale-95">
+<button onclick="navigateDueDateCalendar(-1)" class="w-8 h-8 rounded-full bg-white/60 hover:bg-white flex items-center justify-center transition">
 <i class="fas fa-chevron-left text-xs text-gray-600"></i>
 </button>
 <span id="due-date-calendar-month-label" class="text-sm font-extrabold text-gray-900"></span>
-<button onclick="navigateDueDateCalendar(1)" class="w-8 h-8 rounded-full bg-white/60 hover:bg-white flex items-center justify-center transition active:scale-95">
+<button onclick="navigateDueDateCalendar(1)" class="w-8 h-8 rounded-full bg-white/60 hover:bg-white flex items-center justify-center transition">
 <i class="fas fa-chevron-right text-xs text-gray-600"></i>
 </button>
 </div>
@@ -2428,7 +2447,7 @@ Yes, Delete
 <div id="popup-unified-date-picker" class="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-4 z-[80] hidden">
 <div class="glass-card rounded-[28px] w-full max-w-sm p-6 space-y-4 shadow-2xl">
 <div class="flex items-center space-x-2 text-gray-900">
-<button onclick="switchToGridDatePicker()" title="Grid Calendar" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)] transition active:scale-95">
+<button onclick="switchToGridDatePicker()" title="Grid Calendar" class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm text-[var(--brand-red)] transition">
 <i class="far fa-calendar-alt text-xs"></i>
 </button>
 <h3 id="unified-date-picker-title" class="font-extrabold text-lg tracking-tight" data-i18n="filter_select_date" data-i18n-en="Select a Date">Select a Date</h3>
@@ -2496,8 +2515,8 @@ Yes, Delete
 </div>
 
 <div id="reminders-permission-banner" class="hidden bg-red-50 border border-red-100 rounded-xl p-3 flex items-center justify-between space-x-2">
-<p class="text-[11px] font-bold text-[var(--brand-red)] flex-1" data-i18n="modal_allow_notif_banner" data-i18n-en="Allow notifications to receive reminders.">Allow notifications to receive reminders.</p>
-<button onclick="requestReminderPermission()" class="bg-[var(--brand-red)] text-white text-[10px] font-bold px-3 py-1.5 rounded-lg flex-shrink-0" data-i18n="common_allow" data-i18n-en="Allow">Allow</button>
+<p class="text-[11px] font-bold text-white flex-1" data-i18n="modal_allow_notif_banner" data-i18n-en="Allow notifications to receive reminders.">Allow notifications to receive reminders.</p>
+<button onclick="requestReminderPermission()" class="bg-[var(--brand-red)] text-white text-[10px] font-bold px-3 py-1.5 rounded-full border border-gray-200 flex-shrink-0" data-i18n="common_allow" data-i18n-en="Allow">Allow</button>
 </div>
 
 <div id="exact-alarm-banner" class="hidden bg-amber-50 border border-amber-100 rounded-xl p-3 flex items-center justify-between space-x-2">
@@ -2534,7 +2553,7 @@ Yes, Delete
 </div>
 <h3 id="details-fund-name" class="text-lg font-bold truncate">Cash</h3>
 </div>
-<button onclick="openAddMoneyModal()" class="w-6 h-6 rounded-md bg-white/15 text-white flex items-center justify-center flex-shrink-0 hover:bg-white/25 active:scale-95 transition" title="Add Money" data-i18n-title="modal_add_money_title" data-i18n-title-en="Add Money">
+<button onclick="openAddMoneyModal()" class="w-6 h-6 rounded-md bg-white/15 text-white flex items-center justify-center flex-shrink-0 hover:bg-white/25 transition" title="Add Money" data-i18n-title="modal_add_money_title" data-i18n-title-en="Add Money">
 <i class="fas fa-plus text-[10px]"></i>
 </button>
 </div>
@@ -2558,7 +2577,7 @@ Yes, Delete
 <div class="flex items-center justify-between">
 <h3 class="text-lg font-bold tracking-tight text-gray-900" data-i18n="acct_transaction_history" data-i18n-en="Transaction History">Transaction History</h3>
 <div class="flex items-center space-x-2 flex-shrink-0">
-<button onclick="openFundNoteModal()" class="w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition relative flex-shrink-0">
+<button onclick="openFundNoteModal()" class="w-9 h-9 rounded-2xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)] transition relative flex-shrink-0">
 <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" xmlns="http://www.w3.org/2000/svg">
 <rect x="4" y="5" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.8" fill="none"/>
 <path d="M8 3V6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
@@ -2571,7 +2590,7 @@ Yes, Delete
 </svg>
 <span id="fund-note-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
-<button onclick="openDateCalendarIcon('fundHistory')" class="w-9 h-9 rounded-2xl bg-gray-200/50 hover:bg-gray-300/50 flex items-center justify-center text-[var(--brand-red)] transition relative flex-shrink-0">
+<button onclick="openDateCalendarIcon('fundHistory')" class="w-9 h-9 rounded-2xl bg-gray-200/50 flex items-center justify-center text-[var(--brand-red)] transition relative flex-shrink-0">
 <i class="far fa-calendar-alt text-sm"></i>
 <span id="fund-history-filter-dot" class="hidden absolute top-1.5 right-1.5 w-1 h-1 rounded-full bg-[var(--brand-red)] animate-pulse"></span>
 </button>
@@ -2670,7 +2689,7 @@ Yes, Delete
 <i class="fas fa-landmark absolute text-white opacity-[0.04] text-4xl" style="bottom:2%; left:40%; transform:rotate(6deg);"></i>
 
 </div>
-<button id="pin-pad-cancel-btn" onclick="cancelPinPad()" class="absolute top-6 left-6 w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center transition active:scale-95 z-10">
+<button id="pin-pad-cancel-btn" onclick="cancelPinPad()" class="absolute top-6 left-6 w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center transition z-10">
 <i class="fas fa-arrow-left"></i>
 </button>
 <div class="relative z-10 flex flex-col items-center justify-center flex-1 w-full max-w-xs">
@@ -2715,7 +2734,7 @@ Yes, Delete
 <i class="fas fa-landmark absolute text-white opacity-[0.04] text-4xl" style="bottom:2%; left:40%; transform:rotate(6deg);"></i>
 
 </div>
-<button id="pattern-pad-cancel-btn" onclick="cancelPatternPad()" class="absolute top-6 left-6 w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center transition active:scale-95 z-10">
+<button id="pattern-pad-cancel-btn" onclick="cancelPatternPad()" class="absolute top-6 left-6 w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center transition z-10">
 <i class="fas fa-arrow-left"></i>
 </button>
 <div class="relative z-10 flex flex-col items-center flex-1 justify-center w-full max-w-xs">
@@ -3605,7 +3624,17 @@ const FUND_TYPES = [
   { key: 'pf',          label: 'Provident Fund',   icon: 'fa-briefcase',              color: '#4338ca' },
   { key: 'business',    label: 'Business',         icon: 'fa-store',                  color: 'var(--brand-green)' },
   { key: 'emergency',   label: 'Emergency Fund',   icon: 'fa-life-ring',              color: '#b45309' },
-  { key: 'family',      label: 'Family Fund',      icon: 'fa-people-roof',            color: '#c026d3' }
+  { key: 'family',      label: 'Family Fund',      icon: 'fa-people-roof',            color: '#c026d3' },
+  { key: 'education',   label: 'Education Fund',   icon: 'fa-graduation-cap',         color: '#0369a1' },
+  { key: 'travel',      label: 'Travel Fund',      icon: 'fa-plane',                  color: '#f97316' },
+  { key: 'health',      label: 'Health Fund',      icon: 'fa-kit-medical',            color: '#dc2626' },
+  { key: 'rent',        label: 'Rent',             icon: 'fa-house',                  color: '#059669' },
+  { key: 'donation',    label: 'Donation',         icon: 'fa-hand-holding-heart',     color: '#a16207' },
+  { key: 'vehicle',     label: 'Vehicle Fund',     icon: 'fa-car',                    color: '#1d4ed8' },
+  { key: 'gift',        label: 'Gift Fund',        icon: 'fa-gift',                   color: '#ec4899' },
+  // Kept last on purpose - the fallback/catch-all option always belongs
+  // at the very end of the grid, after every named preset above it.
+  { key: 'other',       label: 'Other',            icon: 'fa-ellipsis',              color: '#71717a' }
 ];
 
 function getFundType(key) {
@@ -3771,7 +3800,12 @@ function renderFundTypeGrid(containerId, selectedKey, handlerName) {
 }
 
 /* ---------- Custom Colour Picker (independent of account type) ---------- */
-const FUND_COLORS = ['var(--brand-green)', '#0d9488', '#0ea5e9', '#2563eb', '#7c3aed', '#9333ea', '#db2777', 'var(--brand-red)', '#0891b2', '#ea580c', '#ca8a04', '#65a30d', '#d946ef', '#52525b'];
+const FUND_COLORS = [
+  'var(--brand-green)', '#0d9488', '#0ea5e9', '#2563eb', '#7c3aed', '#9333ea', '#db2777',
+  'var(--brand-red)', '#0891b2', '#ea580c', '#ca8a04', '#65a30d', '#d946ef', '#52525b',
+  '#4f46e5', '#e11d48', '#059669', '#eab308', '#475569', '#0369a1', '#c2410c',
+  '#78350f', '#a21caf', '#38bdf8', '#fb7185', '#4d7c0f', '#1e3a8a', '#f59e0b'
+];
 
 function renderColorGrid(containerId, selectedColor, handlerName) {
   const el = document.getElementById(containerId);
@@ -3779,12 +3813,35 @@ function renderColorGrid(containerId, selectedColor, handlerName) {
   const sel = (selectedColor || '').toLowerCase();
   el.innerHTML = FUND_COLORS.map(c => {
     const isSel = c.toLowerCase() === sel;
+    // The outer button is a plain w-5 h-5 hit-target with NO background/shadow
+    // of its own - it's just the grid cell, so its box is exactly what the
+    // grid reserves as this swatch's row height. The actual colour dot is a
+    // smaller w-4 h-4 inner span, and the selected ring's box-shadow (2px)
+    // is attached to THAT inner span, not the outer button. 16px dot + 2px
+    // ring on each side = 20px, i.e. it fits entirely within the 20px outer
+    // button box instead of poking past it. That matters because this grid
+    // snap-scrolls a page (2 rows) at a time: whichever row lands at the very
+    // top of the scroll container after a snap has zero gap above it (the
+    // gap that used to separate it from the previous row scrolls away too),
+    // so anything drawn outside a swatch's own reserved box - like the old
+    // outer ring - got sheared off by the container's top edge at that exact
+    // scroll position. Keeping the ring fully inside the reserved box means
+    // there's nothing left outside it for the container edge to clip,
+    // regardless of which row is currently scrolled to the top.
     return `<button type="button" onclick="${handlerName}('${c}')"
-      class="w-8 h-8 rounded-full flex items-center justify-center transition flex-shrink-0"
-      style="background:${c}; ${isSel ? 'box-shadow:0 0 0 2px white, 0 0 0 4px ' + c + ';' : ''}">
-      ${isSel ? '<i class="fas fa-check text-white text-[10px]"></i>' : ''}
+      class="w-5 h-5 rounded-full flex items-center justify-center transition mx-auto">
+      <span class="w-4 h-4 rounded-full flex items-center justify-center"
+        style="background:${c}; ${isSel ? 'box-shadow:0 0 0 1px white, 0 0 0 2px ' + c + ';' : ''}">
+        ${isSel ? '<i class="fas fa-check text-white text-[8px]"></i>' : ''}
+      </span>
     </button>`;
   }).join('');
+  // Same "show a fixed number, snap-scroll the rest" paging as the Fund
+  // Type & Icon grid above (fitGridToVisibleRows) - 2 rows (14 swatches,
+  // 7-across) stay visible; any further colours snap-scroll a full page
+  // at a time instead of free-scrolling or endlessly wrapping the card
+  // taller.
+  fitGridToVisibleRows(el, 2, 7, 10, true);
 }
 
 let newFundSelectedType = 'cash';
@@ -6774,7 +6831,7 @@ function renderFundsList() {
         </svg>`
       : '';
     return `<div class="w-full flex items-center rounded-2xl overflow-hidden shadow-sm border transition flex-shrink-0 ${isActive ? 'border-2' : 'bg-white border-gray-200'}" style="${isActive ? `border-color:${meta.color}; background:${meta.color}0D;` : ''}">
-      <button onclick="shiftActiveAssetDirectly('${fund}')" class="flex-1 flex items-center space-x-3 px-3 py-2.5 text-left active:scale-[0.98] transition min-w-0">
+      <button onclick="shiftActiveAssetDirectly('${fund}')" class="flex-1 flex items-center space-x-3 px-3 py-2.5 text-left transition min-w-0">
         <span class="w-10 h-10 rounded-full flex items-center justify-center text-sm flex-shrink-0" style="background:${meta.color}22; color:${meta.color}">
           ${fundIconHTML(meta)}
         </span>
@@ -8181,7 +8238,7 @@ function generateDebtCardMarkup(d, query, highlightColor) {
   // it just never recolors the digits beyond their normal tab color.
   const amountHtml = escapeHtml(displayedAmountText);
 
-  return `<div class="bg-gray-100/70 rounded-2xl ${paddingCls} cursor-pointer transition active:scale-[0.99]${CARD_HEIGHT_CLS}${fullMatchCls}" onclick="openDebtHistoryModal(${d.id})">
+  return `<div class="bg-gray-100/70 rounded-2xl ${paddingCls} cursor-pointer transition${CARD_HEIGHT_CLS}${fullMatchCls}" onclick="openDebtHistoryModal(${d.id})">
     <div class="flex justify-between items-start">
       <div class="flex items-center space-x-3 min-w-0 flex-1">
         <div class="w-10 h-10 rounded-xl ${iconBg} flex items-center justify-center flex-shrink-0">
@@ -8208,7 +8265,7 @@ function generateDebtCardMarkup(d, query, highlightColor) {
         <button onclick="event.stopPropagation(); editDebtEntry(${d.id})" title="Edit" class="text-gray-400 hover:text-[var(--brand-red)] transition p-1">
           <i class="fas fa-pen text-sm"></i>
         </button>
-        <button onclick="event.stopPropagation(); toggleDebtKeyPerson(${d.id})" title="${tr('logs_sort_key_person', 'Key Person')}" class="key-person-star-btn flex-shrink-0 text-base leading-none ${d.isKey ? 'text-yellow-500' : 'text-gray-300'} transition active:scale-90 p-1">
+        <button onclick="event.stopPropagation(); toggleDebtKeyPerson(${d.id})" title="${tr('logs_sort_key_person', 'Key Person')}" class="key-person-star-btn flex-shrink-0 text-base leading-none ${d.isKey ? 'text-yellow-500' : 'text-gray-300'} transition p-1">
           <i class="${d.isKey ? 'fas' : 'far'} fa-star"></i>
         </button>
       </div>` : (d.isKey ? `<span class="flex-shrink-0 text-base leading-none text-yellow-500" title="${tr('logs_sort_key_person', 'Key Person')}"><i class="fas fa-star"></i></span>` : '<span></span>')}
@@ -8321,7 +8378,7 @@ function renderDueDateCalendarGrid() {
     else if (isFriday) cls = 'bg-white/60 hover:bg-white text-[var(--brand-red)]';
 
     const isoDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    html += `<button ${isPast ? 'disabled' : `onclick="selectDueDate('${isoDate}')"`} class="relative aspect-square rounded-xl text-xs font-bold flex items-center justify-center transition active:scale-95 ${cls}">
+    html += `<button ${isPast ? 'disabled' : `onclick="selectDueDate('${isoDate}')"`} class="relative aspect-square rounded-xl text-xs font-bold flex items-center justify-center transition ${cls}">
       ${localizeDigits(d)}
     </button>`;
   }
@@ -10769,7 +10826,7 @@ function renderTimeCalendarGrid() {
     else if (isFriday) cls = 'bg-white/60 hover:bg-white text-[var(--brand-red)]';
 
     const isoDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-    html += `<button onclick="selectCalendarDate('${isoDate}')" class="relative aspect-square rounded-xl text-xs font-bold flex items-center justify-center transition active:scale-95 ${cls}">
+    html += `<button onclick="selectCalendarDate('${isoDate}')" class="relative aspect-square rounded-xl text-xs font-bold flex items-center justify-center transition ${cls}">
       ${localizeDigits(d)}
       ${hasSpend && !isSelected ? '<span class="absolute bottom-1 w-1.5 h-1.5 rounded-full bg-[var(--brand-red)] animate-pulse"></span>' : ''}
     </button>`;
