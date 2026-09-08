@@ -5858,6 +5858,17 @@ function autoSizeUsernameInput() {
   input.style.width = Math.max(width + 4, 8) + 'px';
 }
 
+// How long (ms) to wait after toggling the theme class before firing the
+// native status bar update. 32ms (2 animation frames) was too short - the
+// status bar changed before the app's own background finished repainting.
+// 120ms was too long - the status bar visibly lagged behind after the app
+// bg had already changed. The right value sits somewhere between the two
+// and is device-dependent, so tune it here: if the status bar still leads
+// the app bg, INCREASE this number; if it now lags behind the app bg,
+// DECREASE it. Move by ~10-15ms each test and re-test on the real build
+// until both change on the same visible frame.
+const STATUS_BAR_SYNC_DELAY_MS = 60;
+
 /* ---------- Theme (Dark/Light Mode) ---------- */
 
 function toggleLightMode(isLight) {
@@ -5872,19 +5883,12 @@ function toggleLightMode(isLight) {
   // current theme (see updateChart), so it needs a manual redraw here -
   // it doesn't otherwise re-render just because the theme class changed.
   safeRun(updateChart);
-  // The native status bar call is basically instant, but this page's
-  // huge per-theme stylesheet means the browser's own style recalc +
-  // repaint for the class toggle takes a beat longer - so firing the
-  // status bar update too early made it visibly change color before
-  // the app's own background caught up. A double requestAnimationFrame
-  // (2 frames, ~32ms) wasn't enough buffer on real devices, so this
-  // uses a tuned setTimeout instead to give the repaint more room to
-  // actually finish before the status bar follows it. Adjust the 120ms
-  // value up/down after testing on the actual build if the two still
-  // look out of sync.
+  // See STATUS_BAR_SYNC_DELAY_MS above for how to tune this number -
+  // it's the single knob that controls how in-sync the status bar and
+  // the app's own background look on toggle.
   setTimeout(() => {
     safeRun(applyStatusBarForTheme);
-  }, 120);
+  }, STATUS_BAR_SYNC_DELAY_MS);
 }
 
 function updateUsername(val) {
