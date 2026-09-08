@@ -2895,6 +2895,7 @@ const I18N = {
     home_latest_transferred_to: 'সর্বশেষ: {fund}-এ ৳{amt} স্থানান্তর করা হয়েছে',
     home_latest_received_from: 'সর্বশেষ: {fund} থেকে ৳{amt} পাওয়া গেছে',
     home_latest_added: 'সর্বশেষ: ৳{amt} ফান্ডে যোগ হয়েছে',
+    home_latest_collected_as: 'সর্বশেষ: ৳{amt} {cat}',
     home_latest_spent_on: 'সর্বশেষ: {cat}-তে ৳{amt} খরচ হয়েছে',
     home_other: 'অন্যান্য',
     home_no_spending_range: 'এই সময়সীমায় এখনও কোনো খরচ হয়নি।',
@@ -10420,6 +10421,16 @@ function showUpdateSlide(recent) {
   let msg;
   if (t.type === 'transfer_out') msg = trf('home_latest_transferred_to', `Latest: ৳${fmtMoney(t.amount)} transferred to ${fundDisplayName(t.linkedFund)}`, { amt: fmtMoney(t.amount), fund: fundDisplayName(t.linkedFund) });
   else if (t.type === 'transfer_in') msg = trf('home_latest_received_from', `Latest: ৳${fmtMoney(t.amount)} received from ${fundDisplayName(t.linkedFund)}`, { amt: fmtMoney(t.amount), fund: fundDisplayName(t.linkedFund) });
+  // The Bangla category label for "Debt Collection" ('পাওনা আদায় হয়েছে')
+  // is already a complete verb phrase ("receivable has been collected"),
+  // unlike the English label ("Receivable Collected", a plain noun
+  // phrase) - so the two languages need their own sentence shape here
+  // instead of one shared "collected as {cat}" template, or Bangla ends
+  // up with two verbs stacked ("... হয়েছে হিসেবে জমা হয়েছে"). Each
+  // language's template just states the amount + its own already-correct
+  // label, mirroring how the "spent on {cat}" branch below reads
+  // naturally in both languages without needing per-language wording.
+  else if (t.category === 'Debt Collection') msg = trf('home_latest_collected_as', `Latest: ৳${fmtMoney(t.amount)} ${categoryLabel}`, { amt: fmtMoney(t.amount), cat: categoryLabel });
   else if (t.type === 'add_money') msg = trf('home_latest_added', `Latest: ৳${fmtMoney(t.amount)} added to fund`, { amt: fmtMoney(t.amount) });
   else msg = trf('home_latest_spent_on', `Latest: ৳${fmtMoney(t.amount)} spent on ${categoryLabel}`, { amt: fmtMoney(t.amount), cat: categoryLabel });
   textEl.style.opacity = 0;
