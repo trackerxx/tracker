@@ -8068,20 +8068,17 @@ function handleGlobalAddButton() {
 /* ---------- Debts & Receivables (Ledger) ---------- */
 
 function setDebtStatusFilter(category, value) {
-  const changed = debtStatusFilters[category] !== value;
   debtStatusFilters[category] = value;
-  // Switching between Pending/Settled counts as switching tabs too - the
-  // date filter (Today/This Week/This Month/a specific date) is a quick,
-  // one-off look, not a sticky setting, so it always drops back to the
-  // default (This Month) the moment the status tab actually changes,
-  // instead of remembering a separate filter per status. The sort chips
-  // (Priority / Highest) are different - debtSortFilters now keeps a
-  // fully separate value per status (see declaration above), so Pending's
-  // and Settled's own sort selection are completely independent and each
-  // just keeps whatever it was last set to - nothing to reset here.
-  if (changed) {
-    setDebtDateFilter(category, 'month');
-  }
+  // Previously, switching between Pending/Settled forced the date filter
+  // (Today/This Week/This Month/a specific date) back to its default
+  // (This Month) every time - meant to keep it "quick, one-off", but in
+  // practice it silently threw away a date/month the user had
+  // deliberately picked on Settled the moment they stepped away to
+  // Pending (or another screen) and back. debtDateFilters already keeps
+  // a fully separate value per status tab (see declaration above) - same
+  // as debtSortFilters below - so there's no need to force it back here;
+  // it now simply keeps whatever it was last set to on each status tab,
+  // exactly like the sort chips already do.
   updateDebtFilterButtonsUI(category);
   updateDebtSortButtonsUI(category, true);
   updateDebtDateFilterIndicator(category);
