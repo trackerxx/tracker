@@ -7125,7 +7125,16 @@ function renderFundsList() {
       const activeIdx = fundNames.indexOf(appState.activeFund);
       const groupStart = activeIdx > 0 ? Math.floor(activeIdx / FUNDS_VISIBLE_COUNT) * FUNDS_VISIBLE_COUNT : 0;
       const target = container.children[groupStart];
+      // fitListToVisibleCountNow() (queued just above, runs earlier in this
+      // same frame) sets this container's scroll-behavior to 'smooth' for
+      // the user's own finger-drag snap scrolling - which means this
+      // auto-jump-to-active-fund would otherwise animate too, instead of
+      // landing instantly the moment the panel opens. Force it instant by
+      // switching to 'auto' right before the jump, then hand control back
+      // to 'smooth' immediately after so manual swiping still snaps nicely.
+      container.style.scrollBehavior = 'auto';
       container.scrollTop = target ? target.offsetTop : 0;
+      container.style.scrollBehavior = 'smooth';
     });
   } else {
     // Panel isn't visible right now (e.g. a fund switch triggered this
