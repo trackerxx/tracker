@@ -7440,6 +7440,11 @@ function generateTxCardBody(t, actionsHtml, query) {
   const isIncoming = isTransferIn || isAddMoney;
   const amountColor = isIncoming ? 'text-green-600' : 'text-[var(--brand-red)]';
   const amountSign = isIncoming ? '+' : '-';
+  // Search-match letters (category/note) mirror the transaction's own
+  // green/red direction - an incoming ("+৳") entry highlights matched
+  // letters in green (same as Receivables' own green per-letter match),
+  // instead of always defaulting to red regardless of direction.
+  const matchHighlightColor = isIncoming ? 'var(--brand-green)' : undefined;
   const amountText = fmtMoney(t.amount);
   // "Money Added" and "Receivable Collected" (category 'Debt Collection',
   // also type 'add_money') both show the fund the money went into, inline
@@ -7489,7 +7494,7 @@ function generateTxCardBody(t, actionsHtml, query) {
   const badgeInner = `${transferInline}${addMoneyInline}${debtRepayInline}`;
   const hasBadge = !!badgeInner;
   const blankRow = `<p class="text-[9px] font-medium invisible">&nbsp;</p>`;
-  const noteRow = hasNote ? `<p class="text-[9px] text-gray-500 font-medium truncate max-w-[150px]">${descriptionIsMatch ? highlightMatch(realNote, query) : escapeHtml(realNote)}</p>` : '';
+  const noteRow = hasNote ? `<p class="text-[9px] text-gray-500 font-medium truncate max-w-[150px]">${descriptionIsMatch ? highlightMatch(realNote, query, matchHighlightColor) : escapeHtml(realNote)}</p>` : '';
   const badgeRow = hasBadge ? `<p class="text-[9px] font-bold truncate max-w-[150px]">${badgeInner}</p>` : '';
   let leftRow2, leftRow3;
   if (hasNote && hasBadge) {
@@ -7511,7 +7516,7 @@ function generateTxCardBody(t, actionsHtml, query) {
     leftRow3 = blankRow;
   }
 
-  const categoryHtml = categoryIsMatch ? highlightMatch(categoryLabel, query) : escapeHtml(categoryLabel);
+  const categoryHtml = categoryIsMatch ? highlightMatch(categoryLabel, query, matchHighlightColor) : escapeHtml(categoryLabel);
   // Transactions' amount is already colored green/red for income/expense
   // (amountColor below) - unlike Debts/Receivables, it doesn't sit in
   // otherwise-plain text, so layering the per-digit match color on top of
@@ -7525,7 +7530,14 @@ function generateTxCardBody(t, actionsHtml, query) {
     (checkDescription && !!descText && normalizeHyphenForSearch(descText).trim().toLowerCase() === query) ||
     (checkAmount && amountTextExactMatchesQuery(amountText, query))
   );
-  const cardExtraCls = isFullMatch ? ' logs-tx-card-full-match' : '';
+  // Income transactions ("+৳", isIncoming) get the same green full-match
+  // tint as a Receivable exact match (.debt-card-full-match-green) -
+  // money coming in reads as green everywhere else on this card (the
+  // amount itself), so the search "this one fully matches" tint should
+  // match that, not the red used for outgoing/expense entries. Expense
+  // entries ("-৳") keep the original red tint (.logs-tx-card-full-match)
+  // unchanged.
+  const cardExtraCls = isFullMatch ? (isIncoming ? ' debt-card-full-match-green' : ' logs-tx-card-full-match') : '';
 
   return `<div class="logs-tx-card flex justify-between items-start p-3 bg-white rounded-xl shadow-sm transition-colors duration-300 ease-out${cardExtraCls}" data-tx-id="${t.id}">
     <div class="flex items-center space-x-2.5 min-w-0 flex-1">
