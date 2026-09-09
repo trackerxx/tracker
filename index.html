@@ -3711,7 +3711,14 @@ function getFundType(key) {
 // picker where it was first requested.
 function fundIconHTML(t, extraClasses) {
   const cls = extraClasses || '';
-  if (t.key === 'emergency') {
+  // Fund-meta objects (from ensureFundMeta/appState.fundMeta) store the
+  // preset identifier as `.type`, while FUND_TYPES entries themselves use
+  // `.key` - accept either so this special-cased rendering (the siren for
+  // Emergency Fund, the 4-shape glyph for Other) actually fires everywhere
+  // fundIconHTML is called with a saved fund's meta, not just when called
+  // directly with a FUND_TYPES entry.
+  const typeKey = t.key || t.type;
+  if (typeKey === 'emergency') {
     return `<svg viewBox="0 0 24 24" style="width:1em;height:1em" class="${cls}" xmlns="http://www.w3.org/2000/svg">
       <path d="M12 3a1 1 0 0 1 1 1v.1A7 7 0 0 1 19 11v4l1.5 2.25A1 1 0 0 1 19.65 19H4.35a1 1 0 0 1-.85-1.75L5 15v-4a7 7 0 0 1 6-6.9V4a1 1 0 0 1 1-1Z" fill="currentColor"/>
       <rect x="8.5" y="19.2" width="7" height="1.8" rx="0.9" fill="currentColor"/>
@@ -3724,7 +3731,7 @@ function fundIconHTML(t, extraClasses) {
   // icon requested for this slot. Solid currentColor fill (no separate
   // outline color) keeps it consistent with every other fund-type glyph,
   // which are single-tone and tint to the fund's own theme color/dark mode.
-  if (t.key === 'other') {
+  if (typeKey === 'other') {
     return `<svg viewBox="0 0 24 24" style="width:1em;height:1em" class="${cls}" xmlns="http://www.w3.org/2000/svg">
       <circle cx="5.5" cy="5.5" r="4.5" fill="currentColor"/>
       <rect x="13" y="1" width="9" height="9" rx="1" fill="currentColor"/>
