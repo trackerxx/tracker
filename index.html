@@ -2122,7 +2122,7 @@ button:not(#screen-pin-pad *):focus-visible,
 </button>
 </div>
 <input type="hidden" id="edit-fund-original-name">
-<div class="space-y-3">
+<div class="space-y-3" style="margin-top:0.375rem">
 <div>
 <label class="text-[10px] font-bold text-gray-400 uppercase tracking-wider block mb-1" data-i18n="modal_fund_name_locked_label" data-i18n-en="Fund Name">Fund Name</label>
 <input type="text" id="edit-fund-name-input" oninput="stripLeadingDigitsInput(this)" class="w-full p-3 bg-white/80 rounded-xl text-sm font-bold focus:outline-none border border-gray-200 focus:border-[var(--brand-red)]">
@@ -10696,24 +10696,51 @@ function fitGridToVisibleRowsNow(container, items, rows, cols, gapPx, enableSnap
   const gap = gapPx === undefined ? 8 : gapPx;
   const perPage = rows * cols;
   // Labels can wrap to two lines on longer fund-type names (e.g. "Fixed
-  // Deposit"), which makes that row taller than a row of single-line
-  // labels - CSS grid stretches every tile in a row to match its tallest
-  // tile, but a single "any tile stands in for the row height" reading
-  // (the old code below) assumes all rows are the same height. When a
-  // later row was the tall one, that undersized the visible window and
-  // clipped the last row's tile borders/backgrounds at the fold. Instead,
-  // measure each of the first page's own rows and sum their real heights.
-  let visibleHeight = 0;
-  for (let r = 0; r < rows; r++) {
+  // Deposit"), which makes that particular row taller than a row of
+  // single-line labels - CSS grid stretches every tile in a row to match
+  // its tallest tile. Earlier this only measured the FIRST page's rows and
+  // reused that as the height for every page, but different pages can
+  // wrap differently: if page 1 happens to contain the tall two-line row,
+  // sizing the whole scroll window from page 1 makes that window taller
+  // than a later, all-single-line page actually needs. Since the browser
+  // can never scroll further than (full scroll height - window height),
+  // an oversized window on a shorter later page runs out of room to
+  // scroll before that page's row can align flush with the top - leaving
+  // a sliver of the previous (still-scrolling-away) row's border peeking
+  // in above it. So: measure every row in the whole grid, not just page
+  // 1's, and size the window from the TALLEST page found anywhere.
+  const totalRows = Math.ceil(items.length / cols);
+  const rowHeights = [];
+  for (let r = 0; r < totalRows; r++) {
     const idx = r * cols;
     if (idx >= items.length) break;
-    visibleHeight += items[idx].getBoundingClientRect().height;
+    rowHeights.push(items[idx].getBoundingClientRect().height);
   }
-  visibleHeight += gap * (rows - 1);
-  // Small buffer so a tile's own border isn't sliced right at the clip
-  // line (see fitListToVisibleCount's identical reasoning).
-  container.style.maxHeight = (Math.ceil(visibleHeight) + 4) + 'px';
+  let maxPageHeight = 0;
+  let lastPageHeight = 0;
+  for (let r = 0; r < rowHeights.length; r += rows) {
+    const pageRows = rowHeights.slice(r, r + rows);
+    const pageHeight = pageRows.reduce((sum, h) => sum + h, 0) + gap * (pageRows.length - 1);
+    maxPageHeight = Math.max(maxPageHeight, pageHeight);
+    lastPageHeight = pageHeight; // slices march forward, so the final loop pass is the last page
+  }
+  // Clamp the container to the tallest page's height, plus a small fixed
+  // buffer (+6px) so a selected tile's own border/shadow/ring (drawn
+  // slightly outside its layout box) isn't sheared off on whichever page
+  // is tallest.
+  const windowHeight = Math.ceil(maxPageHeight) + 6;
+  container.style.maxHeight = windowHeight + 'px';
   container.style.overflowY = 'auto';
+  // If the LAST page is shorter than the window (i.e. some earlier page
+  // was the tall one), pad the bottom of the scroll content by the
+  // difference. Without this, the browser's max scrollTop (full content
+  // height minus window height) falls short of the last page's actual
+  // top offset, so it can never fully scroll into flush alignment - this
+  // padding gives it just enough extra room to do so, restoring the
+  // border-clip fix above without reintroducing the top-peek bug on a
+  // shorter trailing page.
+  const deficit = windowHeight - lastPageHeight;
+  container.style.paddingBottom = (deficit > 0 ? deficit : 0) + 'px';
 
   if (enableSnap) {
     container.style.scrollSnapType = 'y mandatory';
