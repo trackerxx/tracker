@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Tracker</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -98,6 +98,24 @@ input, textarea {
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Fluid root font-size: Tailwind's spacing, padding, border-radius,
+     gaps, and most text-size utilities (p-4, rounded-3xl, text-xl,
+     space-y-5, etc.) are all defined in rem, which is relative to THIS
+     value. Scaling it with the viewport's own width means every one of
+     those boxes/paddings/corners shrinks together on a narrower/compact
+     screen and grows together on a wider one, instead of staying a
+     fixed px size that was only ever tuned against one reference phone
+     width. 4.1vw keeps ~390px-wide phones (the width this UI was
+     originally tuned at) right at the original 16px baseline; the
+     clamp() floor/ceiling stop things from scaling too far on unusually
+     narrow devices (old/small phones) or unusually wide ones
+     (foldables/tablets in portrait).
+     NOTE: this does NOT affect literal arbitrary values written in
+     brackets, like text-[9px] or an inline "max-height: 88px" - those
+     are hardcoded px, not rem, so they stay a fixed size regardless of
+     screen width by design (mostly tiny label/amount text, where a
+     fixed minimum size is actually what keeps them legible). */
+  font-size: clamp(13px, 4.1vw, 17.5px);
 }
 
 /* Global font override: every piece of text in the app (including form
@@ -474,6 +492,18 @@ padding: 6px 12px;
   transform: translateZ(0);
   -webkit-transform: translateZ(0);
   will-change: transform;
+  /* Different Android skins/WebViews report the on-screen system
+     navigation bar (3-button or gesture pill) to the page differently.
+     Some devices (e.g. compact-screen Xiaomi/MIUI phones) leave that
+     system bar's height OUT of what the WebView tells CSS, which
+     otherwise leaves this bar's plain bottom-3 (12px) sitting too low -
+     behind/under the system bar, or effectively shifted up over content
+     once the OS compensates. env(safe-area-inset-bottom) reports that
+     real inset when the WebView supports it (enabled by
+     viewport-fit=cover on the <meta viewport> tag above), so adding it
+     here keeps this bar clear of the system bar on every device instead
+     of only the ones that happen to match the original fixed offset. */
+  bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px)) !important;
 }
 .nav-pill-active {
 color: #ffffff !important;
@@ -1121,6 +1151,13 @@ body {
      status bar update at the same real moment, regardless of how fast or
      slow repaint happens to be on a given device. */
   transition: background-color 120ms linear;
+  /* Extends the body's Tailwind pb-32 (8rem) by the device's real
+     safe-area bottom inset - same reasoning as #bottom-nav-bar above.
+     Without this, a device that reserves extra space for its own system
+     nav bar could still end up with the last card's bottom edge sitting
+     right under (or behind) this app's own nav bar, even though pb-32
+     alone is normally more than enough clearance. */
+  padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px)) !important;
 }
 body::before {
   content: "";
