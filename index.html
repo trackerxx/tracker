@@ -1333,7 +1333,7 @@ button:not(#screen-pin-pad *):focus-visible,
 <p id="home-debts-owe" class="text-xl font-extrabold text-[var(--brand-red)]">৳0</p>
 </div>
 <div class="w-px h-9 bg-gray-200 mx-3"></div>
-<div class="flex-1">
+<div class="flex-1 text-right">
 <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400" data-i18n="home_you_are_owed" data-i18n-en="You Are Owed">You Are Owed</p>
 <p id="home-debts-owed" class="text-xl font-extrabold text-green-600">৳0</p>
 </div>
@@ -13102,6 +13102,15 @@ function updateChart() {
 
   // Reset scroll position whenever the list is re-rendered (e.g. after
   // switching week/month or funds), so it always starts at the top.
+  // This container has scroll-behavior: smooth (for user-driven snap
+  // scrolling), which would otherwise animate this reset into a visible
+  // "scroll back up" glide every time Home is re-rendered (e.g. coming
+  // back from another tab) - even though nothing actually needs to be
+  // seen scrolling, since the list should just silently already be at
+  // the top. Temporarily switching to 'auto' makes this reset instant/
+  // invisible; fitListToVisibleCountNow() re-applies 'smooth' on its own
+  // next frame for any later real user scrolling.
+  listEl.style.scrollBehavior = 'auto';
   listEl.scrollTop = 0;
 }
 </script>
