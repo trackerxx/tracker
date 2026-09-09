@@ -863,6 +863,19 @@ html:not(.dark-theme) .hover\:bg-gray-100:hover { background-color: #d4d4d8 !imp
 html:not(.dark-theme) .hover\:bg-gray-200:hover { background-color: #d4d4d8 !important; }
 html:not(.dark-theme) .hover\:bg-gray-200\/80:hover { background-color: rgba(212,212,216,0.85) !important; }
 
+/* The "You Owe / You Are Owed" divider (home-debts-divider) sits on a
+   card that's also flattened to the exact same tone by the panel rule
+   above (the card uses .bg-white/40, which the block above resolves to
+   the identical rgba(228,228,231,0.85) as the divider's own .bg-gray-200)
+   - so in light mode the divider was blending perfectly into its own
+   background and disappearing. Dark mode never had this problem (its own
+   .bg-gray-200 override further below is a distinctly different tone
+   from the card behind it), only light mode needs a visibly darker gray
+   here so the line actually shows up against the card. */
+html:not(.dark-theme) #home-debts-divider {
+  background-color: #b8b8bf !important;
+}
+
 /* Light-mode full-match tint - same issue/fix as the dark-theme overrides
    above: the light-mode "flatten every panel background to one gray"
    block right above this comment comes AFTER .logs-tx-card-full-match /
@@ -1332,7 +1345,7 @@ button:not(#screen-pin-pad *):focus-visible,
 <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400" data-i18n="home_you_owe" data-i18n-en="You Owe">You Owe</p>
 <p id="home-debts-owe" class="text-xl font-extrabold text-[var(--brand-red)]">৳0</p>
 </div>
-<div class="w-px h-9 bg-gray-200 mx-3"></div>
+<div id="home-debts-divider" class="w-px h-9 bg-gray-200 mx-3"></div>
 <div class="flex-1 text-right">
 <p class="text-[10px] font-bold uppercase tracking-wider text-gray-400" data-i18n="home_you_are_owed" data-i18n-en="You Are Owed">You Are Owed</p>
 <p id="home-debts-owed" class="text-xl font-extrabold text-green-600">৳0</p>
@@ -8542,7 +8555,7 @@ function generateDebtCardMarkup(d, query, highlightColor) {
   const detailLine = d.fund
     ? `${trf('debt_from_fund', `From ${escapeHtml(d.fund)}`, { fund: escapeHtml(d.fund) })}${noteText ? ' ' + trf('debt_for_note', `For ${noteText}`, { note: noteText }) : ''}`
     : noteText;
-  const dueReminderSuffix = (!d.settled && d.dueDate && d.reminderTime) ? ` • <i class="fas fa-bell text-[9px]"></i> ${(() => { const { h12, minute, ampm } = to12Hour(d.reminderTime); return `${h12}:${String(minute).padStart(2, '0')} ${ampm}`; })()}` : '';
+  const dueReminderSuffix = (!d.settled && d.dueDate && d.reminderTime) ? ` • <i class="fas fa-bell text-[9px]"></i> ${(() => { const { h12, minute, ampm } = to12Hour(d.reminderTime); const minuteStr = String(minute).padStart(2, '0'); const ampmLabel = ampm === 'PM' ? tr('reminder_pm', 'PM') : tr('reminder_am', 'AM'); return `${localizeDigits(h12)}:${localizeDigits(minuteStr)} ${ampmLabel}`; })()}` : '';
   const dueLine = (!d.settled && d.dueDate) ? `<p class="text-[8px] text-gray-400 font-medium">${tr('debt_due', 'Due')}: ${fmtDate(d.dueDate, { month: 'short', day: '2-digit', year: 'numeric' })}${dueReminderSuffix}</p>` : '';
   const settledBadge = d.settled ? `<span class="text-[9px] font-bold text-white bg-green-500 px-2 py-0.5 rounded-full">${tr('debt_settled', 'Settled')}</span>` : '';
 
