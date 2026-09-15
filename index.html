@@ -4596,6 +4596,21 @@ async function applySplashNavigationBarColor() {
   } catch (e) {}
 }
 
+// Fires the splash-matching nav bar color as early as physically
+// possible - on DOMContentLoaded, not window.onload. window.onload
+// (where initStatusBarThemeSync() otherwise runs) also waits for every
+// image/font/etc. on the page to finish loading, which can take a
+// visible moment after the native Activity has already painted its own
+// default nav bar color - so waiting for it means the OS's default
+// color is what's actually visible for that stretch, then visibly
+// swaps to our splash color already mid-splash. cap-bridge.js is a
+// `defer` script, so window.CapBridge is guaranteed ready by the time
+// DOMContentLoaded fires (defer scripts always run before it), which
+// makes this the earliest reliable hook.
+document.addEventListener('DOMContentLoaded', () => {
+  safeRun(applySplashNavigationBarColor);
+});
+
 // Matches the nav bar to the Welcome/Onboarding or PIN/Pattern/
 // biometric lock screen background. Called whenever one of those
 // screens is shown; applyNavigationBarForTheme() (home/app bg) is
