@@ -5,7 +5,6 @@ import { Filesystem, Directory } from '@capacitor/filesystem';
 import { Browser } from '@capacitor/browser';
 import { StatusBar, Style } from '@capacitor/status-bar';
 import { App } from '@capacitor/app';
-import { NavigationBar } from '@capgo/capacitor-navigation-bar';
 
-window.CapBridge = { Capacitor, LocalNotifications, NativeBiometric, Filesystem, Directory, Browser, StatusBar, Style, App, NavigationBar };
+window.CapBridge = { Capacitor, LocalNotifications, NativeBiometric, Filesystem, Directory, Browser, StatusBar, Style, App };
 
