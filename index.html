@@ -4540,6 +4540,29 @@ function openExternalLink(url) {
 const STATUS_BAR_LIGHT_BG = '#f4f4f4';
 const STATUS_BAR_DARK_BG = '#0b0b0d';
 
+/* Navigation bar (Android system bar at the bottom of the screen)
+   colors, mirroring the app's own bottom-of-screen background so the
+   OS bar blends in instead of showing a mismatched color. These are
+   sampled from the actual bottom-of-screen pixel color in each theme
+   (the body background brightens slightly near the bottom via a
+   decorative radial glow), not the plain body background used for
+   the status bar above. */
+const NAV_BAR_LIGHT_BG = '#f1dfe0';
+const NAV_BAR_DARK_BG = '#242426';
+
+// Matches the Android navigation bar to whatever theme the app is
+// currently in. Mirrors applyStatusBarForTheme() below, just for the
+// bottom system bar instead of the top one.
+async function applyNavigationBarForTheme() {
+  const cap = getCap();
+  if (!cap || !cap.NavigationBar || !isNativeApp()) return;
+  if (cap.Capacitor.getPlatform() !== 'android') return;
+  const isLight = !document.documentElement.classList.contains('dark-theme');
+  try {
+    await cap.NavigationBar.setNavigationBarColor({ color: isLight ? NAV_BAR_LIGHT_BG : NAV_BAR_DARK_BG });
+  } catch (e) {}
+}
+
 // Matches the status bar to whatever theme the app is currently in
 // (light or dark). Called on launch, on every theme toggle, and again
 // whenever the app comes back to the foreground.
@@ -4576,10 +4599,12 @@ async function forceStatusBarDark() {
 function initStatusBarThemeSync() {
   const cap = getCap();
   applyStatusBarForTheme();
+  applyNavigationBarForTheme();
   if (cap && cap.App && cap.App.addListener) {
     cap.App.addListener('appStateChange', ({ isActive }) => {
       if (isActive) {
         applyStatusBarForTheme();
+        applyNavigationBarForTheme();
       } else {
         forceStatusBarDark();
       }
@@ -5954,6 +5979,7 @@ function syncStatusBarToBodyRepaint() {
     fired = true;
     document.body.removeEventListener('transitionend', onEnd);
     safeRun(applyStatusBarForTheme);
+    safeRun(applyNavigationBarForTheme);
   };
   const onEnd = (e) => {
     if (e.target === document.body && e.propertyName === 'background-color') {
@@ -10581,8 +10607,8 @@ function renderHomeDebtsOverview() {
   const oweEl = document.getElementById('home-debts-owe');
   const owedEl = document.getElementById('home-debts-owed');
   if (!oweEl || !owedEl) return;
-  const totalOwe = (appState.debts || []).filter(d => d.type === 'debt' && !d.settled).reduce((s, d) => s + d.amount, 0);
-  const totalOwed = (appState.debts || []).filter(d => d.type === 'receivable' && !d.settled).reduce((s, d) => s + d.amount, 0);
+  const totalOwe = (appState.debts || []).filter(d => d.type === 'debt' && !d.settled).reduce((s, d) => s + getDebtRemaining(d), 0);
+  const totalOwed = (appState.debts || []).filter(d => d.type === 'receivable' && !d.settled).reduce((s, d) => s + getDebtRemaining(d), 0);
   oweEl.innerText = `৳${fmtMoney(Math.round(totalOwe), 0)}`;
   owedEl.innerText = `৳${fmtMoney(Math.round(totalOwed), 0)}`;
 }
