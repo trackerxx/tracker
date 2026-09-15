@@ -4471,10 +4471,10 @@ window.onload = async function() {
   if (!appState.onboardingComplete) {
     showOnboarding();
     // No lock screen involved here - safe to just fade the app in once
-    // the minimum splash time is up.
+    // the minimum splash time is up. Nav bar color for this screen is
+    // set inside showOnboarding() itself, not here.
     setTimeout(() => {
       document.documentElement.classList.remove('app-boot-pending');
-      applyNavigationBarForTheme();
     }, remaining);
   } else {
     switchTab('home');
@@ -4489,7 +4489,6 @@ window.onload = async function() {
     // going away instead of racing ahead of it.
     setTimeout(() => {
       document.documentElement.classList.remove('app-boot-pending');
-      applyNavigationBarForTheme();
       if (activeLockType === 'biometric') {
         showBiometricLockScreen();
       } else if (activeLockType === 'pin') {
@@ -4506,6 +4505,8 @@ window.onload = async function() {
           subtitle: tr('lock_pattern_subtitle', 'Draw your pattern to continue'),
           onSuccess: () => {}
         });
+      } else {
+        applyNavigationBarForTheme();
       }
     }, remaining);
   }
@@ -4571,6 +4572,16 @@ const NAV_BAR_DARK_BG = '#2e2e30';
 const BOOT_SPLASH_NAV_DARK_BG = '#05070a';
 const BOOT_SPLASH_NAV_LIGHT_BG = '#ffffff';
 
+/* Welcome/Onboarding and the PIN/Pattern/biometric lock screens all
+   share the same distinct background (a reddish gradient in light
+   mode, a flat #141416 in dark mode - see .from-gray-50/.via-gray-50/
+   .to-red-50 and their html.dark-theme overrides above), separate
+   from the main app's own body background. So the nav bar needs a
+   third color set just for while one of those screens is covering
+   the app - pixel-sampled the same way as the others above. */
+const ONBOARDING_LOCK_NAV_DARK_BG = '#141416';
+const ONBOARDING_LOCK_NAV_LIGHT_BG = '#fef2f2';
+
 // Sets the nav bar to match the boot splash itself (called once, right
 // at launch, before the splash has faded). applyNavigationBarForTheme()
 // below is what switches it over to the real app background, and is
@@ -4582,6 +4593,20 @@ async function applySplashNavigationBarColor() {
   const isLight = !document.documentElement.classList.contains('dark-theme');
   try {
     await cap.NavigationBar.setNavigationBarColor({ color: isLight ? BOOT_SPLASH_NAV_LIGHT_BG : BOOT_SPLASH_NAV_DARK_BG });
+  } catch (e) {}
+}
+
+// Matches the nav bar to the Welcome/Onboarding or PIN/Pattern/
+// biometric lock screen background. Called whenever one of those
+// screens is shown; applyNavigationBarForTheme() (home/app bg) is
+// called back once it's dismissed.
+async function applyLockNavigationBarColor() {
+  const cap = getCap();
+  if (!cap || !cap.NavigationBar || !isNativeApp()) return;
+  if (cap.Capacitor.getPlatform() !== 'android') return;
+  const isLight = !document.documentElement.classList.contains('dark-theme');
+  try {
+    await cap.NavigationBar.setNavigationBarColor({ color: isLight ? ONBOARDING_LOCK_NAV_LIGHT_BG : ONBOARDING_LOCK_NAV_DARK_BG });
   } catch (e) {}
 }
 
@@ -6062,6 +6087,7 @@ function updateUsername(val) {
 function showOnboarding() {
   document.getElementById('onboard-name-input').value = (appState.username && appState.username !== 'User') ? appState.username : '';
   document.getElementById('screen-onboarding').classList.remove('hidden');
+  applyLockNavigationBarColor();
 }
 
 async function completeOnboarding() {
@@ -6073,6 +6099,7 @@ async function completeOnboarding() {
   saveState();
   loadProfileFields();
   document.getElementById('screen-onboarding').classList.add('hidden');
+  applyNavigationBarForTheme();
   initApp();
 }
 
@@ -6318,10 +6345,12 @@ let pinPadCustomSubtitle = '';
 function showFullscreenLockUI(id) {
   const el = document.getElementById(id);
   if (el) el.classList.remove('hidden');
+  applyLockNavigationBarColor();
 }
 function hideFullscreenLockUI(id) {
   const el = document.getElementById(id);
   if (el) el.classList.add('hidden');
+  applyNavigationBarForTheme();
 }
 
 function openPinPad(mode, opts = {}) {
@@ -6802,6 +6831,7 @@ async function confirmBiometricScan(reason, title) {
 
 function showBiometricLockScreen() {
   document.getElementById('screen-biometric-lock').classList.remove('hidden');
+  applyLockNavigationBarColor();
   // Auto-fire the native fingerprint prompt - but only after the boot
   // splash has fully faded out (it has its own 0.35s opacity transition,
   // see #boot-splash above) and the lock screen has had a moment to settle
@@ -6816,6 +6846,7 @@ function showBiometricLockScreen() {
 
 function hideBiometricLockScreen() {
   document.getElementById('screen-biometric-lock').classList.add('hidden');
+  applyNavigationBarForTheme();
 }
 
 async function verifyBiometricUnlock() {
