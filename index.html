@@ -4471,8 +4471,7 @@ window.onload = async function() {
   if (!appState.onboardingComplete) {
     showOnboarding();
     // No lock screen involved here - safe to just fade the app in once
-    // the minimum splash time is up. Nav bar color for this screen is
-    // set inside showOnboarding() itself, not here.
+    // the minimum splash time is up.
     setTimeout(() => {
       document.documentElement.classList.remove('app-boot-pending');
     }, remaining);
@@ -4505,8 +4504,6 @@ window.onload = async function() {
           subtitle: tr('lock_pattern_subtitle', 'Draw your pattern to continue'),
           onSuccess: () => {}
         });
-      } else {
-        applyNavigationBarForTheme();
       }
     }, remaining);
   }
@@ -4542,101 +4539,6 @@ function openExternalLink(url) {
    light, #0b0b0d dark). */
 const STATUS_BAR_LIGHT_BG = '#f4f4f4';
 const STATUS_BAR_DARK_BG = '#0b0b0d';
-
-/* Navigation bar (Android system bar at the bottom of the screen)
-   colors, mirroring the app's own bottom-of-screen background so the
-   OS bar blends in instead of showing a mismatched color. These are
-   sampled from the actual bottom-of-screen pixel color in each theme
-   (the body background brightens slightly near the bottom via a
-   decorative radial glow), not the plain body background used for
-   the status bar above. */
-/* Navigation bar (Android system bar at the bottom of the screen)
-   colors, mirroring the app's own bottom-of-screen background so the
-   OS bar blends in instead of showing a mismatched color. The bottom
-   of the screen isn't a flat color in either theme - it's a radial
-   glow that's brightest at horizontal center and darker toward the
-   edges (see body::before above) - so no single flat hex can match
-   every point along that edge. This value is the average of that row
-   sampled across the full screen width, which minimizes the seam
-   rather than eliminating it outright. */
-const NAV_BAR_LIGHT_BG = '#f1dfe0';
-const NAV_BAR_DARK_BG = '#2e2e30';
-
-/* While the boot splash (#boot-splash, see its CSS above) is still on
-   screen, the nav bar must match THAT background, not the app's own
-   theme background - otherwise the nav bar visibly jumps to the app's
-   color while the near-black/white splash is still covering the rest
-   of the screen for its minimum 2.5s. Keep these in sync with the
-   #boot-splash / html:not(.dark-theme) #boot-splash background-color
-   values above (#05070a dark, #ffffff light). */
-const BOOT_SPLASH_NAV_DARK_BG = '#05070a';
-const BOOT_SPLASH_NAV_LIGHT_BG = '#ffffff';
-
-/* Welcome/Onboarding and the PIN/Pattern/biometric lock screens all
-   share the same distinct background (a reddish gradient in light
-   mode, a flat #141416 in dark mode - see .from-gray-50/.via-gray-50/
-   .to-red-50 and their html.dark-theme overrides above), separate
-   from the main app's own body background. So the nav bar needs a
-   third color set just for while one of those screens is covering
-   the app - pixel-sampled the same way as the others above. */
-const ONBOARDING_LOCK_NAV_DARK_BG = '#141416';
-const ONBOARDING_LOCK_NAV_LIGHT_BG = '#fef2f2';
-
-// Sets the nav bar to match the boot splash itself (called once, right
-// at launch, before the splash has faded). applyNavigationBarForTheme()
-// below is what switches it over to the real app background, and is
-// only called once the splash actually finishes.
-async function applySplashNavigationBarColor() {
-  const cap = getCap();
-  if (!cap || !cap.NavigationBar || !isNativeApp()) return;
-  if (cap.Capacitor.getPlatform() !== 'android') return;
-  const isLight = !document.documentElement.classList.contains('dark-theme');
-  try {
-    await cap.NavigationBar.setNavigationBarColor({ color: isLight ? BOOT_SPLASH_NAV_LIGHT_BG : BOOT_SPLASH_NAV_DARK_BG });
-  } catch (e) {}
-}
-
-// Fires the splash-matching nav bar color as early as physically
-// possible - on DOMContentLoaded, not window.onload. window.onload
-// (where initStatusBarThemeSync() otherwise runs) also waits for every
-// image/font/etc. on the page to finish loading, which can take a
-// visible moment after the native Activity has already painted its own
-// default nav bar color - so waiting for it means the OS's default
-// color is what's actually visible for that stretch, then visibly
-// swaps to our splash color already mid-splash. cap-bridge.js is a
-// `defer` script, so window.CapBridge is guaranteed ready by the time
-// DOMContentLoaded fires (defer scripts always run before it), which
-// makes this the earliest reliable hook.
-document.addEventListener('DOMContentLoaded', () => {
-  safeRun(applySplashNavigationBarColor);
-});
-
-// Matches the nav bar to the Welcome/Onboarding or PIN/Pattern/
-// biometric lock screen background. Called whenever one of those
-// screens is shown; applyNavigationBarForTheme() (home/app bg) is
-// called back once it's dismissed.
-async function applyLockNavigationBarColor() {
-  const cap = getCap();
-  if (!cap || !cap.NavigationBar || !isNativeApp()) return;
-  if (cap.Capacitor.getPlatform() !== 'android') return;
-  const isLight = !document.documentElement.classList.contains('dark-theme');
-  try {
-    await cap.NavigationBar.setNavigationBarColor({ color: isLight ? ONBOARDING_LOCK_NAV_LIGHT_BG : ONBOARDING_LOCK_NAV_DARK_BG });
-  } catch (e) {}
-}
-
-// Matches the Android navigation bar to whatever theme the app is
-// currently in. Mirrors applyStatusBarForTheme() below, just for the
-// bottom system bar instead of the top one.
-async function applyNavigationBarForTheme() {
-  const cap = getCap();
-  if (!cap || !cap.NavigationBar || !isNativeApp()) return;
-  if (cap.Capacitor.getPlatform() !== 'android') return;
-  const isLight = !document.documentElement.classList.contains('dark-theme');
-  try {
-    await cap.NavigationBar.setNavigationBarColor({ color: isLight ? NAV_BAR_LIGHT_BG : NAV_BAR_DARK_BG });
-  } catch (e) {}
-}
 
 // Matches the status bar to whatever theme the app is currently in
 // (light or dark). Called on launch, on every theme toggle, and again
@@ -4674,16 +4576,10 @@ async function forceStatusBarDark() {
 function initStatusBarThemeSync() {
   const cap = getCap();
   applyStatusBarForTheme();
-  // Nav bar starts out matching the boot splash itself, not the app's
-  // theme - applyNavigationBarForTheme() (the app-theme version) gets
-  // called separately once the splash actually finishes, see the two
-  // app-boot-pending removal points in window.onload above.
-  applySplashNavigationBarColor();
   if (cap && cap.App && cap.App.addListener) {
     cap.App.addListener('appStateChange', ({ isActive }) => {
       if (isActive) {
         applyStatusBarForTheme();
-        applyNavigationBarForTheme();
       } else {
         forceStatusBarDark();
       }
@@ -6058,7 +5954,6 @@ function syncStatusBarToBodyRepaint() {
     fired = true;
     document.body.removeEventListener('transitionend', onEnd);
     safeRun(applyStatusBarForTheme);
-    safeRun(applyNavigationBarForTheme);
   };
   const onEnd = (e) => {
     if (e.target === document.body && e.propertyName === 'background-color') {
@@ -6102,7 +5997,6 @@ function updateUsername(val) {
 function showOnboarding() {
   document.getElementById('onboard-name-input').value = (appState.username && appState.username !== 'User') ? appState.username : '';
   document.getElementById('screen-onboarding').classList.remove('hidden');
-  applyLockNavigationBarColor();
 }
 
 async function completeOnboarding() {
@@ -6114,7 +6008,6 @@ async function completeOnboarding() {
   saveState();
   loadProfileFields();
   document.getElementById('screen-onboarding').classList.add('hidden');
-  applyNavigationBarForTheme();
   initApp();
 }
 
@@ -6360,12 +6253,10 @@ let pinPadCustomSubtitle = '';
 function showFullscreenLockUI(id) {
   const el = document.getElementById(id);
   if (el) el.classList.remove('hidden');
-  applyLockNavigationBarColor();
 }
 function hideFullscreenLockUI(id) {
   const el = document.getElementById(id);
   if (el) el.classList.add('hidden');
-  applyNavigationBarForTheme();
 }
 
 function openPinPad(mode, opts = {}) {
@@ -6846,7 +6737,6 @@ async function confirmBiometricScan(reason, title) {
 
 function showBiometricLockScreen() {
   document.getElementById('screen-biometric-lock').classList.remove('hidden');
-  applyLockNavigationBarColor();
   // Auto-fire the native fingerprint prompt - but only after the boot
   // splash has fully faded out (it has its own 0.35s opacity transition,
   // see #boot-splash above) and the lock screen has had a moment to settle
@@ -6861,7 +6751,6 @@ function showBiometricLockScreen() {
 
 function hideBiometricLockScreen() {
   document.getElementById('screen-biometric-lock').classList.add('hidden');
-  applyNavigationBarForTheme();
 }
 
 async function verifyBiometricUnlock() {
