@@ -4474,6 +4474,7 @@ window.onload = async function() {
     // the minimum splash time is up.
     setTimeout(() => {
       document.documentElement.classList.remove('app-boot-pending');
+      applyNavigationBarForTheme();
     }, remaining);
   } else {
     switchTab('home');
@@ -4488,6 +4489,7 @@ window.onload = async function() {
     // going away instead of racing ahead of it.
     setTimeout(() => {
       document.documentElement.classList.remove('app-boot-pending');
+      applyNavigationBarForTheme();
       if (activeLockType === 'biometric') {
         showBiometricLockScreen();
       } else if (activeLockType === 'pin') {
@@ -4547,8 +4549,41 @@ const STATUS_BAR_DARK_BG = '#0b0b0d';
    (the body background brightens slightly near the bottom via a
    decorative radial glow), not the plain body background used for
    the status bar above. */
+/* Navigation bar (Android system bar at the bottom of the screen)
+   colors, mirroring the app's own bottom-of-screen background so the
+   OS bar blends in instead of showing a mismatched color. The bottom
+   of the screen isn't a flat color in either theme - it's a radial
+   glow that's brightest at horizontal center and darker toward the
+   edges (see body::before above) - so no single flat hex can match
+   every point along that edge. This value is the average of that row
+   sampled across the full screen width, which minimizes the seam
+   rather than eliminating it outright. */
 const NAV_BAR_LIGHT_BG = '#f1dfe0';
-const NAV_BAR_DARK_BG = '#242426';
+const NAV_BAR_DARK_BG = '#2e2e30';
+
+/* While the boot splash (#boot-splash, see its CSS above) is still on
+   screen, the nav bar must match THAT background, not the app's own
+   theme background - otherwise the nav bar visibly jumps to the app's
+   color while the near-black/white splash is still covering the rest
+   of the screen for its minimum 2.5s. Keep these in sync with the
+   #boot-splash / html:not(.dark-theme) #boot-splash background-color
+   values above (#05070a dark, #ffffff light). */
+const BOOT_SPLASH_NAV_DARK_BG = '#05070a';
+const BOOT_SPLASH_NAV_LIGHT_BG = '#ffffff';
+
+// Sets the nav bar to match the boot splash itself (called once, right
+// at launch, before the splash has faded). applyNavigationBarForTheme()
+// below is what switches it over to the real app background, and is
+// only called once the splash actually finishes.
+async function applySplashNavigationBarColor() {
+  const cap = getCap();
+  if (!cap || !cap.NavigationBar || !isNativeApp()) return;
+  if (cap.Capacitor.getPlatform() !== 'android') return;
+  const isLight = !document.documentElement.classList.contains('dark-theme');
+  try {
+    await cap.NavigationBar.setNavigationBarColor({ color: isLight ? BOOT_SPLASH_NAV_LIGHT_BG : BOOT_SPLASH_NAV_DARK_BG });
+  } catch (e) {}
+}
 
 // Matches the Android navigation bar to whatever theme the app is
 // currently in. Mirrors applyStatusBarForTheme() below, just for the
@@ -4599,7 +4634,11 @@ async function forceStatusBarDark() {
 function initStatusBarThemeSync() {
   const cap = getCap();
   applyStatusBarForTheme();
-  applyNavigationBarForTheme();
+  // Nav bar starts out matching the boot splash itself, not the app's
+  // theme - applyNavigationBarForTheme() (the app-theme version) gets
+  // called separately once the splash actually finishes, see the two
+  // app-boot-pending removal points in window.onload above.
+  applySplashNavigationBarColor();
   if (cap && cap.App && cap.App.addListener) {
     cap.App.addListener('appStateChange', ({ isActive }) => {
       if (isActive) {
